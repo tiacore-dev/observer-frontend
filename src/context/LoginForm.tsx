@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { Button, Form, Input, message } from 'antd';
+import { Button, Form, Input, message, Typography } from 'antd';
 
 type FormData = {
   username: string;
@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
         onFinish={handleSubmit(onSubmit)}
         style={{ maxWidth: 400, width: '100%' }}
       >
-        <Typography.Title level={2} style={{ textAlign: 'center' }}>Вход</Typography.Title>
+        <Typography.Title level={2} style={{ textAlign: 'center' }}>Вход в систему</Typography.Title>
 
         <Form.Item
           label="Логин"
@@ -73,3 +73,4 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
