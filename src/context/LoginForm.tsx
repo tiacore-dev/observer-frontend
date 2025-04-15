@@ -14,7 +14,7 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = (data: FormData) => {
     // Здесь будет логика авторизации
-    if (data.username === 'admin' && data.password === 'admin') {
+    if (data.username === 'логин' && data.password === 'пароль') {
       message.success('Авторизация успешна');
       // Здесь будет переходна главную
       navigate('/home');
@@ -42,7 +42,7 @@ const LoginPage: React.FC = () => {
             control={control}
             rules={{ required: 'Логин обязателен' }}
             render={({ field }) => (
-              <Input {...field} placeholder="Введите логин" />
+              <Input {...field} placeholder='Введите "логин"' />
             )}
           />
         </Form.Item>
@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
             control={control}
             rules={{ required: 'Пароль обязателен' }}
             render={({ field }) => (
-              <Input.Password {...field} placeholder="Введите пароль" />
+              <Input.Password {...field} placeholder='Введите "пароль"' />
             )}
           />
         </Form.Item>

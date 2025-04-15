@@ -3,7 +3,20 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import LoginPage from './context/LoginForm';
 
 const HomePage: React.FC = () => {
-  return <div>Добро пожаловать на главную страницу!</div>;
+  return (
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontSize: '48px',
+        fontWeight: 'bold',
+      }}
+    >
+      Добро пожаловать на главную страницу!
+    </div>
+  );  
 };
 
 const App: React.FC = () => {
