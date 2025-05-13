@@ -1,39 +1,38 @@
 import React from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   BrowserRouter as Router,
-  Route,
   Routes,
+  Route,
   Navigate,
 } from "react-router-dom";
-import LoginPage from "./context/LoginForm";
-//test
-const HomePage: React.FC = () => {
-  return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontSize: "48px",
-        fontWeight: "bold",
-      }}
-    >
-      Добро пожаловать на главную страницу!
-    </div>
-  );
-};
+import { LoginPage } from "./pages/loginPage/loginPage";
+import ProtectedRoute from "./protectedRoute";
+import { HomePage } from "./pages/homePage/homePage";
+import { BotsPage } from "./pages/botsPage/botsPage";
+import { PromptsPage } from "./pages/promptsPage/promptsPage";
+import { SchedulesPage } from "./pages/schedulesPage/schedulesPage";
+import { CompaniesPage } from "./pages/companiesPage/companiesPage";
+
+const queryClient = new QueryClient();
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/home" element={<HomePage />} />
-        {/* Другие маршруты */}
-      </Routes>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/bots" element={<BotsPage />} />
+            <Route path="/prompts" element={<PromptsPage />} />
+            <Route path="/schedules" element={<SchedulesPage />} />
+            <Route path="/companies" element={<CompaniesPage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </Router>
+    </QueryClientProvider>
   );
 };
 

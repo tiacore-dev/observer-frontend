@@ -1,7 +1,7 @@
-import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { Button, Form, Input, message, Typography } from 'antd';
+import React from "react";
+import { useForm, Controller } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+// import { Button, Form, Input, message, Typography } from 'antd';
 
 type FormData = {
   username: string;
@@ -10,22 +10,33 @@ type FormData = {
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { control, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>();
 
   const onSubmit = (data: FormData) => {
     // Здесь будет логика авторизации
-    if (data.username === 'логин' && data.password === 'пароль') {
-      message.success('Авторизация успешна');
+    if (data.username === "логин" && data.password === "пароль") {
+      // message.success('Авторизация успешна');
       // Здесь будет переходна главную
-      navigate('/home');
+      navigate("/home");
     } else {
-      message.error('Неверные данные');
+      // message.error('Неверные данные');
     }
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <Form
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+      }}
+    >
+      {/* <Form
         layout="vertical"
         onFinish={handleSubmit(onSubmit)}
         style={{ maxWidth: 400, width: '100%' }}
@@ -63,14 +74,13 @@ const LoginPage: React.FC = () => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit" block>
-            Войти
-          </Button>
+          <Button type="primary" htmlType="submit" block> */}
+      <h1>ffffffff</h1> Войти
+      {/* </Button>
         </Form.Item>
-      </Form>
+      </Form> */}
     </div>
   );
 };
 
 export default LoginPage;
-
