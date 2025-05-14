@@ -253,11 +253,6 @@ export const BotsPage: React.FC = () => {
           showLastButton
         />
       </Box>
-
-      {/* Информация о количестве записей */}
-      <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
-        Показано {paginatedBots.length} из {filteredBots.length} записей
-      </Typography>
     </Box>
   );
 };

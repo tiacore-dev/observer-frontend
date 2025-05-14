@@ -214,11 +214,6 @@ export const PromptsPage: React.FC = () => {
           showLastButton
         />
       </Box>
-
-      {/* Информация о количестве записей */}
-      <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
-        Показано {paginatedPrompts.length} из {filteredPrompts.length} записей
-      </Typography>
     </Box>
   );
 };

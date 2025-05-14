@@ -1,4 +1,3 @@
-// src/api/servicesApi.tsx
 import { axiosInstance } from "../axiosConfig";
 import { AxiosError } from "axios";
 

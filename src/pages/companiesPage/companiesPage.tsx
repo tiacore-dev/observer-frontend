@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
   Table,
@@ -12,14 +12,7 @@ import {
   Typography,
   Box,
   Button,
-  TextField,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Pagination,
-  SelectChangeEvent,
-  TableSortLabel,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
@@ -27,16 +20,8 @@ import { useNavigate } from "react-router-dom";
 export const CompaniesPage: React.FC = () => {
   const { data, isLoading, error } = useCompaniesQuery();
   const navigate = useNavigate();
-
-  // Состояния для пагинации
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
-
-  const totalPages = data ? Math.ceil(data.total / rowsPerPage) : 0;
-  const paginatedCompanies = data?.companies.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
 
   if (isLoading) {
     return (
@@ -56,9 +41,23 @@ export const CompaniesPage: React.FC = () => {
     );
   }
 
+  // Если данных нет (но и ошибки нет) - показываем сообщение
+  if (!data?.companies) {
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <Typography>Нет данных о компаниях</Typography>
+      </Box>
+    );
+  }
+
+  const totalPages = Math.ceil(data.total / rowsPerPage);
+  const paginatedCompanies = data.companies.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
   return (
     <Box sx={{ p: 3 }}>
-      {/* Фильтры */}
       <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
         <Button
           variant="contained"
@@ -79,7 +78,7 @@ export const CompaniesPage: React.FC = () => {
             </TableRow>
           </TableHead>
 
-          {/* <TableBody>
+          <TableBody>
             {paginatedCompanies.map((company) => (
               <TableRow
                 key={company.company_id}
@@ -92,11 +91,10 @@ export const CompaniesPage: React.FC = () => {
                 <TableCell>{company.description || "-"}</TableCell>
               </TableRow>
             ))}
-          </TableBody> */}
+          </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Пагинация */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
         <Pagination
           count={totalPages}
@@ -107,11 +105,6 @@ export const CompaniesPage: React.FC = () => {
           showLastButton
         />
       </Box>
-
-      {/* Информация о количестве записей */}
-      {/* <Typography variant="body2" sx={{ mt: 2, textAlign: "center" }}>
-        Показано {paginatedCompanies.length} из {data?.total} записей
-      </Typography> */}
     </Box>
   );
 };

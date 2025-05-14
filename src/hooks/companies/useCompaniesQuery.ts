@@ -5,7 +5,7 @@ import {
   ICompany,
 } from "../../api/companiesApi";
 
-interface ICompaniesResponse {
+export interface ICompaniesResponse {
   total: number;
   companies: ICompany[];
 }

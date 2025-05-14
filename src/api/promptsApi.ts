@@ -1,4 +1,3 @@
-// src/api/servicesApi.tsx
 import { axiosInstance } from "../axiosConfig";
 import { AxiosError } from "axios";
 
@@ -26,7 +25,7 @@ export const fetchPrompts = async () => {
 };
 
 // Функция для создания новой услуги
-export const createService = async (newPrompt: {
+export const createPrompt = async (newPrompt: {
   prompt_name: string;
   text: string;
   company: string;
