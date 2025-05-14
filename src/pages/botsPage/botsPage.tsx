@@ -22,11 +22,15 @@ import {
   TableSortLabel,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom";
+import { AddBotModal } from "./addBotModal";
 
 export const BotsPage: React.FC = () => {
   const { data, isLoading, error } = useBotsQuery();
-  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleAddButtonClick = () => {
+    setIsModalOpen(true);
+  };
 
   // Состояния для фильтрации
   const [nameFilter, setNameFilter] = useState("");
@@ -167,7 +171,7 @@ export const BotsPage: React.FC = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => navigate("/bots/add")}
+          onClick={handleAddButtonClick}
         >
           Добавить бота
         </Button>
@@ -253,6 +257,7 @@ export const BotsPage: React.FC = () => {
           showLastButton
         />
       </Box>
+      <AddBotModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </Box>
   );
 };

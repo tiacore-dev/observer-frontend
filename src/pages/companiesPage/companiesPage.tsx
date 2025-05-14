@@ -15,11 +15,11 @@ import {
   Pagination,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom";
+import { AddCompanyModal } from "./companyAddModel";
 
 export const CompaniesPage: React.FC = () => {
   const { data, isLoading, error } = useCompaniesQuery();
-  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
@@ -41,7 +41,6 @@ export const CompaniesPage: React.FC = () => {
     );
   }
 
-  // Если данных нет (но и ошибки нет) - показываем сообщение
   if (!data?.companies) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -62,7 +61,7 @@ export const CompaniesPage: React.FC = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => navigate("/companies/add")}
+          onClick={() => setIsModalOpen(true)}
         >
           Добавить компанию
         </Button>
@@ -105,6 +104,12 @@ export const CompaniesPage: React.FC = () => {
           showLastButton
         />
       </Box>
+
+      {/* Модальное окно добавления компании */}
+      <AddCompanyModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Box>
   );
 };
