@@ -16,8 +16,13 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { AddCompanyModal } from "./companyAddModel";
+interface CompaniesPageProps {
+  developerMode: boolean;
+}
 
-export const CompaniesPage: React.FC = () => {
+export const CompaniesPage: React.FC<CompaniesPageProps> = ({
+  developerMode,
+}) => {
   const { data, isLoading, error } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -71,7 +76,7 @@ export const CompaniesPage: React.FC = () => {
         <Table sx={{ minWidth: 650 }} aria-label="companies table">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              {developerMode && <TableCell>ID</TableCell>}
               <TableCell>Название</TableCell>
               <TableCell>Описание</TableCell>
             </TableRow>
@@ -83,9 +88,11 @@ export const CompaniesPage: React.FC = () => {
                 key={company.company_id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
-                <TableCell component="th" scope="row">
-                  {company.company_id}
-                </TableCell>
+                {developerMode && (
+                  <TableCell component="th" scope="row">
+                    {company.company_id}
+                  </TableCell>
+                )}
                 <TableCell>{company.company_name}</TableCell>
                 <TableCell>{company.description || "-"}</TableCell>
               </TableRow>

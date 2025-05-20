@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   BrowserRouter as Router,
@@ -13,25 +13,49 @@ import { BotsPage } from "./pages/botsPage/botsPage";
 import { PromptsPage } from "./pages/promptsPage/promptsPage";
 import { SchedulesPage } from "./pages/schedulesPage/schedulesPage";
 import { CompaniesPage } from "./pages/companiesPage/companiesPage";
+import { SnackbarProvider } from "notistack";
 
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
+  const [developerMode, setDeveloperMode] = useState(false);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/bots" element={<BotsPage />} />
-            <Route path="/prompts" element={<PromptsPage />} />
-            <Route path="/schedules" element={<SchedulesPage />} />
-            <Route path="/companies" element={<CompaniesPage />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
-      </Router>
+      <SnackbarProvider maxSnack={3}>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              element={
+                <ProtectedRoute
+                  developerMode={developerMode}
+                  onToggleDeveloperMode={() => setDeveloperMode(!developerMode)}
+                />
+              }
+            >
+              <Route path="/home" element={<HomePage />} />
+              <Route
+                path="/bots"
+                element={<BotsPage developerMode={developerMode} />}
+              />
+              <Route
+                path="/prompts"
+                element={<PromptsPage developerMode={developerMode} />}
+              />
+              <Route
+                path="/schedules"
+                element={<SchedulesPage developerMode={developerMode} />}
+              />
+              <Route
+                path="/companies"
+                element={<CompaniesPage developerMode={developerMode} />}
+              />
+            </Route>
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </Router>
+      </SnackbarProvider>
     </QueryClientProvider>
   );
 };

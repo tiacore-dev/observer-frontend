@@ -1,7 +1,16 @@
 import React, { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Navbar } from "./components/navbar/navbar";
-const ProtectedRoute: React.FC = () => {
+
+interface ProtectedRouteProps {
+  developerMode: boolean;
+  onToggleDeveloperMode: () => void;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  developerMode,
+  onToggleDeveloperMode,
+}) => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -10,11 +19,14 @@ const ProtectedRoute: React.FC = () => {
       navigate("/login");
     }
   }, [navigate]);
-  //
+
   return (
     <>
-      <Navbar />
-      <Outlet />
+      <Navbar
+        developerMode={developerMode}
+        onToggleDeveloperMode={onToggleDeveloperMode}
+      />
+      <Outlet context={{ developerMode }} />
     </>
   );
 };

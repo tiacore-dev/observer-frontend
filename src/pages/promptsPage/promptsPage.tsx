@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+// src/components/prompts/promptsPage.tsx
+import React, { useState, useEffect, useMemo } from "react";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
+import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
   Table,
   TableBody,
@@ -22,11 +24,36 @@ import {
   TableSortLabel,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom";
+import { AddPromptModal } from "./addPromptModal";
+interface PromptsPageProps {
+  developerMode: boolean;
+}
 
-export const PromptsPage: React.FC = () => {
-  const { data, isLoading, error } = usePromptsQuery();
-  const navigate = useNavigate();
+export const PromptsPage: React.FC<PromptsPageProps> = ({ developerMode }) => {
+  const {
+    data: promptsData,
+    isLoading: promptsLoading,
+    error: promptsError,
+  } = usePromptsQuery();
+  const {
+    data: companiesData,
+    isLoading: companiesLoading,
+    error: companiesError,
+  } = useCompaniesQuery();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Создаем словарь для сопоставления company_id -> company_name
+  const companyMap = useMemo(() => {
+    const map = new Map<string, string>();
+    companiesData?.companies?.forEach((company) => {
+      map.set(company.company_id, company.company_name);
+    });
+    return map;
+  }, [companiesData]);
+
+  // Объединяем состояния загрузки и ошибок
+  const isLoading = promptsLoading || companiesLoading;
+  const error = promptsError || companiesError;
 
   // Состояния для фильтрации
   const [nameFilter, setNameFilter] = useState("");
@@ -42,16 +69,21 @@ export const PromptsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Получаем уникальные компании для фильтра
+  // Получаем уникальные компании для фильтра (с названиями)
   const companies = Array.from(
-    new Set(data?.prompts.map((prompt) => prompt.company) || [])
+    new Set(
+      promptsData?.prompts.map((prompt) => ({
+        id: prompt.company,
+        name: companyMap.get(prompt.company) || prompt.company,
+      })) || []
+    )
   );
 
   // Функция для фильтрации и сортировки данных
   const getFilteredAndSortedPrompts = () => {
-    if (!data?.prompts) return [];
+    if (!promptsData?.prompts) return [];
 
-    let filteredPrompts = [...data.prompts];
+    let filteredPrompts = [...promptsData.prompts];
 
     // Фильтрация по имени
     if (nameFilter) {
@@ -67,6 +99,16 @@ export const PromptsPage: React.FC = () => {
       );
     }
 
+    // Сортировка
+    filteredPrompts.sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
     return filteredPrompts;
   };
 
@@ -78,6 +120,7 @@ export const PromptsPage: React.FC = () => {
       setSortDirection("asc");
     }
   };
+
   const filteredPrompts = getFilteredAndSortedPrompts();
   const totalPages = Math.ceil(filteredPrompts.length / rowsPerPage);
   const paginatedPrompts = filteredPrompts.slice(
@@ -129,16 +172,17 @@ export const PromptsPage: React.FC = () => {
           >
             <MenuItem value="">Все компании</MenuItem>
             {companies.map((company) => (
-              <MenuItem key={company} value={company}>
-                {company}
+              <MenuItem key={company.id} value={company.id}>
+                {company.name}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
+
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => navigate("/prompts/add")}
+          onClick={() => setIsModalOpen(true)}
         >
           Добавить промпт
         </Button>
@@ -148,7 +192,7 @@ export const PromptsPage: React.FC = () => {
         <Table sx={{ minWidth: 650 }} aria-label="prompts table">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              {developerMode && <TableCell>ID</TableCell>}
               <TableCell
                 sortDirection={
                   sortField === "prompt_name" ? sortDirection : false
@@ -165,20 +209,25 @@ export const PromptsPage: React.FC = () => {
                 </TableSortLabel>
               </TableCell>
               <TableCell>Текст</TableCell>
-              <TableCell
-                sortDirection={
-                  sortField === "created_at" ? sortDirection : false
-                }
-              >
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortField === "created_at" ? sortDirection : "asc"}
-                  onClick={() => handleSort("created_at")}
+              {developerMode && (
+                <TableCell
+                  sortDirection={
+                    sortField === "created_at" ? sortDirection : false
+                  }
                 >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>Компания</TableCell>
+                  <TableSortLabel
+                    active={sortField === "created_at"}
+                    direction={
+                      sortField === "created_at" ? sortDirection : "asc"
+                    }
+                    onClick={() => handleSort("created_at")}
+                  >
+                    Дата создания
+                  </TableSortLabel>
+                </TableCell>
+              )}
+              <TableCell>Компания</TableCell>{" "}
+              {/* Исправлено - убрали обращение к prompt здесь */}
             </TableRow>
           </TableHead>
 
@@ -188,15 +237,21 @@ export const PromptsPage: React.FC = () => {
                 key={prompt.prompt_id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
-                <TableCell component="th" scope="row">
-                  {prompt.prompt_id}
-                </TableCell>
+                {developerMode && (
+                  <TableCell component="th" scope="row">
+                    {prompt.prompt_id}
+                  </TableCell>
+                )}
                 <TableCell>{prompt.prompt_name}</TableCell>
                 <TableCell>{prompt.text}</TableCell>
+                {developerMode && (
+                  <TableCell>
+                    {new Date(prompt.created_at).toLocaleString()}
+                  </TableCell>
+                )}
                 <TableCell>
-                  {new Date(prompt.created_at).toLocaleString()}
+                  {companyMap.get(prompt.company) || prompt.company}
                 </TableCell>
-                <TableCell>{prompt.company}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -214,6 +269,11 @@ export const PromptsPage: React.FC = () => {
           showLastButton
         />
       </Box>
+
+      <AddPromptModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Box>
   );
 };

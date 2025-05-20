@@ -22,11 +22,17 @@ import {
   TableSortLabel,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom";
+import { AddScheduleModal } from "./addScheduleModal";
 
-export const SchedulesPage: React.FC = () => {
+interface SchedulesPageProps {
+  developerMode: boolean;
+}
+
+export const SchedulesPage: React.FC<SchedulesPageProps> = ({
+  developerMode,
+}) => {
   const { data, isLoading, error } = useSchedulesQuery();
-  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Состояния для фильтрации
   const [nameFilter, setNameFilter] = useState("");
@@ -232,9 +238,9 @@ export const SchedulesPage: React.FC = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => navigate("/schedules/add")}
+          onClick={() => setIsModalOpen(true)}
         >
-          Добавить расписание
+          Добавить расписание (НЕ РАБОТАЕТ)
         </Button>
       </Box>
 
@@ -242,7 +248,7 @@ export const SchedulesPage: React.FC = () => {
         <Table sx={{ minWidth: 650 }} aria-label="schedules table">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              {developerMode && <TableCell>ID</TableCell>}
               <TableCell>Промпт</TableCell>
               <TableCell>Чат</TableCell>
               <TableCell>Компания</TableCell>
@@ -257,15 +263,17 @@ export const SchedulesPage: React.FC = () => {
                 </TableSortLabel>
               </TableCell>
               <TableCell>Доступность</TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortDirection}
-                  onClick={() => handleSort("created_at")}
-                >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
+              {developerMode && (
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === "created_at"}
+                    direction={sortDirection}
+                    onClick={() => handleSort("created_at")}
+                  >
+                    Дата создания
+                  </TableSortLabel>
+                </TableCell>
+              )}
               <TableCell>Бот</TableCell>
               <TableCell>Целевые чаты</TableCell>
             </TableRow>
@@ -277,9 +285,11 @@ export const SchedulesPage: React.FC = () => {
                 key={schedule.schedule_id}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
-                <TableCell component="th" scope="row">
-                  {schedule.schedule_id}
-                </TableCell>
+                {developerMode && (
+                  <TableCell component="th" scope="row">
+                    {schedule.schedule_id}
+                  </TableCell>
+                )}
                 <TableCell>{schedule.prompt}</TableCell>
                 <TableCell>{schedule.chat}</TableCell>
                 <TableCell>{schedule.company}</TableCell>
@@ -291,9 +301,11 @@ export const SchedulesPage: React.FC = () => {
                     <Typography color="error">Выключен</Typography>
                   )}
                 </TableCell>
-                <TableCell>
-                  {new Date(schedule.created_at).toLocaleString()}
-                </TableCell>
+                {developerMode && (
+                  <TableCell>
+                    {new Date(schedule.created_at).toLocaleString()}
+                  </TableCell>
+                )}
                 <TableCell>{schedule.bot}</TableCell>
                 <TableCell>
                   {schedule.target_chats?.join(", ") || "-"}
@@ -315,6 +327,11 @@ export const SchedulesPage: React.FC = () => {
           showLastButton
         />
       </Box>
+
+      <AddScheduleModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Box>
   );
 };

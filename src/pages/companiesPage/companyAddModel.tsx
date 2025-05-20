@@ -45,9 +45,12 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
     if (Object.values(newErrors).some((e) => e)) return;
 
     try {
-      await createCompany.mutateAsync(companyData);
-      onClose();
-      setCompanyData({ company_name: "", description: "" });
+      await createCompany.mutateAsync(companyData, {
+        onSuccess: () => {
+          onClose();
+          setCompanyData({ company_name: "", description: "" });
+        },
+      });
     } catch (error) {
       console.error("Error creating company:", error);
     }

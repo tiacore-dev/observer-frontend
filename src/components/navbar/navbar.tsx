@@ -10,26 +10,18 @@ import {
   Stack,
   IconButton,
   Button,
+  Switch,
+  FormControlLabel,
+  Tooltip,
 } from "@mui/material";
-import LogoutIcon from "@mui/icons-material/Logout"; // Иконка выхода
+import LogoutIcon from "@mui/icons-material/Logout";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 const menuItems = [
-  {
-    label: "Боты",
-    key: "/bots",
-  },
-  {
-    label: "Промпты",
-    key: "/prompts",
-  },
-  {
-    label: "Расписание",
-    key: "/schedules",
-  },
-  {
-    label: "Компании",
-    key: "/companies",
-  },
+  { label: "Боты", key: "/bots" },
+  { label: "Промпты", key: "/prompts" },
+  { label: "Расписание", key: "/schedules" },
+  { label: "Компании", key: "/companies" },
 ];
 
 const StyledMenuList = styled(MenuList)(({ theme }) => ({
@@ -37,7 +29,7 @@ const StyledMenuList = styled(MenuList)(({ theme }) => ({
   flexDirection: "row",
   padding: 0,
   gap: theme.spacing(1),
-  flexGrow: 1, // Добавлено для растягивания меню
+  flexGrow: 1,
 }));
 
 const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
@@ -54,44 +46,38 @@ const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  developerMode: boolean;
+  onToggleDeveloperMode: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({
+  developerMode,
+  onToggleDeveloperMode,
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const onMenuClick = (key: string) => {
-    navigate(key);
-  };
+  const onMenuClick = (key: string) => navigate(key);
 
   const handleLogout = () => {
-    // Очищаем localStorage
     localStorage.clear();
-    // Перенаправляем на страницу логина
     navigate("/login");
   };
 
   const getSelectedKey = () => {
     const currentPath = location.pathname;
-    const selectedItem = menuItems.find(
-      (item) => item.key && currentPath.startsWith(item.key)
+    return (
+      menuItems.find((item) => item.key && currentPath.startsWith(item.key))
+        ?.key || ""
     );
-    return selectedItem ? selectedItem.key : "";
   };
 
   return (
     <Box sx={{ px: 2, pt: 1 }}>
       <Paper elevation={0} sx={{ background: "transparent" }}>
         <Stack direction="row" alignItems="center" spacing={2}>
-          {/* Логотип с ссылкой на /home */}
-          <IconButton
-            onClick={() => navigate("/home")}
-            sx={{
-              p: 1,
-              "&:hover": {
-                backgroundColor: "transparent", // Убираем эффект при наведении если нужно
-              },
-            }}
-          >
-            {/* Вариант 2: Текстовый логотип */}
+          <IconButton onClick={() => navigate("/home")} sx={{ p: 1 }}>
             <Typography
               variant="h6"
               component="div"
@@ -113,23 +99,37 @@ export const Navbar: React.FC = () => {
             ))}
           </StyledMenuList>
 
-          {/* Кнопка выхода справа */}
-          <Button
-            variant="outlined"
-            startIcon={<LogoutIcon />}
-            onClick={handleLogout}
-            sx={{
-              ml: "auto", // Автоматический отступ слева для выравнивания справа
-              color: "text.secondary",
-              borderColor: "divider",
-              "&:hover": {
-                backgroundColor: "action.hover",
-                borderColor: "text.secondary",
-              },
-            }}
-          >
-            Выйти
-          </Button>
+          <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
+            <Tooltip title="Режим разработчика">
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={developerMode}
+                    onChange={onToggleDeveloperMode}
+                    color="secondary"
+                  />
+                }
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <SettingsIcon sx={{ mr: 1 }} />
+                  </Box>
+                }
+                sx={{ mr: 1 }}
+              />
+            </Tooltip>
+
+            <Button
+              variant="outlined"
+              startIcon={<LogoutIcon />}
+              onClick={handleLogout}
+              sx={{
+                color: "text.secondary",
+                borderColor: "divider",
+              }}
+            >
+              Выйти
+            </Button>
+          </Box>
         </Stack>
       </Paper>
     </Box>
