@@ -6,8 +6,8 @@ module.exports = function override(config, env) {
   if (env === "production") {
     config.plugins.push(
       new InjectManifest({
-        swSrc: "./src/service-worker.js",
-        swDest: "service-worker.js",
+        swSrc: "./src/sw.js",
+        swDest: "sw.js",
       }),
       new WebpackPwaManifest({
         name: "My PWA App",
