@@ -26,6 +26,8 @@ export const useDeleteBot = () => {
     mutationFn: (bot_id: string) => deleteBot(bot_id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bots"] });
+      queryClient.invalidateQueries({ queryKey: ["bot"] });
+
       enqueueSnackbar("Успешно удалено", { variant: "success" });
     },
     onError: () => {

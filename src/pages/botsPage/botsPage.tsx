@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
+import { useBotDetailsQuery } from "../../hooks/bots/useBotsQuery";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   CircularProgress,
   Typography,
@@ -20,16 +15,59 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
-  TableSortLabel,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { AddBotModal } from "./addBotModal";
+import { PageProps } from "../../App";
+import { BotsTable } from "./botsTable";
+import { useNavigate, useParams } from "react-router-dom";
+import { BotCard } from "./botCard";
 
-interface BotsPageProps {
-  developerMode: boolean;
-}
+const BotDetailsPage: React.FC<{ botId: string; developerMode: boolean }> = ({
+  botId,
+  developerMode,
+}) => {
+  const { data: bot, isLoading, error } = useBotDetailsQuery(botId);
+  const { data: companiesData } = useCompaniesQuery();
 
-export const BotsPage: React.FC<BotsPageProps> = ({ developerMode }) => {
+  const companyMap = useMemo(() => {
+    const map = new Map<string, string>();
+    companiesData?.companies?.forEach((company) => {
+      map.set(company.company_id, company.company_name);
+    });
+    return map;
+  }, [companiesData]);
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !bot) {
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <Typography color="error">
+          Ошибка: {(error as Error)?.message || "Бот не найден"}
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <BotCard
+      bot={bot}
+      companyName={companyMap.get(bot.company) || bot.company}
+      developerMode={developerMode}
+    />
+  );
+};
+
+export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
+  const { botId } = useParams();
+  const navigate = useNavigate();
   const {
     data: botsData,
     isLoading: botsLoading,
@@ -128,6 +166,10 @@ export const BotsPage: React.FC<BotsPageProps> = ({ developerMode }) => {
     setPage(1);
   }, [nameFilter, companyFilter, statusFilter]);
 
+  if (botId) {
+    return <BotDetailsPage botId={botId} developerMode={developerMode} />;
+  }
+
   if (isLoading)
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -196,86 +238,15 @@ export const BotsPage: React.FC<BotsPageProps> = ({ developerMode }) => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="bots table">
-          <TableHead>
-            <TableRow>
-              {/* {developerMode &&  */}
-              <TableCell>ID</TableCell>
-              {/* } */}
-              <TableCell
-                sortDirection={
-                  sortField === "bot_username" ? sortDirection : false
-                }
-              >
-                <TableSortLabel
-                  active={sortField === "bot_username"}
-                  direction={
-                    sortField === "bot_username" ? sortDirection : "asc"
-                  }
-                  onClick={() => handleSort("bot_username")}
-                >
-                  Имя бота
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>Имя</TableCell>
-              <TableCell>Компания</TableCell>
-              <TableCell>Статус</TableCell>
-              {developerMode && (
-                <TableCell
-                  sortDirection={
-                    sortField === "created_at" ? sortDirection : false
-                  }
-                >
-                  <TableSortLabel
-                    active={sortField === "created_at"}
-                    direction={
-                      sortField === "created_at" ? sortDirection : "asc"
-                    }
-                    onClick={() => handleSort("created_at")}
-                  >
-                    Дата создания
-                  </TableSortLabel>
-                </TableCell>
-              )}
-              <TableCell>Комментарий</TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {paginatedBots.map((bot) => (
-              <TableRow
-                key={bot.bot_id}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                {/* {developerMode && ( */}
-                <TableCell component="th" scope="row">
-                  {bot.bot_id}
-                </TableCell>
-                {/* )} */}
-                <TableCell>{bot.bot_username}</TableCell>
-                <TableCell>{bot.bot_first_name}</TableCell>
-                <TableCell>
-                  {companyMap.get(bot.company) || bot.company}
-                </TableCell>
-                <TableCell>
-                  {bot.is_active ? (
-                    <Typography color="success.main">Активен</Typography>
-                  ) : (
-                    <Typography color="error">Неактивен</Typography>
-                  )}
-                </TableCell>
-                {developerMode && (
-                  <TableCell>
-                    {new Date(bot.created_at).toLocaleString()}
-                  </TableCell>
-                )}
-                <TableCell>{bot.comment || "-"}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <BotsTable
+        bots={paginatedBots}
+        companyMap={companyMap}
+        developerMode={developerMode}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        onRowClick={(botId) => navigate(`/bots/${botId}`)}
+      />
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
         <Pagination

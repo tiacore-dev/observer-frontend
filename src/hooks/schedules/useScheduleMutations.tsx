@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createSchedule,
   deleteSchedule,
-  Ischedule,
+  ISchedule,
   IscheduleCreate,
   toggleSchedule,
   updateSchedule,
@@ -32,7 +32,7 @@ export const useUpdateSchedule = () => {
       updatedData,
     }: {
       schedule_id: string;
-      updatedData: Partial<Ischedule>;
+      updatedData: Partial<ISchedule>;
     }) => updateSchedule(schedule_id, updatedData),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });

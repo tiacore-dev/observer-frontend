@@ -2,7 +2,7 @@ import { axiosInstance } from "../axiosConfig";
 import { AxiosError } from "axios";
 
 export interface IBot {
-  bot_id: number;
+  bot_id: string;
   bot_token: string;
   bot_username: string;
   bot_first_name: string;

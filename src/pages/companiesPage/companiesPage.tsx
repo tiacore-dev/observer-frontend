@@ -1,12 +1,10 @@
+// companiesPage.tsx
 import React, { useState } from "react";
-import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  useCompaniesQuery,
+  useCompanyDetailsQuery,
+} from "../../hooks/companies/useCompaniesQuery";
+import {
   Paper,
   CircularProgress,
   Typography,
@@ -16,17 +14,51 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { AddCompanyModal } from "./companyAddModel";
-interface CompaniesPageProps {
-  developerMode: boolean;
-}
+import { PageProps } from "../../App";
+import { CompaniesTable } from "./companiesTable";
+import { useNavigate, useParams } from "react-router-dom";
+import { CompanyCard } from "./companyCard";
 
-export const CompaniesPage: React.FC<CompaniesPageProps> = ({
-  developerMode,
-}) => {
+const CompanyDetailsPage: React.FC<{
+  companyId: string;
+  developerMode: boolean;
+}> = ({ companyId, developerMode }) => {
+  const { data: company, isLoading, error } = useCompanyDetailsQuery(companyId);
+
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !company) {
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <Typography color="error">
+          Ошибка: {(error as Error)?.message || "Компания не найдена"}
+        </Typography>
+      </Box>
+    );
+  }
+
+  return <CompanyCard company={company} developerMode={developerMode} />;
+};
+
+export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
+  const { companyId } = useParams();
+  const navigate = useNavigate();
   const { data, isLoading, error } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+
+  if (companyId) {
+    return (
+      <CompanyDetailsPage companyId={companyId} developerMode={developerMode} />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -72,34 +104,11 @@ export const CompaniesPage: React.FC<CompaniesPageProps> = ({
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="companies table">
-          <TableHead>
-            <TableRow>
-              {developerMode && <TableCell>ID</TableCell>}
-              <TableCell>Название</TableCell>
-              <TableCell>Описание</TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {paginatedCompanies.map((company) => (
-              <TableRow
-                key={company.company_id}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                {developerMode && (
-                  <TableCell component="th" scope="row">
-                    {company.company_id}
-                  </TableCell>
-                )}
-                <TableCell>{company.company_name}</TableCell>
-                <TableCell>{company.description || "-"}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <CompaniesTable
+        companies={paginatedCompanies}
+        developerMode={developerMode}
+        onRowClick={(companyId) => navigate(`/companies/${companyId}`)}
+      />
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
         <Pagination
@@ -112,7 +121,6 @@ export const CompaniesPage: React.FC<CompaniesPageProps> = ({
         />
       </Box>
 
-      {/* Модальное окно добавления компании */}
       <AddCompanyModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -18,10 +18,14 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 
 const menuItems = [
+  { label: "Компании", key: "/companies" },
   { label: "Боты", key: "/bots" },
+  { label: "Чаты", key: "/chats" },
+  { label: "Аккаунты", key: "/accounts" },
+  { label: "Анализ", key: "/analysis" },
+
   { label: "Промпты", key: "/prompts" },
   { label: "Расписание", key: "/schedules" },
-  { label: "Компании", key: "/companies" },
 ];
 
 const StyledMenuList = styled(MenuList)(({ theme }) => ({

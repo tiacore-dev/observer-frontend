@@ -1,12 +1,12 @@
 import { axiosInstance } from "../axiosConfig";
 import { AxiosError } from "axios";
 
-export interface Ischedule {
+export interface ISchedule {
   schedule_id: string; //uuid4
   chat: number;
   prompt: string; //uuid4
   company: string; //uuid4
-  schedule_type: string;
+  schedule_type: "interval" | "cron" | "once";
   interval_hours?: number; // Expand: all(integer: |: null)
   interval_minutes?: number; //Expand: all(integer: |: null)
   time_of_day?: string; //Expand: all(string: |: null)
@@ -15,7 +15,7 @@ export interface Ischedule {
   enabled: boolean;
   last_run_at?: string; //Expand: all(string: |: null)
   created_at: string; //date-time
-  send_strategy: string;
+  send_strategy: "fixed" | "relative"; //Expand allstring
   time_to_send?: string; // Expand: all(string: |: null)
   send_after_minutes?: number; //Expand: all(integer: |: null)
   bot: number;
@@ -25,19 +25,20 @@ export interface Ischedule {
 export interface IscheduleCreate {
   chat: number;
   prompt: string; //uuid4
+  schedule_type: "interval" | "cron" | "once";
   company: string; //uuid4
-  schedule_type: string;
-  interval_hours?: number; // Expand: all(integer: |: null)
-  interval_minutes?: number; //Expand: all(integer: |: null)
-  time_of_day?: string; //Expand: all(string: |: null)
-  cron_expression?: string; // Expand: all(string: |: null)
-  run_at?: string; //Expand: all(string: |: null)
-  enabled: boolean;
-  send_strategy: string;
-  time_to_send?: string; // Expand: all(string: |: null)
-  send_after_minutes?: number; //Expand: all(integer: |: null)
+  target_chats: number[]; //Expand allarray<:number>
   bot: number;
-  target_chats: number[];
+  send_strategy: "fixed" | "relative"; //Expand allstring
+
+  interval_hours?: number; // interval  Expand all(:number | null)
+  interval_minutes?: number; //interval  Expand all(:number | null)
+  time_of_day?: string; // once   Expand all(string | null)
+  cron_expression?: string; // cron  Expand all(string | null)
+  run_at?: string; // Expand all(string | null)
+  enabled?: boolean; // Expand all(boolean | null)
+  time_to_send?: string; // Expand all(string | null)
+  send_after_minutes?: number; // Expand all(:number | null)
 }
 // Функция для получения списка услуг с параметрами
 export const fetchSchedules = async () => {
@@ -57,7 +58,7 @@ export const fetchSchedules = async () => {
 // Функция для создания новой услуги
 export const createSchedule = async (
   newSchedule: IscheduleCreate
-): Promise<Ischedule> => {
+): Promise<ISchedule> => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   const response = await axiosInstance.post(

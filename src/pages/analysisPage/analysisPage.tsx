@@ -1,37 +1,38 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
+import { useAnalysisQuery } from "../../hooks/analysis/useAnalysisQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
   Paper,
   CircularProgress,
   Typography,
   Box,
-  Button,
   TextField,
   MenuItem,
   Select,
   InputLabel,
   FormControl,
   Pagination,
-  SelectChangeEvent,
+  Button,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import { AddPromptModal } from "./addPromptModal";
 import { PageProps } from "../../App";
-import { PromptsTable } from "./promptsTable"; // Импортируем новый компонент
+import { AnalysisTable } from "./analysisTable";
+import { useNavigate, useParams } from "react-router-dom";
+import { IAnalys } from "../../api/analysisApi";
+import AddIcon from "@mui/icons-material/Add";
+import { AddAnalysisModal } from "./addAnalysisModal";
 
-export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
+export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const {
-    data: promptsData,
-    isLoading: promptsLoading,
-    error: promptsError,
-  } = usePromptsQuery();
+    data: analysisData,
+    isLoading: analysisLoading,
+    error: analysisError,
+  } = useAnalysisQuery();
   const {
     data: companiesData,
     isLoading: companiesLoading,
     error: companiesError,
   } = useCompaniesQuery();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const companyMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -41,56 +42,65 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
     return map;
   }, [companiesData]);
 
-  const isLoading = promptsLoading || companiesLoading;
-  const error = promptsError || companiesError;
+  const isLoading = analysisLoading || companiesLoading;
+  const error = analysisError || companiesError;
 
-  const [nameFilter, setNameFilter] = useState("");
+  const [chatFilter, setChatFilter] = useState("");
+  const [scheduleFilter, setScheduleFilter] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
-  const [sortField, setSortField] = useState<"prompt_name" | "created_at">(
-    "prompt_name"
-  );
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<keyof IAnalys>("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const companies = Array.from(
     new Set(
-      promptsData?.prompts.map((prompt) => ({
-        id: prompt.company,
-        name: companyMap.get(prompt.company) || prompt.company,
+      analysisData?.chats?.map((item) => ({
+        id: item.company,
+        name: companyMap.get(item.company) || item.company,
       })) || []
     )
   );
 
-  const getFilteredAndSortedPrompts = () => {
-    if (!promptsData?.prompts) return [];
+  const getFilteredAndSortedAnalysis = () => {
+    if (!analysisData?.chats) return [];
 
-    let filteredPrompts = [...promptsData.prompts];
+    let filteredAnalysis = [...analysisData.chats];
 
-    if (nameFilter) {
-      filteredPrompts = filteredPrompts.filter((prompt) =>
-        prompt.prompt_name.toLowerCase().includes(nameFilter.toLowerCase())
+    if (chatFilter) {
+      filteredAnalysis = filteredAnalysis.filter((item) =>
+        item.chat.toString().includes(chatFilter)
+      );
+    }
+
+    if (scheduleFilter) {
+      filteredAnalysis = filteredAnalysis.filter(
+        (item) =>
+          item.schedule &&
+          item.schedule.toLowerCase().includes(scheduleFilter.toLowerCase())
       );
     }
 
     if (companyFilter) {
-      filteredPrompts = filteredPrompts.filter(
-        (prompt) => prompt.company === companyFilter
+      filteredAnalysis = filteredAnalysis.filter(
+        (item) => item.company === companyFilter
       );
     }
 
-    filteredPrompts.sort((a, b) => {
+    filteredAnalysis.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
+      if (aValue === undefined || bValue === undefined) return 0;
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
 
-    return filteredPrompts;
+    return filteredAnalysis;
   };
 
-  const handleSort = (field: "prompt_name" | "created_at") => {
+  const handleSort = (field: keyof IAnalys) => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -99,44 +109,49 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
   };
 
-  const filteredPrompts = getFilteredAndSortedPrompts();
-  const totalPages = Math.ceil(filteredPrompts.length / rowsPerPage);
-  const paginatedPrompts = filteredPrompts.slice(
+  const filteredAnalysis = getFilteredAndSortedAnalysis();
+  const totalPages = Math.ceil(filteredAnalysis.length / rowsPerPage);
+  const paginatedAnalysis = filteredAnalysis.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
 
   useEffect(() => {
     setPage(1);
-  }, [nameFilter, companyFilter]);
+  }, [chatFilter, scheduleFilter, companyFilter]);
 
-  if (isLoading) {
+  if (isLoading)
     return (
       <Box display="flex" justifyContent="center" mt={4}>
         <CircularProgress />
       </Box>
     );
-  }
-
-  if (error) {
+  if (error)
     return (
       <Box display="flex" justifyContent="center" mt={4}>
         <Typography color="error">
-          Ошибка при загрузке данных: {(error as Error).message}
+          Ошибка: {(error as Error).message}
         </Typography>
       </Box>
     );
-  }
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
         <TextField
-          label="Поиск по имени"
+          label="Поиск по Chat ID"
           variant="outlined"
           size="small"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
+          value={chatFilter}
+          onChange={(e) => setChatFilter(e.target.value)}
+        />
+
+        <TextField
+          label="Поиск по Schedule"
+          variant="outlined"
+          size="small"
+          value={scheduleFilter}
+          onChange={(e) => setScheduleFilter(e.target.value)}
         />
 
         <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -160,17 +175,20 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
           startIcon={<AddIcon />}
           onClick={() => setIsModalOpen(true)}
         >
-          Добавить промпт
+          Добавить анализ (не работает)
         </Button>
       </Box>
 
-      <PromptsTable
-        prompts={paginatedPrompts}
+      <AnalysisTable
+        analysis={paginatedAnalysis}
         companyMap={companyMap}
         developerMode={developerMode}
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
+        onRowClick={
+          developerMode ? (id) => navigate(`/analysis/${id}`) : undefined
+        }
       />
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
@@ -183,8 +201,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
           showLastButton
         />
       </Box>
-
-      <AddPromptModal
+      <AddAnalysisModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />

@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSchedulesQuery } from "../../hooks/schedules/useSchedulesQuery";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   CircularProgress,
   Typography,
@@ -19,39 +13,30 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
-  TableSortLabel,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { PageProps } from "../../App";
+import { SchedulesTable } from "./schedulesTable"; // Импортируем новый компонент
 import { AddScheduleModal } from "./addScheduleModal";
 
-interface SchedulesPageProps {
-  developerMode: boolean;
-}
-
-export const SchedulesPage: React.FC<SchedulesPageProps> = ({
-  developerMode,
-}) => {
+export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { data, isLoading, error } = useSchedulesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Состояния для фильтрации
   const [nameFilter, setNameFilter] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
   const [chatFilter, setChatFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [enabledFilter, setEnabledFilter] = useState<boolean | "all">("all");
 
-  // Состояния для сортировки
   const [sortField, setSortField] = useState<"created_at" | "schedule_type">(
     "created_at"
   );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  // Состояния для пагинации
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Получаем уникальные значения для фильтров
   const companies = Array.from(
     new Set(data?.schedules.map((schedule) => schedule.company) || [])
   );
@@ -62,48 +47,41 @@ export const SchedulesPage: React.FC<SchedulesPageProps> = ({
     new Set(data?.schedules.map((schedule) => schedule.schedule_type) || [])
   );
 
-  // Функция для фильтрации и сортировки данных
   const getFilteredAndSortedSchedules = () => {
     if (!data?.schedules) return [];
 
     let filteredSchedules = [...data.schedules];
 
-    // Фильтрация по названию (prompt)
     if (nameFilter) {
       filteredSchedules = filteredSchedules.filter((schedule) =>
         schedule.prompt.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
 
-    // Фильтрация по компании
     if (companyFilter) {
       filteredSchedules = filteredSchedules.filter(
         (schedule) => schedule.company === companyFilter
       );
     }
 
-    // Фильтрация по чату
     if (chatFilter) {
       filteredSchedules = filteredSchedules.filter(
         (schedule) => schedule.chat.toString() === chatFilter
       );
     }
 
-    // Фильтрация по типу
     if (typeFilter) {
       filteredSchedules = filteredSchedules.filter(
         (schedule) => schedule.schedule_type === typeFilter
       );
     }
 
-    // Фильтрация по доступности
     if (enabledFilter !== "all") {
       filteredSchedules = filteredSchedules.filter(
         (schedule) => schedule.enabled === enabledFilter
       );
     }
 
-    // Сортировка
     filteredSchedules.sort((a, b) => {
       if (sortField === "created_at") {
         const dateA = new Date(a.created_at).getTime();
@@ -135,7 +113,6 @@ export const SchedulesPage: React.FC<SchedulesPageProps> = ({
     page * rowsPerPage
   );
 
-  // Сброс страницы при изменении фильтров
   useEffect(() => {
     setPage(1);
   }, [nameFilter, companyFilter, chatFilter, typeFilter, enabledFilter]);
@@ -160,7 +137,6 @@ export const SchedulesPage: React.FC<SchedulesPageProps> = ({
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Фильтры */}
       <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
         <TextField
           label="Поиск по промпту"
@@ -240,83 +216,18 @@ export const SchedulesPage: React.FC<SchedulesPageProps> = ({
           startIcon={<AddIcon />}
           onClick={() => setIsModalOpen(true)}
         >
-          Добавить расписание (НЕ РАБОТАЕТ)
+          Добавить расписание (не работает)
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="schedules table">
-          <TableHead>
-            <TableRow>
-              {developerMode && <TableCell>ID</TableCell>}
-              <TableCell>Промпт</TableCell>
-              <TableCell>Чат</TableCell>
-              <TableCell>Компания</TableCell>
-              <TableCell>Тип</TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === "schedule_type"}
-                  direction={sortDirection}
-                  onClick={() => handleSort("schedule_type")}
-                >
-                  Тип расписания
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>Доступность</TableCell>
-              {developerMode && (
-                <TableCell>
-                  <TableSortLabel
-                    active={sortField === "created_at"}
-                    direction={sortDirection}
-                    onClick={() => handleSort("created_at")}
-                  >
-                    Дата создания
-                  </TableSortLabel>
-                </TableCell>
-              )}
-              <TableCell>Бот</TableCell>
-              <TableCell>Целевые чаты</TableCell>
-            </TableRow>
-          </TableHead>
+      <SchedulesTable
+        schedules={paginatedSchedules}
+        developerMode={developerMode}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+      />
 
-          <TableBody>
-            {paginatedSchedules.map((schedule) => (
-              <TableRow
-                key={schedule.schedule_id}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                {developerMode && (
-                  <TableCell component="th" scope="row">
-                    {schedule.schedule_id}
-                  </TableCell>
-                )}
-                <TableCell>{schedule.prompt}</TableCell>
-                <TableCell>{schedule.chat}</TableCell>
-                <TableCell>{schedule.company}</TableCell>
-                <TableCell>{schedule.schedule_type}</TableCell>
-                <TableCell>
-                  {schedule.enabled ? (
-                    <Typography color="success.main">Включен</Typography>
-                  ) : (
-                    <Typography color="error">Выключен</Typography>
-                  )}
-                </TableCell>
-                {developerMode && (
-                  <TableCell>
-                    {new Date(schedule.created_at).toLocaleString()}
-                  </TableCell>
-                )}
-                <TableCell>{schedule.bot}</TableCell>
-                <TableCell>
-                  {schedule.target_chats?.join(", ") || "-"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Пагинация */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
         <Pagination
           count={totalPages}
@@ -327,7 +238,6 @@ export const SchedulesPage: React.FC<SchedulesPageProps> = ({
           showLastButton
         />
       </Box>
-
       <AddScheduleModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
