@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 // import { Button, Form, Input, message, Typography } from 'antd';
 
 type FormData = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = (data: FormData) => {
     // Здесь будет логика авторизации
-    if (data.username === "логин" && data.password === "пароль") {
+    if (data.email === "логин" && data.password === "пароль") {
       // message.success('Авторизация успешна');
       // Здесь будет переходна главную
       navigate("/home");

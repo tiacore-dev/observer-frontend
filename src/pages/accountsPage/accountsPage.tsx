@@ -22,10 +22,10 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   const error = accountsError;
 
   const [nameFilter, setNameFilter] = useState("");
-  const [usernameFilter, setUsernameFilter] = useState("");
+  const [emailFilter, setEmailFilter] = useState("");
 
   const [sortField, setSortField] = useState<
-    "account_name" | "created_at" | "username"
+    "account_name" | "created_at" | "email"
   >("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -41,9 +41,9 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
         account.account_name.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
-    if (usernameFilter) {
+    if (emailFilter) {
       filteredAccounts = filteredAccounts.filter((account) =>
-        account.username.toLowerCase().includes(usernameFilter.toLowerCase())
+        account.email.toLowerCase().includes(emailFilter.toLowerCase())
       );
     }
 
@@ -58,7 +58,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     return filteredAccounts;
   };
 
-  const handleSort = (field: "account_name" | "created_at" | "username") => {
+  const handleSort = (field: "account_name" | "created_at" | "email") => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -110,8 +110,8 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
           label="Поиск по пользователю"
           variant="outlined"
           size="small"
-          value={usernameFilter}
-          onChange={(e) => setUsernameFilter(e.target.value)}
+          value={emailFilter}
+          onChange={(e) => setEmailFilter(e.target.value)}
         />
       </Box>
 

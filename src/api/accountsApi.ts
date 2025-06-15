@@ -4,7 +4,7 @@ import { AxiosError } from "axios";
 export interface IAccount {
   account_id: number;
   account_name: string;
-  username: string;
+  email: string;
   created_at: string | Date;
 }
 // Функция для получения списка услуг с параметрами

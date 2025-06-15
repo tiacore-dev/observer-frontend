@@ -16,12 +16,9 @@ export const fetchBots = async () => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   // const selectedCompanyId = localStorage.getItem("selectedCompanyId");
-
   const params: any = { page: 1, page_size: 100 };
-
   const response = await axiosInstance.get(`${url}/api/bots/all`, {
     params,
-
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",

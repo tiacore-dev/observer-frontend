@@ -11,7 +11,7 @@ import {
 import { useLoginMutation } from "../../hooks/auth/useAuthMutations";
 
 type FormData = {
-  username: string;
+  email: string;
   password: string;
 };
 
@@ -22,7 +22,7 @@ export const LoginPage: React.FC = () => {
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -62,7 +62,7 @@ export const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Controller
-            name="username"
+            name="email"
             control={control}
             rules={{
               required: "Логин обязателен",
@@ -71,12 +71,12 @@ export const LoginPage: React.FC = () => {
               <TextField
                 {...field}
                 fullWidth
-                label="username"
+                label="email"
                 variant="outlined"
                 margin="normal"
                 disabled={loginMutation.isPending}
-                error={!!errors.username}
-                helperText={errors.username?.message}
+                error={!!errors.email}
+                helperText={errors.email?.message}
               />
             )}
           />
