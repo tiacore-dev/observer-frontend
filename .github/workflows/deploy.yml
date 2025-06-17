@@ -41,23 +41,48 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to Production
-        if: github.ref_name == 'master'
-        run: ssh -o StrictHostKeyChecking=no -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          cd apps/observer-frontend &&
-          sed -i 's/^TAG=.*/TAG=${{ github.sha }}/' .env || echo 'TAG=${{ github.sha }}' >> .env &&
-          docker compose down &&
-          docker compose pull &&
-          docker compose up -d"
+      - name: Determine Deployment Path and Tag
+        run: |
+          if [[ "${{ github.ref_name }}" == "master" ]]; then
+            echo "DEPLOY_PATH=apps/observer-frontend" >> $GITHUB_ENV
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
+            echo "DEPLOY_PATH=apps/observer-frontend-dev" >> $GITHUB_ENV
+          elif [[ "${{ github.ref_name }}" == "stage" ]]; then
+            echo "DEPLOY_PATH=apps/observer-frontend-stage" >> $GITHUB_ENV
+          else
+            echo "❌ Неизвестная ветка! Прерываем процесс."
+            exit 1
+          fi
+          echo "DEPLOY_TAG=${{ github.sha }}" >> $GITHUB_ENV
 
-      - name: Deploy to Development
-        if: github.ref_name == 'dev'
-        run: ssh -o StrictHostKeyChecking=no -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
-          cd apps/observer-frontend-dev &&
-          sed -i 's/^TAG=.*/TAG=${{ github.sha }}/' .env || echo 'TAG=${{ github.sha }}' >> .env &&
-          docker compose down &&
-          docker compose pull &&
-          docker compose up -d"
+      - name: Deploy Frontend
+        run: |
+          echo "🚀 Деплой..."
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=30 ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << EOF
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            export DOCKERHUB_TOKEN=${{ secrets.DOCKERHUB_TOKEN }}
+            export DEPLOY_TAG=${{ github.sha }}
+            export DEPLOY_BRANCH=${GITHUB_REF##*/}
+
+            cd $DEPLOY_PATH || { echo "❌ Не удалось перейти в $DEPLOY_PATH"; exit 1; }
+
+            git pull origin \$DEPLOY_BRANCH || { echo "❌ git pull не удался"; exit 1; }
+
+            echo "\$DOCKERHUB_TOKEN" | docker login -u "\$DOCKERHUB_USERNAME" --password-stdin \
+              || { echo "❌ Docker login failed"; exit 1; }
+
+            docker pull \$DOCKERHUB_USERNAME/observer-frontend:\$DEPLOY_TAG \
+              || { echo "❌ Docker pull failed"; exit 1; }
+
+            if [ ! -f .env ]; then touch .env; fi
+            grep -q "^TAG=" .env && sed -i "s/^TAG=.*/TAG=\$DEPLOY_TAG/" .env || echo "TAG=\$DEPLOY_TAG" >> .env
+
+            docker compose pull --quiet --ignore-pull-failures &&
+            docker compose up -d --remove-orphans \
+              || { echo "❌ docker compose up failed"; exit 1; }
+          EOF
+
+
 
   notify:
     name: 📬 Telegram Notify
