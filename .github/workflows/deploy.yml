@@ -21,9 +21,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push image
-        env:
-          REACT_APP_API_URL: ${{ secrets.API_URL }}
-          REACT_APP_AUTH_API_URL: ${{ secrets.AUTH_URL }}
           REACT_APP_ID: ${{ secrets.APP }}
         uses: docker/build-push-action@v5
         with:
@@ -32,6 +29,10 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/observer-frontend:${{ github.sha }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/observer-frontend:cache
           cache-to: type=inline
+          build-args: |
+            REACT_APP_API_URL=${{ secrets.API_URL }}
+            REACT_APP_AUTH_API_URL=${{ secrets.AUTH_URL }}
+            REACT_APP_ID=${{ secrets.APP }}
 
   deploy:
     runs-on: ubuntu-latest
