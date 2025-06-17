@@ -45,14 +45,14 @@ jobs:
         if: github.ref_name == 'master'
         run: ssh -o StrictHostKeyChecking=no -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd apps/observer-frontend &&
-          docker compose pull &&
+          docker pull &&
           docker compose up -d"
 
       - name: Deploy to Development
         if: github.ref_name == 'dev'
         run: ssh -o StrictHostKeyChecking=no -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd apps/observer-frontend-dev &&
-          docker compose pull &&
+          docker pull &&
           docker compose up -d"
 
   notify:
