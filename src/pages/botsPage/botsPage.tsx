@@ -104,8 +104,8 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const companies = Array.from(
     new Set(
       botsData?.bots.map((bot) => ({
-        id: bot.company,
-        name: companyMap.get(bot.company) || bot.company,
+        id: bot.company_id,
+        name: companyMap.get(bot.company_id) || bot.company_id,
       })) || []
     )
   );
@@ -125,7 +125,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (companyFilter) {
       filteredBots = filteredBots.filter(
-        (bot) => bot.company === companyFilter
+        (bot) => bot.company_id === companyFilter
       );
     }
 

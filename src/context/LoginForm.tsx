@@ -21,7 +21,7 @@ const LoginPage: React.FC = () => {
     if (data.email === "логин" && data.password === "пароль") {
       // message.success('Авторизация успешна');
       // Здесь будет переходна главную
-      navigate("/home");
+      navigate("/account");
     } else {
       // message.error('Неверные данные');
     }

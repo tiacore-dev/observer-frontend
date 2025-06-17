@@ -1,6 +1,8 @@
+// src/components/ProtectedRoute.tsx
 import React, { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { Navbar } from "./components/navbar/navbar";
+import { useAuth } from "./context/authContext";
+import AppLayout from "./components/AppLayout";
 
 interface ProtectedRouteProps {
   developerMode: boolean;
@@ -12,22 +14,30 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   onToggleDeveloperMode,
 }) => {
   const navigate = useNavigate();
+  const { isAuthenticated, checkAuth } = useAuth();
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
-      navigate("/login");
-    }
-  }, [navigate]);
+    const verifyAuth = async () => {
+      const isAuth = await checkAuth();
+      if (!isAuth) {
+        // navigate("/login");
+      }
+    };
+
+    verifyAuth();
+  }, [checkAuth, navigate]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
-    <>
-      <Navbar
-        developerMode={developerMode}
-        onToggleDeveloperMode={onToggleDeveloperMode}
-      />
+    <AppLayout
+      developerMode={developerMode}
+      onToggleDeveloperMode={onToggleDeveloperMode}
+    >
       <Outlet context={{ developerMode }} />
-    </>
+    </AppLayout>
   );
 };
 

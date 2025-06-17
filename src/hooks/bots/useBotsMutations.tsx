@@ -7,7 +7,7 @@ export const useCreateBot = () => {
   return useMutation({
     mutationFn: (newBot: {
       token: string;
-      company: string;
+      company_id: string;
       comment?: string;
     }) => createBot(newBot),
     onSuccess: () => {

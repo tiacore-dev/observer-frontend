@@ -92,7 +92,7 @@ export const BotsTable: React.FC<BotsTableProps> = ({
               <TableCell>{bot.bot_first_name}</TableCell>
               {developerMode && (
                 <TableCell>
-                  {companyMap.get(bot.company) || bot.company}
+                  {companyMap.get(bot.company_id) || bot.company_id}
                 </TableCell>
               )}
               <TableCell>

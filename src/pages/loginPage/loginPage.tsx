@@ -8,7 +8,7 @@ import {
   TextField,
   Paper,
 } from "@mui/material";
-import { useLoginMutation } from "../../hooks/auth/useAuthMutations";
+import { useAuth } from "../../context/authContext";
 
 type FormData = {
   email: string;
@@ -27,14 +27,17 @@ export const LoginPage: React.FC = () => {
     },
   });
 
-  const loginMutation = useLoginMutation(); // Предполагается, что хук уже адаптирован
+  const { login } = useAuth();
 
   const onSubmit = useCallback(
-    (data: FormData) => {
-      console.log("Submitting form data:", data); // Логирование
-      loginMutation.mutate(data);
+    async (data: FormData) => {
+      try {
+        await login(data);
+      } catch (error) {
+        console.error("Login error:", error);
+      }
     },
-    [loginMutation]
+    [login]
   );
 
   return (
@@ -71,10 +74,9 @@ export const LoginPage: React.FC = () => {
               <TextField
                 {...field}
                 fullWidth
-                label="email"
+                label="Email"
                 variant="outlined"
                 margin="normal"
-                disabled={loginMutation.isPending}
                 error={!!errors.email}
                 helperText={errors.email?.message}
               />
@@ -99,7 +101,6 @@ export const LoginPage: React.FC = () => {
                 type="password"
                 variant="outlined"
                 margin="normal"
-                disabled={loginMutation.isPending}
                 error={!!errors.password}
                 helperText={errors.password?.message}
               />
@@ -111,14 +112,9 @@ export const LoginPage: React.FC = () => {
             fullWidth
             variant="contained"
             color="primary"
-            disabled={loginMutation.isPending}
             sx={{ mt: 3, mb: 2 }}
           >
-            {loginMutation.isPending ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Войти"
-            )}
+            Войти
           </Button>
         </form>
       </Paper>

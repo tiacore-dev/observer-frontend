@@ -25,7 +25,7 @@ interface AddBotModalProps {
 export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
   const [botData, setBotData] = useState({
     token: "",
-    company: "",
+    company_id: "",
     comment: "",
   });
   const createBot = useCreateBot();
@@ -40,7 +40,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
 
   const [errors, setErrors] = useState({
     token: "",
-    company: "",
+    company_id: "",
   });
 
   const validateToken = (token: string) => {
@@ -55,7 +55,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
         : !validateToken(botData.token)
         ? "Неверный формат токена"
         : "",
-      company: !botData.company ? "Выберите компанию" : "",
+      company_id: !botData.company_id ? "Выберите компанию" : "",
     };
 
     setErrors(newErrors);
@@ -65,7 +65,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     try {
       await createBot.mutateAsync(botData);
       onClose();
-      setBotData({ token: "", company: "", comment: "" });
+      setBotData({ token: "", company_id: "", comment: "" });
     } catch (error) {
       console.error("Error creating bot:", error);
     }
@@ -117,14 +117,14 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
             required
           />
 
-          <FormControl fullWidth required error={!!errors.company}>
+          <FormControl fullWidth required error={!!errors.company_id}>
             <InputLabel>Компания</InputLabel>
             <Select
               name="company"
-              value={botData.company}
+              value={botData.company_id}
               label="Компания"
               onChange={(e) =>
-                setBotData((prev) => ({ ...prev, company: e.target.value }))
+                setBotData((prev) => ({ ...prev, company_id: e.target.value }))
               }
             >
               {companiesData?.companies.map((company) => (
@@ -133,9 +133,9 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
                 </MenuItem>
               ))}
             </Select>
-            {errors.company && (
+            {errors.company_id && (
               <Typography variant="caption" color="error">
-                {errors.company}
+                {errors.company_id}
               </Typography>
             )}
           </FormControl>
@@ -156,7 +156,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={!botData.token || !botData.company}
+          disabled={!botData.token || !botData.company_id}
         >
           Создать
         </Button>

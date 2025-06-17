@@ -6,7 +6,7 @@ export interface IBot {
   bot_token: string;
   bot_username: string;
   bot_first_name: string;
-  company: string; //uuid4
+  company_id: string; //uuid4
   is_active: boolean;
   created_at: string; //date-time
   comment?: string;
@@ -30,7 +30,7 @@ export const fetchBots = async () => {
 // Функция для создания новой услуги
 export const createBot = async (newBot: {
   token: string;
-  company: string;
+  company_id: string;
   comment?: string;
 }): Promise<IBot> => {
   const url = process.env.REACT_APP_API_URL;
