@@ -20,7 +20,7 @@ export const AccountPage: React.FC = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ pt: 4, pl: 4 }}>
       <Typography variant="h4" gutterBottom>
         Мой аккаунт
       </Typography>
@@ -76,6 +76,7 @@ export const AccountPage: React.FC = () => {
           </CardContent>
         </Card>
       </Grid>
+      {/* </Grid> */}
 
       {/* <Grid item xs={12} md={6}> */}
       {/* <Card>

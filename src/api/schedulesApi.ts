@@ -2,43 +2,42 @@ import { axiosInstance } from "../axiosConfig";
 import { AxiosError } from "axios";
 
 export interface ISchedule {
-  schedule_id: string; //uuid4
-  chat: number;
-  prompt: string; //uuid4
-  company: string; //uuid4
+  schedule_id: string; // uuid4
+  chat_id: number;
+  prompt_id: string; // uuid4
+  company_id: string; // uuid4
   schedule_type: "interval" | "cron" | "once";
-  interval_hours?: number; // Expand: all(integer: |: null)
-  interval_minutes?: number; //Expand: all(integer: |: null)
-  time_of_day?: string; //Expand: all(string: |: null)
-  cron_expression?: string; // Expand: all(string: |: null)
-  run_at?: string; //Expand: all(string: |: null)
+  interval_hours?: number;
+  interval_minutes?: number;
+  time_of_day?: string;
+  cron_expression?: string;
+  run_at?: string;
   enabled: boolean;
-  last_run_at?: string; //Expand: all(string: |: null)
-  created_at: string; //date-time
-  send_strategy: "fixed" | "relative"; //Expand allstring
-  time_to_send?: string; // Expand: all(string: |: null)
-  send_after_minutes?: number; //Expand: all(integer: |: null)
-  bot: number;
-  target_chats: number[]; //Expand allarray<integer>
+  last_run_at?: string;
+  created_at: string; // date-time
+  send_strategy: "fixed" | "relative";
+  time_to_send?: string;
+  send_after_minutes?: number;
+  bot_id: number;
+  target_chats: number[];
 }
 
 export interface IscheduleCreate {
-  chat: number;
-  prompt: string; //uuid4
+  chat_id: number; //куда отправлять результат вводить ручками
+  prompt_id: string; // промт из списка
   schedule_type: "interval" | "cron" | "once";
-  company: string; //uuid4
-  target_chats: number[]; //Expand allarray<:number>
-  bot: number;
-  send_strategy: "fixed" | "relative"; //Expand allstring
-
-  interval_hours?: number; // interval  Expand all(:number | null)
-  interval_minutes?: number; //interval  Expand all(:number | null)
-  time_of_day?: string; // once   Expand all(string | null)
-  cron_expression?: string; // cron  Expand all(string | null)
-  run_at?: string; // Expand all(string | null)
-  enabled?: boolean; // Expand all(boolean | null)
-  time_to_send?: string; // Expand all(string | null)
-  send_after_minutes?: number; // Expand all(:number | null)
+  company_id: string; // компания под которой пользователь
+  target_chats: number[]; //чаты из chat get all куда отправить чезультат из списка
+  bot_id: number; //бот из списка
+  send_strategy: "fixed" | "relative"; // ???
+  interval_hours?: number; //interval
+  interval_minutes?: number; //interval
+  time_of_day?: string; //
+  cron_expression?: string; //cron
+  run_at?: string; //
+  enabled?: boolean; //
+  time_to_send?: string; //
+  send_after_minutes?: number; //
 }
 // Функция для получения списка услуг с параметрами
 export const fetchSchedules = async () => {

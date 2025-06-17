@@ -13,10 +13,20 @@ import {
   MenuItem,
   Typography,
   CircularProgress,
+  Checkbox,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  FormControlLabel,
+  Chip,
+  Stack,
 } from "@mui/material";
 import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
+import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
+import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { enqueueSnackbar } from "notistack";
 
 interface AddScheduleModalProps {
@@ -24,36 +34,57 @@ interface AddScheduleModalProps {
   onClose: () => void;
 }
 
+const daysOfWeek = [
+  { id: 1, name: "Понедельник" },
+  { id: 2, name: "Вторник" },
+  { id: 3, name: "Среда" },
+  { id: 4, name: "Четверг" },
+  { id: 5, name: "Пятница" },
+  { id: 6, name: "Суббота" },
+  { id: 0, name: "Воскресенье" },
+];
+
+const generateCronExpression = (time: string, selectedDays: number[]) => {
+  if (!time || selectedDays.length === 0) return "";
+
+  const [hours, minutes] = time.split(":");
+  const daysPart = selectedDays.join(",");
+
+  return `${minutes} ${hours} * * ${daysPart}`;
+};
+
 export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   open,
   onClose,
 }) => {
   const [scheduleData, setScheduleData] = useState<{
-    chat: string;
-    prompt: string;
-    company: string;
+    chat_id: string;
+    prompt_id: string;
+    company_id: string;
     schedule_type: "interval" | "cron" | "once";
     interval_hours?: number;
     interval_minutes?: number;
     time_of_day?: string;
     cron_expression?: string;
     enabled: boolean;
-    bot: string;
-    target_chats: string;
+    bot_id: string;
+    target_chats: number[];
     send_strategy: "fixed" | "relative";
     time_to_send?: string;
     send_after_minutes?: number;
   }>({
-    chat: "",
-    prompt: "",
-    company: "",
+    chat_id: "",
+    prompt_id: "",
+    company_id: "",
     schedule_type: "interval",
     enabled: true,
-    bot: "",
-    target_chats: "",
+    bot_id: "",
+    target_chats: [],
     send_strategy: "fixed",
   });
 
+  const [cronTime, setCronTime] = useState<string>("09:00");
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createSchedule = useCreateSchedule();
 
@@ -67,6 +98,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     isLoading: promptsLoading,
     error: promptsError,
   } = usePromptsQuery();
+  const {
+    data: botsData,
+    isLoading: botsLoading,
+    error: botsError,
+  } = useBotsQuery();
+  const {
+    data: chatsData,
+    isLoading: chatsLoading,
+    error: chatsError,
+  } = useChatsQuery();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -80,15 +121,41 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     setScheduleData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleChatToggle = (chatId: number) => () => {
+    setScheduleData((prev) => {
+      const newTargetChats = [...prev.target_chats];
+      const chatIndex = newTargetChats.indexOf(chatId);
+
+      if (chatIndex === -1) {
+        newTargetChats.push(chatId);
+      } else {
+        newTargetChats.splice(chatIndex, 1);
+      }
+
+      return {
+        ...prev,
+        target_chats: newTargetChats,
+      };
+    });
+  };
+
+  const toggleDaySelection = (dayId: number) => {
+    setSelectedDays((prev) =>
+      prev.includes(dayId)
+        ? prev.filter((id) => id !== dayId)
+        : [...prev, dayId]
+    );
+  };
+
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!scheduleData.chat) newErrors.chat = "Чат обязателен";
-    if (!scheduleData.prompt) newErrors.prompt = "Промпт обязателен";
-    if (!scheduleData.company) newErrors.company = "Компания обязательна";
-    if (!scheduleData.bot) newErrors.bot = "Бот обязателен";
-    if (!scheduleData.target_chats)
-      newErrors.target_chats = "Целевые чаты обязательны";
+    if (!scheduleData.chat_id) newErrors.chat_id = "Чат обязателен";
+    if (!scheduleData.prompt_id) newErrors.prompt_id = "Промпт обязателен";
+    if (!scheduleData.company_id) newErrors.company_id = "Компания обязательна";
+    if (!scheduleData.bot_id) newErrors.bot_id = "Бот обязателен";
+    if (scheduleData.target_chats.length === 0)
+      newErrors.target_chats = "Необходимо выбрать хотя бы один чат";
 
     if (scheduleData.schedule_type === "interval") {
       if (!scheduleData.interval_hours && !scheduleData.interval_minutes) {
@@ -96,9 +163,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       }
     } else if (
       scheduleData.schedule_type === "cron" &&
-      !scheduleData.cron_expression
+      (selectedDays.length === 0 || !cronTime)
     ) {
-      newErrors.cron_expression = "Cron выражение обязательно";
+      newErrors.cron_expression = "Выберите дни и время";
     } else if (
       scheduleData.schedule_type === "once" &&
       !scheduleData.time_of_day
@@ -123,14 +190,10 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     if (!validateFields()) return;
 
     try {
-      const targetChatsArray = scheduleData.target_chats
-        .split(",")
-        .map((chat) => parseInt(chat.trim()));
-
       await createSchedule.mutateAsync({
-        chat: parseInt(scheduleData.chat),
-        prompt: scheduleData.prompt,
-        company: scheduleData.company,
+        chat_id: parseInt(scheduleData.chat_id),
+        prompt_id: scheduleData.prompt_id,
+        company_id: scheduleData.company_id,
         schedule_type: scheduleData.schedule_type,
         interval_hours:
           scheduleData.schedule_type === "interval"
@@ -146,11 +209,11 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
         cron_expression:
           scheduleData.schedule_type === "cron"
-            ? scheduleData.cron_expression
+            ? generateCronExpression(cronTime, selectedDays)
             : undefined,
         enabled: scheduleData.enabled,
-        bot: parseInt(scheduleData.bot),
-        target_chats: targetChatsArray,
+        bot_id: parseInt(scheduleData.bot_id),
+        target_chats: scheduleData.target_chats,
         send_strategy: scheduleData.send_strategy,
         time_to_send:
           scheduleData.send_strategy === "fixed"
@@ -165,22 +228,24 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       enqueueSnackbar("Расписание успешно создано", { variant: "success" });
       onClose();
       setScheduleData({
-        chat: "",
-        prompt: "",
-        company: "",
+        chat_id: "",
+        prompt_id: "",
+        company_id: "",
         schedule_type: "interval",
         enabled: true,
-        bot: "",
-        target_chats: "",
+        bot_id: "",
+        target_chats: [],
         send_strategy: "fixed",
       });
+      setCronTime("09:00");
+      setSelectedDays([1, 2, 3, 4, 5]);
     } catch (error) {
       enqueueSnackbar("Ошибка при создании расписания", { variant: "error" });
       console.error("Error creating schedule:", error);
     }
   };
 
-  if (companiesLoading || promptsLoading) {
+  if (companiesLoading || promptsLoading || botsLoading || chatsLoading) {
     return (
       <Dialog open={open} onClose={onClose}>
         <DialogTitle>Добавить новое расписание</DialogTitle>
@@ -193,14 +258,17 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     );
   }
 
-  if (companiesError || promptsError) {
+  if (companiesError || promptsError || botsError || chatsError) {
     return (
       <Dialog open={open} onClose={onClose}>
         <DialogTitle>Добавить новое расписание</DialogTitle>
         <DialogContent>
           <Typography color="error">
             Ошибка при загрузке данных:{" "}
-            {(companiesError || promptsError)?.message}
+            {
+              (companiesError || promptsError || botsError || chatsError)
+                ?.message
+            }
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -218,19 +286,19 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
           <TextField
             fullWidth
             label="ID чата (число)"
-            name="chat"
-            value={scheduleData.chat}
+            name="chat_id"
+            value={scheduleData.chat_id}
             onChange={handleChange}
-            error={!!errors.chat}
-            helperText={errors.chat}
+            error={!!errors.chat_id}
+            helperText={errors.chat_id}
             required
           />
 
-          <FormControl fullWidth required error={!!errors.prompt}>
+          <FormControl fullWidth required error={!!errors.prompt_id}>
             <InputLabel>Промпт</InputLabel>
             <Select
-              name="prompt"
-              value={scheduleData.prompt}
+              name="prompt_id"
+              value={scheduleData.prompt_id}
               label="Промпт"
               onChange={handleSelectChange}
             >
@@ -240,18 +308,18 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 </MenuItem>
               ))}
             </Select>
-            {errors.prompt && (
+            {errors.prompt_id && (
               <Typography variant="caption" color="error">
-                {errors.prompt}
+                {errors.prompt_id}
               </Typography>
             )}
           </FormControl>
 
-          <FormControl fullWidth required error={!!errors.company}>
+          <FormControl fullWidth required error={!!errors.company_id}>
             <InputLabel>Компания</InputLabel>
             <Select
-              name="company"
-              value={scheduleData.company}
+              name="company_id"
+              value={scheduleData.company_id}
               label="Компания"
               onChange={handleSelectChange}
             >
@@ -261,34 +329,76 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 </MenuItem>
               ))}
             </Select>
-            {errors.company && (
+            {errors.company_id && (
               <Typography variant="caption" color="error">
-                {errors.company}
+                {errors.company_id}
               </Typography>
             )}
           </FormControl>
 
-          <TextField
-            fullWidth
-            label="ID бота (число)"
-            name="bot"
-            value={scheduleData.bot}
-            onChange={handleChange}
-            error={!!errors.bot}
-            helperText={errors.bot}
-            required
-          />
+          <FormControl fullWidth required error={!!errors.bot_id}>
+            <InputLabel>Бот</InputLabel>
+            <Select
+              name="bot_id"
+              value={scheduleData.bot_id}
+              label="Бот"
+              onChange={handleSelectChange}
+            >
+              {botsData?.bots.map((bot) => (
+                <MenuItem key={bot.bot_id} value={bot.bot_id}>
+                  {bot.bot_username} (ID: {bot.bot_id})
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.bot_id && (
+              <Typography variant="caption" color="error">
+                {errors.bot_id}
+              </Typography>
+            )}
+          </FormControl>
 
-          <TextField
-            fullWidth
-            label="Целевые чаты (через запятую, числа)"
-            name="target_chats"
-            value={scheduleData.target_chats}
-            onChange={handleChange}
-            error={!!errors.target_chats}
-            helperText={errors.target_chats || "Например: 123, 456, 789"}
-            required
-          />
+          <FormControl fullWidth required error={!!errors.target_chats}>
+            <Typography variant="subtitle1" gutterBottom>
+              Выберите целевые чаты:
+            </Typography>
+            <Box
+              sx={{
+                maxHeight: 200,
+                overflow: "auto",
+                border: "1px solid rgba(0, 0, 0, 0.23)",
+                borderRadius: 1,
+                p: 1,
+              }}
+            >
+              <List dense>
+                {chatsData?.chats.map((chat) => (
+                  <ListItem key={chat.chat_id}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={scheduleData.target_chats.includes(
+                            chat.chat_id
+                          )}
+                          onChange={handleChatToggle(chat.chat_id)}
+                        />
+                      }
+                      label={
+                        <ListItemText
+                          primary={chat.chat_name}
+                          secondary={`ID: ${chat.chat_id}`}
+                        />
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+            {errors.target_chats && (
+              <Typography variant="caption" color="error">
+                {errors.target_chats}
+              </Typography>
+            )}
+          </FormControl>
 
           <FormControl fullWidth required>
             <InputLabel>Тип расписания</InputLabel>
@@ -299,7 +409,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               onChange={handleSelectChange}
             >
               <MenuItem value="interval">Интервал</MenuItem>
-              <MenuItem value="cron">Cron</MenuItem>
+              <MenuItem value="cron">Повторяющееся</MenuItem>
               <MenuItem value="once">Одноразово</MenuItem>
             </Select>
           </FormControl>
@@ -328,19 +438,44 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
           )}
 
           {scheduleData.schedule_type === "cron" && (
-            <TextField
-              fullWidth
-              label="Cron выражение"
-              name="cron_expression"
-              value={scheduleData.cron_expression || ""}
-              onChange={handleChange}
-              error={!!errors.cron_expression}
-              helperText={
-                errors.cron_expression ||
-                "Например: 0 9 * * 1-5 (каждый будний день в 9:00)"
-              }
-              required
-            />
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Время выполнения (HH:MM)"
+                type="time"
+                value={cronTime}
+                onChange={(e) => setCronTime(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+
+              <Typography variant="subtitle2">Дни недели:</Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                {daysOfWeek.map((day) => (
+                  <Chip
+                    key={day.id}
+                    label={day.name}
+                    color={
+                      selectedDays.includes(day.id) ? "primary" : "default"
+                    }
+                    onClick={() => toggleDaySelection(day.id)}
+                    variant={
+                      selectedDays.includes(day.id) ? "filled" : "outlined"
+                    }
+                  />
+                ))}
+              </Stack>
+
+              {/* <Typography variant="body2" color="textSecondary">
+                Cron выражение:{" "}
+                {generateCronExpression(cronTime, selectedDays) || "не задано"}
+              </Typography> */}
+
+              {errors.cron_expression && (
+                <Typography variant="caption" color="error">
+                  {errors.cron_expression}
+                </Typography>
+              )}
+            </Box>
           )}
 
           {scheduleData.schedule_type === "once" && (

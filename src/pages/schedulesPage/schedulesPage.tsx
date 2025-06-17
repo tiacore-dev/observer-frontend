@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { PageProps } from "../../App";
-import { SchedulesTable } from "./schedulesTable"; // Импортируем новый компонент
+import { SchedulesTable } from "./schedulesTable";
 import { AddScheduleModal } from "./addScheduleModal";
 
 export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
@@ -38,10 +38,12 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const rowsPerPage = 10;
 
   const companies = Array.from(
-    new Set(data?.schedules.map((schedule) => schedule.company) || [])
+    new Set(data?.schedules.map((schedule) => schedule.company_id) || [])
   );
   const chats = Array.from(
-    new Set(data?.schedules.map((schedule) => schedule.chat.toString()) || [])
+    new Set(
+      data?.schedules.map((schedule) => schedule.chat_id.toString()) || []
+    )
   );
   const types = Array.from(
     new Set(data?.schedules.map((schedule) => schedule.schedule_type) || [])
@@ -54,19 +56,19 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (nameFilter) {
       filteredSchedules = filteredSchedules.filter((schedule) =>
-        schedule.prompt.toLowerCase().includes(nameFilter.toLowerCase())
+        schedule.prompt_id.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
 
     if (companyFilter) {
       filteredSchedules = filteredSchedules.filter(
-        (schedule) => schedule.company === companyFilter
+        (schedule) => schedule.company_id === companyFilter
       );
     }
 
     if (chatFilter) {
       filteredSchedules = filteredSchedules.filter(
-        (schedule) => schedule.chat.toString() === chatFilter
+        (schedule) => schedule.chat_id.toString() === chatFilter
       );
     }
 
@@ -216,7 +218,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           startIcon={<AddIcon />}
           onClick={() => setIsModalOpen(true)}
         >
-          Добавить расписание (не работает)
+          Добавить расписание
         </Button>
       </Box>
 

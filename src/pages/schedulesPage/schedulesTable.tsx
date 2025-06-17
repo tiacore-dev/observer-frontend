@@ -10,7 +10,7 @@ import {
   Typography,
   TableSortLabel,
 } from "@mui/material";
-import { ISchedule } from "../../api/schedulesApi"; // Предполагается, что тип ISchedule определен здесь
+import { ISchedule } from "../../api/schedulesApi";
 
 interface SchedulesTableProps {
   schedules: ISchedule[];
@@ -74,9 +74,9 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   {schedule.schedule_id}
                 </TableCell>
               )}
-              <TableCell>{schedule.prompt}</TableCell>
-              <TableCell>{schedule.chat}</TableCell>
-              {developerMode && <TableCell>{schedule.company}</TableCell>}
+              <TableCell>{schedule.prompt_id}</TableCell>
+              <TableCell>{schedule.chat_id}</TableCell>
+              {developerMode && <TableCell>{schedule.company_id}</TableCell>}
               <TableCell>{schedule.schedule_type}</TableCell>
               <TableCell>
                 {schedule.enabled ? (
@@ -90,7 +90,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   {new Date(schedule.created_at).toLocaleString()}
                 </TableCell>
               )}
-              <TableCell>{schedule.bot}</TableCell>
+              <TableCell>{schedule.bot_id}</TableCell>
               <TableCell>{schedule.target_chats?.join(", ") || "-"}</TableCell>
             </TableRow>
           ))}

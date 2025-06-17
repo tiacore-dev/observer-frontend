@@ -175,7 +175,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
           startIcon={<AddIcon />}
           onClick={() => setIsModalOpen(true)}
         >
-          Добавить анализ (не работает)
+          Добавить анализ
         </Button>
       </Box>
 

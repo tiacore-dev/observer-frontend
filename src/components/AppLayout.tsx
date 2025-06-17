@@ -255,11 +255,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          pt: 7, // Уменьшенный отступ сверху (можно использовать 1, 2 или другое значение)
+          // px: 1, // Отступы слева и справа
+          pb: 3, // Отступ снизу
           width: { sm: `calc(100% - ${drawerWidth}px)` },
         }}
       >
-        <Toolbar />
+        {/* <Toolbar /> */}
         {children}
       </Box>
     </Box>
