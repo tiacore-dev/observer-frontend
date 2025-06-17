@@ -21,7 +21,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push image
-          REACT_APP_ID: ${{ secrets.APP }}
         uses: docker/build-push-action@v5
         with:
           context: .
