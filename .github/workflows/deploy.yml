@@ -25,7 +25,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/observer-frontend:${{ github.ref_name }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/observer-frontend:${{ github.sha }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/observer-frontend:cache
           cache-to: type=inline
 
@@ -45,14 +45,18 @@ jobs:
         if: github.ref_name == 'master'
         run: ssh -o StrictHostKeyChecking=no -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd apps/observer-frontend &&
-          docker pull &&
+          sed -i 's/^TAG=.*/TAG=${{ github.sha }}/' .env || echo 'TAG=${{ github.sha }}' >> .env &&
+          docker compose down &&
+          docker compose pull &&
           docker compose up -d"
 
       - name: Deploy to Development
         if: github.ref_name == 'dev'
         run: ssh -o StrictHostKeyChecking=no -t ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
           cd apps/observer-frontend-dev &&
-          docker pull &&
+          sed -i 's/^TAG=.*/TAG=${{ github.sha }}/' .env || echo 'TAG=${{ github.sha }}' >> .env &&
+          docker compose down &&
+          docker compose pull &&
           docker compose up -d"
 
   notify:
@@ -73,7 +77,7 @@ jobs:
 
           if [ "$DEPLOY_STATUS" != "success" ]; then
             STATUS="🛑 *Ошибка деплоя*"
-            EXTRA_LINK="\n\n[🔍 Открыть GitHub Actions]($RUN_URL)"
+            EXTRA_LINK="[🔍 Открыть GitHub Actions]($RUN_URL)"
           else
             STATUS="✅ Деплой *успешен*"
             EXTRA_LINK=""
