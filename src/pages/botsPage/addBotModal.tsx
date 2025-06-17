@@ -118,7 +118,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
           />
 
           <FormControl fullWidth required error={!!errors.company_id}>
-            <InputLabel>Компания</InputLabel>
+            <InputLabel>Компания </InputLabel>
             <Select
               name="company"
               value={botData.company_id}
