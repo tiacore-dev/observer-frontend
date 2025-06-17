@@ -9,7 +9,7 @@ export interface ICompany {
 
 // Функция для получения списка услуг с параметрами
 export const fetchCompanies = async () => {
-  const url = process.env.REACT_APP_AUTH_API_URL;
+  const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   const params: any = { page: 1, page_size: 100 };
   const response = await axiosInstance.get(`${url}/api/companies/all`, {
@@ -27,7 +27,7 @@ export const createCompany = async (newCompany: {
   company_name: string;
   description?: string;
 }): Promise<ICompany> => {
-  const url = process.env.REACT_APP_AUTH_API_URL;
+  const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   const response = await axiosInstance.post(
     `${url}/api/companies/add`,
@@ -43,7 +43,7 @@ export const createCompany = async (newCompany: {
 };
 
 export const fetchCompanyDetails = async (company_id: string) => {
-  const url = process.env.REACT_APP_AUTH_API_URL;
+  const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   const response = await axiosInstance.get(
     `${url}/api/companies/${company_id}`,
@@ -58,7 +58,7 @@ export const fetchCompanyDetails = async (company_id: string) => {
 };
 
 export const updateCompany = async (company_id: string, updatedData: any) => {
-  const url = process.env.REACT_APP_AUTH_API_URL;
+  const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   const response = await axiosInstance.patch(
     `${url}/api/companies/${company_id}`,
@@ -74,7 +74,7 @@ export const updateCompany = async (company_id: string, updatedData: any) => {
 };
 
 export const deleteCompany = async (company_id: string) => {
-  const url = process.env.REACT_APP_AUTH_API_URL;
+  const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
 
   await axiosInstance.delete(`${url}/api/companies/${company_id}`, {
