@@ -117,9 +117,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       <CssBaseline />
       <AppBar
         position="fixed"
+        color="inherit" // Это убирает стандартный синий цвет
         sx={{
           width: "100%", // Теперь AppBar занимает всю ширину
           zIndex: (theme) => theme.zIndex.drawer + 1, // Убедитесь, что AppBar над панелью
+          boxShadow: "0px 2px 4px -1px rgba(0,0,0,0.2)", // Легкая тень (по желанию)
         }}
       >
         <Toolbar>

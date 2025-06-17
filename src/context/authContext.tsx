@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         localStorage.setItem("access_token", response.access_token);
         localStorage.setItem("refresh_token", response.refresh_token);
         localStorage.setItem("is_superadmin", String(response.is_superadmin));
+        localStorage.setItem("user_id", String(response.user_id));
 
         // Получаем данные пользователя
         const userDetails = await fetchUserDetails();
@@ -59,7 +60,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           refreshToken: response.refresh_token,
         });
 
-        navigate("/account");
+        // Добавьте эту проверку для отладки
+        console.log("Redirecting to /account");
+        navigate("/account", { replace: true }); // Используйте replace: true чтобы избежать истории навигации
       } catch (error) {
         console.error("Login error:", error);
         const errorMessage =
