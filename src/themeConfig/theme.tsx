@@ -8,7 +8,7 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: "8px", // Переопределение для кнопок, если нужно
+          borderRadius: "7px", // Переопределение для кнопок, если нужно
         },
       },
     },

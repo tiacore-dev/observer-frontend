@@ -1,5 +1,4 @@
 import { axiosInstance } from "../axiosConfig";
-import { AxiosError } from "axios";
 
 export interface IPrompt {
   prompt_id: string; // uuid4
@@ -10,10 +9,14 @@ export interface IPrompt {
 }
 
 // Функция для получения списка услуг с параметрами
-export const fetchPrompts = async () => {
+export const fetchPrompts = async (selectedCompanyId?: string | null) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = { page: 1, page_size: 100 };
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(`${url}/api/prompts/all`, {
     params,
     headers: {
@@ -45,11 +48,20 @@ export const createPrompt = async (newPrompt: {
   return response.data;
 };
 
-export const fetchPromptDetails = async (prompt_id: string) => {
+export const fetchPromptDetails = async (
+  prompt_id: string,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
+  const params: any = {};
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(`${url}/api/prompts/${prompt_id}`, {
     headers: {
+      params,
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },

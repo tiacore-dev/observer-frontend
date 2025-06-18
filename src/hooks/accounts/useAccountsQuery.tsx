@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchChats, IChat } from "../../api/chatsApi";
 import { fetchAccounts, IAccount } from "../../api/accountsApi";
 import { useAuth } from "../../context/authContext";
 
@@ -12,7 +11,8 @@ export const useAccountsQuery = () => {
   const { selectedCompanyId } = useAuth();
   return useQuery<IAccountsResponse>({
     queryKey: ["accounts", selectedCompanyId],
-    queryFn: () => fetchAccounts(),
+    queryFn: () => fetchAccounts(selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };

@@ -6,8 +6,8 @@ export const useUserDetailsQuery = (companyId?: string) => {
   const { selectedCompanyId } = useAuth();
   const user_id = localStorage.getItem("user_id");
   return useQuery<IUser>({
-    queryKey: ["user", companyId, selectedCompanyId],
-    queryFn: () => fetchUserDetails(companyId),
+    queryKey: ["user", selectedCompanyId],
+    queryFn: () => fetchUserDetails(selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     enabled: !!user_id,
   });

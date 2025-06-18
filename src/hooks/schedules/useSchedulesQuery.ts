@@ -16,8 +16,9 @@ export const useSchedulesQuery = () => {
 
   return useQuery<ISchedulesResponse>({
     queryKey: ["schedules", selectedCompanyId],
-    queryFn: () => fetchSchedules(),
+    queryFn: () => fetchSchedules(selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };
 
@@ -25,8 +26,8 @@ export const useScheduleDetailsQuery = (schedule_id: string) => {
   const { selectedCompanyId } = useAuth();
   return useQuery({
     queryKey: ["scheduleDetails", schedule_id, selectedCompanyId],
-    queryFn: () => fetchScheduleDetails(schedule_id),
-    // retry: false,
+    queryFn: () => fetchScheduleDetails(schedule_id, selectedCompanyId),
+    retry: false, // Отключает повторные попытки
     staleTime: 5 * 60 * 1000,
   });
 };

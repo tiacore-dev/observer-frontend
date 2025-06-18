@@ -11,7 +11,7 @@ export const useWebhookQuery = (bot_id: string) => {
   const { selectedCompanyId } = useAuth();
   return useQuery<IWebhookResponse>({
     queryKey: ["webhook", bot_id, selectedCompanyId],
-    queryFn: () => fetchWebhook(bot_id),
+    queryFn: () => fetchWebhook(bot_id, selectedCompanyId),
     staleTime: 5 * 60 * 1000,
   });
 };

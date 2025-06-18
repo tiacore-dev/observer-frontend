@@ -11,8 +11,9 @@ export const useBotsQuery = () => {
   const { selectedCompanyId } = useAuth();
   return useQuery<IBotsResponse>({
     queryKey: ["bots", selectedCompanyId],
-    queryFn: () => fetchBots(),
+    queryFn: () => fetchBots(selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };
 
@@ -21,7 +22,8 @@ export const useBotDetailsQuery = (bot_id: string) => {
 
   return useQuery({
     queryKey: ["botDetails", bot_id, selectedCompanyId],
-    queryFn: () => fetchBotDetails(bot_id),
+    queryFn: () => fetchBotDetails(bot_id, selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };

@@ -30,7 +30,7 @@ import {
   Psychology,
   Schedule,
   Analytics,
-  Chat,
+  // Chat,
   AccountCircle,
   Business,
   ExitToApp,
@@ -38,7 +38,7 @@ import {
   Settings,
   Add,
 } from "@mui/icons-material";
-import GroupsIcon from "@mui/icons-material/Groups";
+// import GroupsIcon from "@mui/icons-material/Groups";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { AddCompanyModal } from "../pages/companiesPage/companyAddModal";

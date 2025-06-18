@@ -12,7 +12,8 @@ export const useChatsQuery = () => {
 
   return useQuery<IChatsResponse>({
     queryKey: ["chats", selectedCompanyId],
-    queryFn: () => fetchChats(),
+    queryFn: () => fetchChats(selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };

@@ -8,6 +8,30 @@ export interface IUser {
   is_verified: boolean;
 }
 
+// export const fetchUserDetails = async (selectedCompanyId?: string | null) => {
+//   const url = process.env.REACT_APP_API_URL;
+//   const accessToken = localStorage.getItem("access_token");
+//   const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
+//   const user_id = localStorage.getItem("user_id");
+
+//   const params: any = {};
+//   if (!isSuperadmin && selectedCompanyId) {
+//     params.company_id = selectedCompanyId;
+//   }
+//   try {
+//     const response = await axiosInstance.get(`${url}/api/users/${user_id}`, {
+//       params,
+//       headers: {
+//         Authorization: `Bearer ${accessToken}`,
+//         "Content-Type": "application/json",
+//       },
+//     });
+//     return response.data;
+//   } catch (error) {
+//     throw error; // Пробрасываем ошибку дальше
+//   }
+// };
+
 export const fetchUserDetails = async (selectedCompanyId?: string | null) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
@@ -18,18 +42,15 @@ export const fetchUserDetails = async (selectedCompanyId?: string | null) => {
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
-  try {
-    const response = await axiosInstance.get(`${url}/api/users/${user_id}`, {
-      params,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-    return response.data;
-  } catch (error) {
-    throw error; // Пробрасываем ошибку дальше
-  }
+  const response = await axiosInstance.get(`${url}/api/users/${user_id}`, {
+    params,
+
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
 };
 
 export const updateUser = async (user_id: string, updatedData: any) => {

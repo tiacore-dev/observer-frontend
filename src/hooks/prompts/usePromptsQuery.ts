@@ -16,8 +16,9 @@ export const usePromptsQuery = () => {
 
   return useQuery<IPromptsResponse>({
     queryKey: ["prompts", selectedCompanyId],
-    queryFn: () => fetchPrompts(),
+    queryFn: () => fetchPrompts(selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };
 
@@ -26,8 +27,8 @@ export const usePromptDetailsQuery = (prompt_id: string) => {
 
   return useQuery({
     queryKey: ["promptDetails", prompt_id, selectedCompanyId],
-    queryFn: () => fetchPromptDetails(prompt_id),
+    queryFn: () => fetchPromptDetails(prompt_id, selectedCompanyId),
     staleTime: 5 * 60 * 1000,
-    // retry: false,
+    retry: false, // Отключает повторные попытки
   });
 };

@@ -1,5 +1,4 @@
 import { axiosInstance } from "../axiosConfig";
-import { AxiosError } from "axios";
 
 export interface IAnalys {
   analysis_id: string;
@@ -16,12 +15,15 @@ export interface IAnalys {
   send_time?: number;
 }
 
-export const fetchAnalysis = async () => {
+export const fetchAnalysis = async (selectedCompanyId?: string | null) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
 
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = { page: 1, page_size: 100 };
-
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(`${url}/api/analysis/all`, {
     params,
     headers: {
@@ -59,12 +61,21 @@ export const createAnalysis = async (newAnalysis: {
   }
 };
 
-export const fetchAnalysDetails = async (analysis_id: string) => {
+export const fetchAnalysDetails = async (
+  analysis_id: string,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
+  const params: any = {};
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(
     `${url}/api/analysis/${analysis_id}`,
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",

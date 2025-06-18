@@ -1,5 +1,4 @@
 import { axiosInstance } from "../axiosConfig";
-import { AxiosError } from "axios";
 
 export interface IBot {
   bot_id: string;
@@ -12,11 +11,29 @@ export interface IBot {
   comment?: string;
 }
 // Функция для получения списка услуг с параметрами
-export const fetchBots = async () => {
+// export const fetchBots = async () => {
+//   const url = process.env.REACT_APP_API_URL;
+//   const accessToken = localStorage.getItem("access_token");
+//   // const selectedCompanyId = localStorage.getItem("selectedCompanyId");
+//   const params: any = { page: 1, page_size: 100 };
+//   const response = await axiosInstance.get(`${url}/api/bots/all`, {
+//     params,
+//     headers: {
+//       Authorization: `Bearer ${accessToken}`,
+//       "Content-Type": "application/json",
+//     },
+//   });
+//   return response.data;
+// };
+
+export const fetchBots = async (selectedCompanyId?: string | null) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  // const selectedCompanyId = localStorage.getItem("selectedCompanyId");
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = { page: 1, page_size: 100 };
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(`${url}/api/bots/all`, {
     params,
     headers: {
@@ -45,10 +62,32 @@ export const createBot = async (newBot: {
   return response.data;
 };
 
-export const fetchBotDetails = async (bot_id: string) => {
+// export const fetchBotDetails = async (bot_id: string) => {
+//   const url = process.env.REACT_APP_API_URL;
+//   const accessToken = localStorage.getItem("access_token");
+//   const response = await axiosInstance.get(`${url}/api/bots/${bot_id}`, {
+//     headers: {
+//       Authorization: `Bearer ${accessToken}`,
+//       "Content-Type": "application/json",
+//     },
+//   });
+//   return response.data;
+// };
+
+export const fetchBotDetails = async (
+  bot_id: string,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
+  const params: any = {};
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(`${url}/api/bots/${bot_id}`, {
+    params,
+
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",

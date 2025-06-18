@@ -9,12 +9,21 @@ export interface IWebhook {
   allowed_updates: string[];
 }
 
-export const fetchWebhook = async (bot_id: string) => {
+export const fetchWebhook = async (
+  bot_id: string,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
+  const params: any = {};
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(
     `${url}/api/webhook/${bot_id}/info`,
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",

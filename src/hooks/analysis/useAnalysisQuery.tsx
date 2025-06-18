@@ -17,8 +17,9 @@ export const useAnalysisQuery = () => {
 
   return useQuery<IAnalysisResponse>({
     queryKey: ["analysis", selectedCompanyId],
-    queryFn: () => fetchAnalysis(),
+    queryFn: () => fetchAnalysis(selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };
 
@@ -27,7 +28,8 @@ export const useAnalysDetailsQuery = (analysis_id: string) => {
 
   return useQuery({
     queryKey: ["analysDetails", analysis_id, selectedCompanyId],
-    queryFn: () => fetchAnalysDetails(analysis_id),
+    queryFn: () => fetchAnalysDetails(analysis_id, selectedCompanyId),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };

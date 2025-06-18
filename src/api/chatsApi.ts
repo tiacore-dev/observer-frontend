@@ -1,5 +1,4 @@
 import { axiosInstance } from "../axiosConfig";
-import { AxiosError } from "axios";
 
 export interface IChat {
   chat_id: number;
@@ -7,13 +6,15 @@ export interface IChat {
   created_at: string | Date;
 }
 // Функция для получения списка услуг с параметрами
-export const fetchChats = async () => {
+export const fetchChats = async (selectedCompanyId?: string | null) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  // const selectedCompanyId = localStorage.getItem("selectedCompanyId");
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
 
   const params: any = { page: 1, page_size: 100 };
-
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.get(`${url}/api/chats/all`, {
     params,
 

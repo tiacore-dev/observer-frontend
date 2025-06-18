@@ -18,6 +18,7 @@ export const useCompaniesQuery = () => {
     queryKey: ["companies", selectedCompanyId],
     queryFn: () => fetchCompanies(),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };
 
@@ -28,5 +29,6 @@ export const useCompanyDetailsQuery = (company_id: string) => {
     queryKey: ["companyDetails", company_id, selectedCompanyId],
     queryFn: () => fetchCompanyDetails(company_id),
     staleTime: 5 * 60 * 1000,
+    retry: false, // Отключает повторные попытки
   });
 };
