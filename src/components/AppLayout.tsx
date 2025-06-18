@@ -55,6 +55,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const location = useLocation();
   const { isSuperadmin, user, logout } = useAuth();
 
+  const isHomePage = location.pathname === "/home";
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -72,13 +74,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     handleProfileMenuClose();
   };
 
+  const handleLogoClick = () => {
+    navigate("/home");
+  };
+
   const menuItems = [
     { text: "Боты", icon: <SmartToy />, path: "/bots" },
     { text: "Промпты", icon: <Psychology />, path: "/prompts" },
     { text: "Расписания", icon: <Schedule />, path: "/schedules" },
     { text: "Анализ", icon: <Analytics />, path: "/analysis" },
-    { text: "Чаты", icon: <Chat />, path: "/chats" },
-    { text: "Аккаунты", icon: <AccountCircle />, path: "/accounts" },
+    // { text: "Чаты", icon: <Chat />, path: "/chats" },
+    // { text: "Аккаунты", icon: <AccountCircle />, path: "/accounts" },
   ];
 
   if (isSuperadmin) {
@@ -92,23 +98,31 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const drawer = (
     <div>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
+        <Typography
+          variant="h6"
+          noWrap
+          component="div"
+          onClick={handleLogoClick}
+          sx={{ cursor: "pointer" }}
+        >
           Observer
         </Typography>
       </Toolbar>
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname.startsWith(item.path)}
-              onClick={() => navigate(item.path)}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+      {!isHomePage && (
+        <List>
+          {menuItems.map((item) => (
+            <ListItem key={item.text} disablePadding>
+              <ListItemButton
+                selected={location.pathname.startsWith(item.path)}
+                onClick={() => navigate(item.path)}
+              >
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
     </div>
   );
 
@@ -117,28 +131,36 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       <CssBaseline />
       <AppBar
         position="fixed"
-        color="inherit" // Это убирает стандартный синий цвет
+        color="inherit"
         sx={{
-          width: "100%", // Теперь AppBar занимает всю ширину
-          zIndex: (theme) => theme.zIndex.drawer + 1, // Убедитесь, что AppBar над панелью
-          boxShadow: "0px 2px 4px -1px rgba(0,0,0,0.2)", // Легкая тень (по желанию)
+          width: "100%",
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          boxShadow: "0px 2px 4px -1px rgba(0,0,0,0.2)",
         }}
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
-          >
-            <MenuIcon />
-          </IconButton>
+          {!isHomePage && (
+            <IconButton
+              color="inherit"
+              // aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { sm: "none" } }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
 
           <Box
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 2 }}
           >
-            <Typography variant="h6" noWrap component="div">
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              onClick={handleLogoClick}
+              sx={{ cursor: "pointer" }}
+            >
               Observer
             </Typography>
           </Box>
@@ -169,7 +191,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             <IconButton
               size="large"
               edge="end"
-              aria-label="account of current user"
+              // aria-label="account of current user"
               aria-controls="primary-search-account-menu"
               aria-haspopup="true"
               onClick={handleProfileMenuOpen}
@@ -214,54 +236,54 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </MenuItem>
       </Menu>
 
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="mailbox folders"
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true,
-          }}
-          sx={{
-            display: { xs: "block", sm: "none" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-            },
-          }}
+      {!isHomePage && (
+        <Box
+          component="nav"
+          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+          aria-label="mailbox folders"
         >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: "none", sm: "block" },
-            "& .MuiDrawer-paper": {
-              boxSizing: "border-box",
-              width: drawerWidth,
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true,
+            }}
+            sx={{
+              display: { xs: "block", sm: "none" },
+              "& .MuiDrawer-paper": {
+                boxSizing: "border-box",
+                width: drawerWidth,
+              },
+            }}
+          >
+            {drawer}
+          </Drawer>
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: "none", sm: "block" },
+              "& .MuiDrawer-paper": {
+                boxSizing: "border-box",
+                width: drawerWidth,
+              },
+            }}
+            open
+          >
+            {drawer}
+          </Drawer>
+        </Box>
+      )}
 
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          pt: 7, // Уменьшенный отступ сверху (можно использовать 1, 2 или другое значение)
-          // px: 1, // Отступы слева и справа
-          pb: 3, // Отступ снизу
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          pt: 7,
+          pb: 3,
+          width: { sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)` },
         }}
       >
-        {/* <Toolbar /> */}
         {children}
       </Box>
     </Box>

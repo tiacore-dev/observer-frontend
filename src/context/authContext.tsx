@@ -1,15 +1,18 @@
-// src/context/authContext.tsx
-import React, {
+"use client";
+
+import type React from "react";
+import {
   createContext,
   useContext,
   useCallback,
   useState,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser, refreshToken } from "../api/authApi";
 import { enqueueSnackbar } from "notistack";
-import { fetchUserDetails, IUser } from "../api/usersApi";
+import { fetchUserDetails, type IUser } from "../api/usersApi";
+import { isTokenExpired, isTokenValid } from "./tokenUtils";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -60,9 +63,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           refreshToken: response.refresh_token,
         });
 
-        // Добавьте эту проверку для отладки
-        console.log("Redirecting to /account");
-        navigate("/account", { replace: true }); // Используйте replace: true чтобы избежать истории навигации
+        // Перенаправляем на /home после успешного входа
+        navigate("/home", { replace: true });
       } catch (error) {
         console.error("Login error:", error);
         const errorMessage =
@@ -97,14 +99,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const checkAuth = useCallback(async () => {
     const token = localStorage.getItem("access_token");
+
+    // Если токена нет, пользователь не авторизован
     if (!token) {
       return false;
     }
 
+    // Проверяем, действителен ли токен
+    if (isTokenValid(token)) {
+      // Токен еще действителен, проверяем нужно ли его обновить
+      if (!isTokenExpired(token)) {
+        // Токен действителен и не истекает скоро, не нужно обновлять
+        setAuthState((prev) => ({
+          ...prev,
+          isAuthenticated: true,
+          accessToken: token,
+        }));
+        return true;
+      }
+    }
+
+    // Токен истек или истекает скоро, пытаемся обновить
     try {
       const newToken = await refreshToken();
       if (newToken) {
-        // Получаем актуальные данные пользователя
+        // Получаем актуальные данные пользователя только при обновлении токена
         const userDetails = await fetchUserDetails();
         localStorage.setItem("user", JSON.stringify(userDetails));
 
@@ -119,6 +138,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
       return false;
     } catch (error) {
+      console.error("Auth check failed:", error);
       logout();
       return false;
     }

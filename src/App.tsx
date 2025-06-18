@@ -20,6 +20,8 @@ import { AccountsPage } from "./pages/accountsPage/accountsPage";
 import { AnalysisPage } from "./pages/analysisPage/analysisPage";
 import { AuthProvider } from "./context/authContext";
 import { AccountPage } from "./pages/accountPage/AccountPage";
+import theme from "./themeConfig/theme";
+import { ThemeProvider } from "@mui/material/styles";
 
 export interface PageProps {
   developerMode: boolean;
@@ -31,70 +33,75 @@ const App: React.FC = () => {
   const [developerMode, setDeveloperMode] = useState(false);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SnackbarProvider maxSnack={3}>
-        <Router>
-          <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route
-                element={
-                  <ProtectedRoute
-                    developerMode={developerMode}
-                    onToggleDeveloperMode={() =>
-                      setDeveloperMode(!developerMode)
+    <ThemeProvider theme={theme}>
+      <QueryClientProvider client={queryClient}>
+        <SnackbarProvider maxSnack={3}>
+          <Router>
+            <AuthProvider>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  element={
+                    <ProtectedRoute
+                      developerMode={developerMode}
+                      onToggleDeveloperMode={() =>
+                        setDeveloperMode(!developerMode)
+                      }
+                    />
+                  }
+                >
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route
+                    path="/bots"
+                    element={<BotsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/bots/:botId"
+                    element={<BotsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/accounts"
+                    element={<AccountsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/chats"
+                    element={<ChatsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/prompts"
+                    element={<PromptsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/prompts/:promptId"
+                    element={
+                      <PromptDetailsPage developerMode={developerMode} />
                     }
                   />
-                }
-              >
-                <Route path="/account" element={<AccountPage />} />
-                <Route
-                  path="/bots"
-                  element={<BotsPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/bots/:botId"
-                  element={<BotsPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/accounts"
-                  element={<AccountsPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/chats"
-                  element={<ChatsPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/prompts"
-                  element={<PromptsPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/prompts/:promptId"
-                  element={<PromptDetailsPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/analysis"
-                  element={<AnalysisPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/schedules"
-                  element={<SchedulesPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/companies"
-                  element={<CompaniesPage developerMode={developerMode} />}
-                />
-                <Route
-                  path="/companies/:companyId"
-                  element={<CompaniesPage developerMode={developerMode} />}
-                />
-              </Route>
-              <Route path="*" element={<Navigate to="/login" />} />
-            </Routes>
-          </AuthProvider>
-        </Router>
-      </SnackbarProvider>
-    </QueryClientProvider>
+                  <Route
+                    path="/analysis"
+                    element={<AnalysisPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/schedules"
+                    element={<SchedulesPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/companies"
+                    element={<CompaniesPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/companies/:companyId"
+                    element={<CompaniesPage developerMode={developerMode} />}
+                  />
+                  <Route path="/home" element={<HomePage />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/login" />} />
+              </Routes>
+            </AuthProvider>
+          </Router>
+        </SnackbarProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 

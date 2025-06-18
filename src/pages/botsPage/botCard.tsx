@@ -21,6 +21,8 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDeleteBot } from "../../hooks/bots/useBotsMutations";
+import EditIcon from "@mui/icons-material/Edit";
+import { DeletePromptDialog } from "../../components/deleteDialog";
 
 interface BotCardProps {
   bot: IBot;
@@ -47,6 +49,8 @@ export const BotCard: React.FC<BotCardProps> = ({
   const { mutate: deleteBotMutation, isPending: isDeletingBot } =
     useDeleteBot();
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+
   const handleSetWebhook = () => {
     setWebhook(bot.bot_id.toString(), {
       onSuccess: () => {
@@ -72,24 +76,22 @@ export const BotCard: React.FC<BotCardProps> = ({
   };
 
   return (
-    <Box sx={{ width: "100%", mt: 2, position: "relative" }}>
-      <Box sx={{ p: 2, position: "absolute", left: 0 }}>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "start", mb: 2, gap: 2 }}>
         <Button
-          variant="outlined"
-          onClick={() => navigate(-1)}
-          sx={{ mb: 2 }}
           startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)}
+          variant="outlined"
         >
           Назад
         </Button>
-      </Box>
-      <Box sx={{ p: 2, position: "absolute", right: 0 }}>
+
         <Button
+          startIcon={<DeleteIcon />}
+          onClick={() => setIsDeleteDialogOpen(true)}
           variant="contained"
           color="error"
-          onClick={handleDeleteBot}
           disabled={isDeletingBot}
-          startIcon={<DeleteIcon />}
         >
           {isDeletingBot ? (
             <>
@@ -97,162 +99,156 @@ export const BotCard: React.FC<BotCardProps> = ({
               Удаление...
             </>
           ) : (
-            "Удалить бота"
+            "Удалить"
           )}
         </Button>
       </Box>
-      <Box
-        sx={{
-          p: 2,
-          maxWidth: 800,
-          margin: "0 auto",
-        }}
-      >
-        <Paper sx={{ p: 3 }} elevation={3}>
-          {/* Остальной код компонента остается без изменений */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Typography variant="h5" component="h1">
-              {bot.bot_username}
-            </Typography>
+
+      <Paper sx={{ p: 3 }} elevation={3}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+          <Typography variant="h5" component="h1">
+            {bot.bot_username}
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {!isWebhookLoading &&
+              (webhookData?.result?.url ? (
+                <Button
+                  startIcon={<DeleteIcon />}
+                  variant="outlined"
+                  color="error"
+                  onClick={handleDeleteWebhook}
+                  disabled={isDeletingWebhook}
+                  size="small"
+                >
+                  {isDeletingWebhook ? (
+                    <>
+                      <CircularProgress size={18} sx={{ mr: 1 }} />
+                      Удалить вебхук
+                    </>
+                  ) : (
+                    "Удалить вебхук"
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleSetWebhook}
+                  disabled={isSettingWebhook}
+                  size="small"
+                >
+                  {isSettingWebhook ? (
+                    <>
+                      <CircularProgress size={18} sx={{ mr: 1 }} />
+                      Установить вебхук
+                    </>
+                  ) : (
+                    "Установить вебхук"
+                  )}
+                </Button>
+              ))}
+
             <Chip
               label={bot.is_active ? "Активен" : "Неактивен"}
               color={bot.is_active ? "success" : "error"}
             />
           </Box>
+        </Box>
 
-          <Divider sx={{ my: 2 }} />
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Основная информация
-            </Typography>
-            <Typography>
-              <strong>ID:</strong> {bot.bot_id}
-            </Typography>
-            <Typography>
-              <strong>Имя:</strong> {bot.bot_first_name}
-            </Typography>
-            {developerMode && (
-              <>
-                <Typography>
-                  <strong>Токен:</strong> {bot.bot_token}
-                </Typography>
-                <Typography>
-                  <strong>Компания:</strong> {companyName}
-                </Typography>
-                <Typography>
-                  <strong>Дата создания:</strong>{" "}
-                  {new Date(bot.created_at).toLocaleString()}
-                </Typography>
-              </>
-            )}
-            <Typography>
-              <strong>Комментарий:</strong> {bot.comment || "-"}
-            </Typography>
-          </Box>
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Основная информация
+          </Typography>
+          <Typography>
+            <strong>ID:</strong> {bot.bot_id}
+          </Typography>
+          <Typography>
+            <strong>Имя:</strong> {bot.bot_first_name}
+          </Typography>
+          {developerMode && (
+            <>
+              <Typography>
+                <strong>Токен:</strong> {bot.bot_token}
+              </Typography>
+              <Typography>
+                <strong>Дата создания:</strong>{" "}
+                {new Date(bot.created_at).toLocaleString()}
+              </Typography>
+            </>
+          )}
+          <Typography>
+            <strong>Комментарий:</strong> {bot.comment || "-"}
+          </Typography>
+        </Box>
 
-          <Divider sx={{ my: 2 }} />
+        {developerMode && (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Информация о вебхуке
+              </Typography>
 
-          <Box sx={{ mb: 2 }}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-              }}
-            >
-              {webhookData?.result?.url ? (
-                <Typography variant="subtitle1">Вебхук</Typography>
+              {isWebhookLoading ? (
+                <CircularProgress size={24} />
+              ) : webhookData?.result?.url ? (
+                <Box>
+                  <Typography>
+                    <strong>URL:</strong> {webhookData.result.url}
+                  </Typography>
+                  <Typography>
+                    <strong>IP адрес:</strong>{" "}
+                    {webhookData.result.ip_address || "Неизвестно"}
+                  </Typography>
+                  <Typography>
+                    <strong>Ожидающих обновлений:</strong>{" "}
+                    {webhookData.result.pending_update_count}
+                  </Typography>
+                  <Typography>
+                    <strong>Макс. соединений:</strong>{" "}
+                    {webhookData.result.max_connections}
+                  </Typography>
+                  <Typography>
+                    <strong>Сертификат:</strong>{" "}
+                    {webhookData.result.has_custom_certificate
+                      ? "Кастомный"
+                      : "Стандартный"}
+                  </Typography>
+                  {webhookData.result.allowed_updates && (
+                    <Box>
+                      <Typography>
+                        <strong>Доступные обновления:</strong>
+                      </Typography>
+                      <List dense sx={{ listStyleType: "disc", pl: 2 }}>
+                        {webhookData.result.allowed_updates.map(
+                          (update, index) => (
+                            <ListItem
+                              key={index}
+                              sx={{ display: "list-item", py: 0 }}
+                            >
+                              {update}
+                            </ListItem>
+                          )
+                        )}
+                      </List>
+                    </Box>
+                  )}
+                </Box>
               ) : (
-                <Typography variant="subtitle1">
-                  Вебхук не установлен
-                </Typography>
+                <Typography>Вебхук не установлен</Typography>
               )}
-              {!isWebhookLoading &&
-                (webhookData?.result?.url ? (
-                  <Button
-                    startIcon={<DeleteIcon />}
-                    variant="outlined"
-                    color="error"
-                    onClick={handleDeleteWebhook}
-                    disabled={isDeletingWebhook}
-                  >
-                    {isDeletingWebhook ? (
-                      <>
-                        <CircularProgress size={24} sx={{ mr: 1 }} />
-                        Удаление...
-                      </>
-                    ) : (
-                      "Удалить вебхук"
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="contained"
-                    onClick={handleSetWebhook}
-                    disabled={isSettingWebhook}
-                  >
-                    {isSettingWebhook ? (
-                      <>
-                        <CircularProgress size={24} sx={{ mr: 1 }} />
-                        Установка...
-                      </>
-                    ) : (
-                      "Установить вебхук"
-                    )}
-                  </Button>
-                ))}
             </Box>
+          </>
+        )}
+      </Paper>
 
-            {isWebhookLoading ? (
-              <CircularProgress size={24} />
-            ) : webhookData?.result?.url ? (
-              <Box>
-                <Typography>
-                  <strong>URL:</strong> {webhookData.result.url}
-                </Typography>
-                <Typography>
-                  <strong>IP адрес:</strong>{" "}
-                  {webhookData.result.ip_address || "Неизвестно"}
-                </Typography>
-                <Typography>
-                  <strong>Ожидающих обновлений:</strong>{" "}
-                  {webhookData.result.pending_update_count}
-                </Typography>
-                <Typography>
-                  <strong>Макс. соединений:</strong>{" "}
-                  {webhookData.result.max_connections}
-                </Typography>
-                <Typography>
-                  <strong>Сертификат:</strong>{" "}
-                  {webhookData.result.has_custom_certificate
-                    ? "Кастомный"
-                    : "Стандартный"}
-                </Typography>
-                {developerMode && webhookData.result.allowed_updates && (
-                  <Box>
-                    <Typography>
-                      <strong>Доступные обновления:</strong>
-                    </Typography>
-                    <List dense sx={{ listStyleType: "disc", pl: 2 }}>
-                      {webhookData.result.allowed_updates.map(
-                        (update, index) => (
-                          <ListItem
-                            key={index}
-                            sx={{ display: "list-item", py: 0 }}
-                          >
-                            {update}
-                          </ListItem>
-                        )
-                      )}
-                    </List>
-                  </Box>
-                )}
-              </Box>
-            ) : null}
-          </Box>
-        </Paper>
-      </Box>
+      <DeletePromptDialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteBot}
+        isDeleting={isDeletingBot}
+      />
     </Box>
   );
 };

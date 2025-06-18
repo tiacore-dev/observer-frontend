@@ -46,7 +46,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 Тип расписания
               </TableSortLabel>
             </TableCell>
-            <TableCell>Доступность</TableCell>
+            <TableCell>Статус</TableCell>
             {developerMode && (
               <TableCell>
                 <TableSortLabel

@@ -1,4 +1,3 @@
-// companyCard.tsx
 import React from "react";
 import {
   Box,
@@ -55,76 +54,62 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
   const currentCompany = companyDetails || company;
 
   return (
-    <Box sx={{ width: "100%", mt: 2, position: "relative" }}>
-      <Box sx={{ p: 2, position: "absolute", left: 0 }}>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: "flex", justifyContent: "start", mb: 2, gap: 2 }}>
         <Button
-          variant="outlined"
-          onClick={() => navigate(-1)}
-          sx={{ mb: 2 }}
           startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)}
+          variant="outlined"
         >
           Назад
         </Button>
+
+        <Button
+          startIcon={<EditIcon />}
+          onClick={() => setEditModalOpen(true)}
+          variant="contained"
+          color="primary"
+        >
+          Редактировать
+        </Button>
+
+        <Button
+          startIcon={<DeleteIcon />}
+          onClick={() => setDeleteDialogOpen(true)}
+          variant="contained"
+          color="error"
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <>
+              <CircularProgress size={24} sx={{ mr: 1 }} />
+              Удаление...
+            </>
+          ) : (
+            "Удалить"
+          )}
+        </Button>
       </Box>
 
-      {/* {developerMode && ( */}
-      <Box sx={{ p: 2, position: "absolute", right: 0 }}>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setEditModalOpen(true)}
-            startIcon={<EditIcon />}
-          >
-            Редактировать
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => setDeleteDialogOpen(true)}
-            disabled={isDeleting}
-            startIcon={<DeleteIcon />}
-          >
-            {isDeleting ? (
-              <>
-                <CircularProgress size={24} sx={{ mr: 1 }} />
-                Удаление...
-              </>
-            ) : (
-              "Удалить"
-            )}
-          </Button>
-        </Stack>
-      </Box>
-      {/* )} */}
+      <Paper sx={{ p: 3 }} elevation={3}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+          <Typography variant="h5" component="h1">
+            {currentCompany.company_name}
+          </Typography>
+        </Box>
 
-      <Box
-        sx={{
-          p: 2,
-          maxWidth: 800,
-          margin: "0 auto",
-        }}
-      >
-        <Paper sx={{ p: 3 }} elevation={3}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Typography variant="h5" component="h1">
-              {currentCompany.company_name}
-            </Typography>
-          </Box>
-
-          <Divider sx={{ my: 2 }} />
-          <Box sx={{ mb: 2 }}>
-            {developerMode && (
-              <Typography>
-                <strong>ID:</strong> {currentCompany.company_id}
-              </Typography>
-            )}
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ mb: 2 }}>
+          {developerMode && (
             <Typography>
-              <strong>Описание:</strong> {currentCompany.description || "-"}
+              <strong>ID:</strong> {currentCompany.company_id}
             </Typography>
-          </Box>
-        </Paper>
-      </Box>
+          )}
+          <Typography>
+            <strong>Описание:</strong> {currentCompany.description || "-"}
+          </Typography>
+        </Box>
+      </Paper>
 
       <DeletePromptDialog
         open={deleteDialogOpen}

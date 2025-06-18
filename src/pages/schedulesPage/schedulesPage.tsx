@@ -197,10 +197,10 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         </FormControl>
 
         <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Доступность</InputLabel>
+          <InputLabel>Статус</InputLabel>
           <Select
             value={enabledFilter}
-            label="Доступность"
+            label="Статус"
             onChange={(e: SelectChangeEvent<boolean | "all">) =>
               setEnabledFilter(
                 e.target.value === "all" ? "all" : e.target.value === "true"
@@ -218,7 +218,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           startIcon={<AddIcon />}
           onClick={() => setIsModalOpen(true)}
         >
-          Добавить расписание
+          Добавить
         </Button>
       </Box>
 
