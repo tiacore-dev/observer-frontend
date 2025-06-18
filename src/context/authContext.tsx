@@ -18,10 +18,13 @@ interface AuthContextType {
   user: IUser | null;
   accessToken: string | null;
   refreshToken: string | null;
+  selectedCompanyId: string | null;
+  availableCompanies: string[];
   login: (data: { email: string; password: string }) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
   updateUser: (userData: Partial<IUser>) => void;
+  setSelectedCompanyId: (companyId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,7 +39,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     user: JSON.parse(localStorage.getItem("user") || "null"),
     accessToken: localStorage.getItem("access_token"),
     refreshToken: localStorage.getItem("refresh_token"),
+    selectedCompanyId: localStorage.getItem("selected_company_id"),
+    availableCompanies: JSON.parse(
+      localStorage.getItem("available_companies") || "[]"
+    ),
   });
+
+  const getAvailableCompanies = (
+    permissions: Record<string, any>,
+    appId: string
+  ): string[] => {
+    if (!permissions || !appId) return [];
+
+    const appPermissions = permissions[appId];
+    if (!appPermissions) return [];
+
+    return Object.keys(appPermissions);
+  };
 
   const login = useCallback(
     async (data: { email: string; password: string }) => {
@@ -48,7 +67,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         localStorage.setItem("is_superadmin", String(response.is_superadmin));
         localStorage.setItem("user_id", String(response.user_id));
 
-        const userDetails = await fetchUserDetails();
+        const appId = process.env.REACT_APP_ID;
+        let selectedCompanyId = null;
+        let availableCompanies: string[] = [];
+
+        if (!response.is_superadmin && appId && response.permissions) {
+          availableCompanies = getAvailableCompanies(
+            response.permissions,
+            appId
+          );
+          localStorage.setItem(
+            "available_companies",
+            JSON.stringify(availableCompanies)
+          );
+
+          if (availableCompanies.length > 0) {
+            selectedCompanyId = availableCompanies[0];
+            localStorage.setItem("selected_company_id", selectedCompanyId);
+          }
+        }
+
+        let userDetails;
+        if (!response.is_superadmin && selectedCompanyId) {
+          userDetails = await fetchUserDetails(selectedCompanyId);
+        } else {
+          userDetails = await fetchUserDetails();
+        }
+
         localStorage.setItem("user", JSON.stringify(userDetails));
 
         setAuthState({
@@ -57,6 +102,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           user: userDetails,
           accessToken: response.access_token,
           refreshToken: response.refresh_token,
+          selectedCompanyId,
+          availableCompanies,
         });
 
         navigate("/home", { replace: true });
@@ -78,6 +125,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("is_superadmin");
     localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("selected_company_id");
+    localStorage.removeItem("available_companies");
 
     setAuthState({
       isAuthenticated: false,
@@ -85,6 +135,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       user: null,
       accessToken: null,
       refreshToken: null,
+      selectedCompanyId: null,
+      availableCompanies: [],
     });
 
     navigate("/login");
@@ -111,7 +163,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const newToken = await refreshToken();
       if (newToken) {
-        const userDetails = await fetchUserDetails();
+        const appId = process.env.REACT_APP_ID;
+        const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
+        const selectedCompanyId = localStorage.getItem("selected_company_id");
+
+        let userDetails: IUser | null = null; // Явно указываем тип
+        if (!isSuperadmin && selectedCompanyId) {
+          userDetails = await fetchUserDetails(selectedCompanyId);
+        } else {
+          userDetails = await fetchUserDetails();
+        }
+
         localStorage.setItem("user", JSON.stringify(userDetails));
 
         setAuthState((prev) => ({
@@ -141,6 +203,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     });
   }, []);
 
+  const setSelectedCompanyId = useCallback((companyId: string) => {
+    localStorage.setItem("selected_company_id", companyId);
+    setAuthState((prev) => ({
+      ...prev,
+      selectedCompanyId: companyId,
+    }));
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -149,10 +219,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         user: authState.user,
         accessToken: authState.accessToken,
         refreshToken: authState.refreshToken,
+        selectedCompanyId: authState.selectedCompanyId,
+        availableCompanies: authState.availableCompanies,
         login,
         logout,
         checkAuth,
         updateUser,
+        setSelectedCompanyId,
       }}
     >
       {children}
