@@ -13,6 +13,7 @@ export const loginUser = async (data: {
   email: string;
   password: string;
 }): Promise<AuthResponse> => {
+  localStorage.clear();
   const url = process.env.REACT_APP_API_URL;
   if (!url) throw new Error("REACT_APP_API_URL is not defined");
 
