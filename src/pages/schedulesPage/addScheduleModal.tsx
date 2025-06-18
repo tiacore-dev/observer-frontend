@@ -61,11 +61,12 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     chat_id: string;
     prompt_id: string;
     company_id: string;
-    schedule_type: "interval" | "cron" | "once";
+    schedule_type: "interval" | "cron" | "once" | "daily_time";
     interval_hours?: number;
     interval_minutes?: number;
     time_of_day?: string;
     cron_expression?: string;
+    run_at?: string;
     enabled: boolean;
     bot_id: string;
     target_chats: number[];
@@ -161,16 +162,18 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       if (!scheduleData.interval_hours && !scheduleData.interval_minutes) {
         newErrors.interval = "Укажите интервал (часы или минуты)";
       }
-    } else if (
-      scheduleData.schedule_type === "cron" &&
-      (selectedDays.length === 0 || !cronTime)
-    ) {
-      newErrors.cron_expression = "Выберите дни и время";
-    } else if (
-      scheduleData.schedule_type === "once" &&
-      !scheduleData.time_of_day
-    ) {
-      newErrors.time_of_day = "Время обязательно";
+    } else if (scheduleData.schedule_type === "cron") {
+      if (selectedDays.length === 0 || !cronTime) {
+        newErrors.cron_expression = "Выберите дни и время";
+      }
+    } else if (scheduleData.schedule_type === "once") {
+      if (!scheduleData.run_at) {
+        newErrors.run_at = "Время выполнения обязательно";
+      }
+    } else if (scheduleData.schedule_type === "daily_time") {
+      if (!scheduleData.time_of_day) {
+        newErrors.time_of_day = "Время выполнения обязательно";
+      }
     }
 
     if (scheduleData.send_strategy === "fixed" && !scheduleData.time_to_send) {
@@ -204,12 +207,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             ? Number(scheduleData.interval_minutes)
             : undefined,
         time_of_day:
-          scheduleData.schedule_type === "once"
+          scheduleData.schedule_type === "daily_time"
             ? scheduleData.time_of_day
             : undefined,
         cron_expression:
           scheduleData.schedule_type === "cron"
             ? generateCronExpression(cronTime, selectedDays)
+            : undefined,
+        run_at:
+          scheduleData.schedule_type === "once"
+            ? scheduleData.run_at
             : undefined,
         enabled: scheduleData.enabled,
         bot_id: parseInt(scheduleData.bot_id),
@@ -283,16 +290,26 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       <DialogTitle>Добавить новое расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <TextField
-            fullWidth
-            label="ID чата (число)"
-            name="chat_id"
-            value={scheduleData.chat_id}
-            onChange={handleChange}
-            error={!!errors.chat_id}
-            helperText={errors.chat_id}
-            required
-          />
+          <FormControl fullWidth required error={!!errors.chat_id}>
+            <InputLabel>Анализируемый чат</InputLabel>
+            <Select
+              name="chat_id"
+              value={scheduleData.chat_id}
+              label="Анализируемый чат"
+              onChange={handleSelectChange}
+            >
+              {chatsData?.chats.map((chat) => (
+                <MenuItem key={chat.chat_id} value={chat.chat_id.toString()}>
+                  {chat.chat_name} (ID: {chat.chat_id})
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.chat_id && (
+              <Typography variant="caption" color="error">
+                {errors.chat_id}
+              </Typography>
+            )}
+          </FormControl>
 
           <FormControl fullWidth required error={!!errors.prompt_id}>
             <InputLabel>Промпт</InputLabel>
@@ -409,8 +426,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               onChange={handleSelectChange}
             >
               <MenuItem value="interval">Интервал</MenuItem>
-              <MenuItem value="cron">Повторяющееся</MenuItem>
+              <MenuItem value="cron">Повторяющееся (Cron)</MenuItem>
               <MenuItem value="once">Одноразово</MenuItem>
+              <MenuItem value="daily_time">Ежедневно</MenuItem>
             </Select>
           </FormControl>
 
@@ -465,11 +483,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 ))}
               </Stack>
 
-              {/* <Typography variant="body2" color="textSecondary">
-                Cron выражение:{" "}
-                {generateCronExpression(cronTime, selectedDays) || "не задано"}
-              </Typography> */}
-
               {errors.cron_expression && (
                 <Typography variant="caption" color="error">
                   {errors.cron_expression}
@@ -479,6 +492,21 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
           )}
 
           {scheduleData.schedule_type === "once" && (
+            <TextField
+              fullWidth
+              label="Время выполнения (HH:MM)"
+              name="run_at"
+              type="time"
+              value={scheduleData.run_at || ""}
+              onChange={handleChange}
+              error={!!errors.run_at}
+              helperText={errors.run_at}
+              required
+              InputLabelProps={{ shrink: true }}
+            />
+          )}
+
+          {scheduleData.schedule_type === "daily_time" && (
             <TextField
               fullWidth
               label="Время выполнения (HH:MM)"

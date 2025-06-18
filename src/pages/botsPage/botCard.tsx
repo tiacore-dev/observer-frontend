@@ -124,10 +124,10 @@ export const BotCard: React.FC<BotCardProps> = ({
                   {isDeletingWebhook ? (
                     <>
                       <CircularProgress size={18} sx={{ mr: 1 }} />
-                      Удалить вебхук
+                      Отключить вебхук
                     </>
                   ) : (
-                    "Удалить вебхук"
+                    "Отключить вебхук"
                   )}
                 </Button>
               ) : (

@@ -51,17 +51,18 @@ export const HomePage: React.FC = () => {
       path: "/analysis",
       // color: "#7b1fa2",
     },
-    ...(isSuperadmin
-      ? [
-          {
-            title: "Компании",
-            description: "Управление компаниями",
-            icon: <Business sx={{ fontSize: 40 }} />,
-            path: "/companies",
-            // color: "#d32f2f",
-          },
-        ]
-      : []),
+    // ...(isSuperadmin
+    //   ?
+    // [
+    {
+      title: "Компании",
+      description: "Управление компаниями",
+      icon: <Business sx={{ fontSize: 40 }} />,
+      path: "/companies",
+      // color: "#d32f2f",
+    },
+    // ]
+    // : []),
   ];
 
   return (

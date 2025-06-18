@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import {
   createContext,
@@ -23,6 +21,7 @@ interface AuthContextType {
   login: (data: { email: string; password: string }) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
+  updateUser: (userData: Partial<IUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,17 +43,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       try {
         const response = await loginUser(data);
 
-        // Сохраняем данные в localStorage
         localStorage.setItem("access_token", response.access_token);
         localStorage.setItem("refresh_token", response.refresh_token);
         localStorage.setItem("is_superadmin", String(response.is_superadmin));
         localStorage.setItem("user_id", String(response.user_id));
 
-        // Получаем данные пользователя
         const userDetails = await fetchUserDetails();
         localStorage.setItem("user", JSON.stringify(userDetails));
 
-        // Обновляем состояние
         setAuthState({
           isAuthenticated: true,
           isSuperadmin: response.is_superadmin,
@@ -63,7 +59,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           refreshToken: response.refresh_token,
         });
 
-        // Перенаправляем на /home после успешного входа
         navigate("/home", { replace: true });
       } catch (error) {
         console.error("Login error:", error);
@@ -79,13 +74,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const logout = useCallback(() => {
-    // Очищаем localStorage
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("is_superadmin");
     localStorage.removeItem("user");
 
-    // Сбрасываем состояние
     setAuthState({
       isAuthenticated: false,
       isSuperadmin: false,
@@ -100,16 +93,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const checkAuth = useCallback(async () => {
     const token = localStorage.getItem("access_token");
 
-    // Если токена нет, пользователь не авторизован
     if (!token) {
       return false;
     }
 
-    // Проверяем, действителен ли токен
     if (isTokenValid(token)) {
-      // Токен еще действителен, проверяем нужно ли его обновить
       if (!isTokenExpired(token)) {
-        // Токен действителен и не истекает скоро, не нужно обновлять
         setAuthState((prev) => ({
           ...prev,
           isAuthenticated: true,
@@ -119,15 +108,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
     }
 
-    // Токен истек или истекает скоро, пытаемся обновить
     try {
       const newToken = await refreshToken();
       if (newToken) {
-        // Получаем актуальные данные пользователя только при обновлении токена
         const userDetails = await fetchUserDetails();
         localStorage.setItem("user", JSON.stringify(userDetails));
 
-        // Обновляем состояние после успешного обновления токена
         setAuthState((prev) => ({
           ...prev,
           isAuthenticated: true,
@@ -144,6 +130,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [logout]);
 
+  const updateUser = useCallback((userData: Partial<IUser>) => {
+    setAuthState((prev) => {
+      const updatedUser = { ...prev.user, ...userData };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      return {
+        ...prev,
+        user: updatedUser,
+      };
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -155,6 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         login,
         logout,
         checkAuth,
+        updateUser,
       }}
     >
       {children}

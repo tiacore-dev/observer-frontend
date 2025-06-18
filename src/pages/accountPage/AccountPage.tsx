@@ -1,6 +1,7 @@
+// AccountPage.tsx
 "use client";
 
-import type React from "react";
+import React from "react";
 import {
   Box,
   Card,
@@ -9,51 +10,88 @@ import {
   Grid,
   Chip,
   Divider,
+  Button,
 } from "@mui/material";
 import { useAuth } from "../../context/authContext";
+import { useUserDetailsQuery } from "../../hooks/users/useUsersQuery";
+import { IUserEdit, useUpdateUser } from "../../hooks/users/useUserMutations";
+import { EditUserModal } from "./editUserModal";
 
 export const AccountPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser: updateAuthUser } = useAuth();
+  const { data: userDetails } = useUserDetailsQuery();
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
-  if (!user) {
+  if (!userDetails) {
     return <Typography>Загрузка...</Typography>;
   }
 
+  const handleUpdateUser = (updatedData: Partial<IUserEdit>) => {
+    updateUser(
+      {
+        user_id: userDetails.user_id,
+        updatedData,
+      },
+      {
+        onSuccess: () => {
+          updateAuthUser(updatedData);
+        },
+      }
+    );
+    setIsEditModalOpen(false);
+  };
+
   return (
     <Box sx={{ pt: 4, pl: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Мой аккаунт
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4" gutterBottom>
+          Мой аккаунт
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => setIsEditModalOpen(true)}
+          style={{ marginRight: 16 }}
+        >
+          Редактировать
+        </Button>
+      </Box>
 
       <Grid container spacing={3}>
-        {/* <Grid item xs={12} md={6}> */}
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            {/* <Typography variant="h6" gutterBottom>
               Информация о пользователе
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+            </Typography> */}
+            {/* <Divider sx={{ mb: 2 }} /> */}
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Полное имя
               </Typography>
-              <Typography variant="body1">{user.full_name}</Typography>
+              <Typography variant="body1">{userDetails.full_name}</Typography>
             </Box>
 
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Email
               </Typography>
-              <Typography variant="body1">{user.email}</Typography>
+              <Typography variant="body1">{userDetails.email}</Typography>
             </Box>
 
-            {user.position && (
+            {userDetails.position && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   Должность
                 </Typography>
-                <Typography variant="body1">{user.position}</Typography>
+                <Typography variant="body1">{userDetails.position}</Typography>
               </Box>
             )}
 
@@ -62,67 +100,29 @@ export const AccountPage: React.FC = () => {
                 Статус верификации
               </Typography>
               <Chip
-                label={user.is_verified ? "Подтвержден" : "Не подтвержден"}
-                color={user.is_verified ? "success" : "warning"}
+                label={
+                  userDetails.is_verified ? "Подтвержден" : "Не подтвержден"
+                }
+                color={userDetails.is_verified ? "success" : "warning"}
                 size="small"
               />
             </Box>
-
-            {/* {isSuperAdmin && (
-                <Box sx={{ mb: 2 }}>
-                  <Chip label="Суперадминистратор" color="secondary" size="small" />
-                </Box>
-              )} */}
           </CardContent>
         </Card>
       </Grid>
-      {/* </Grid> */}
 
-      {/* <Grid item xs={12} md={6}> */}
-      {/* <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Компании
-          </Typography>
-          <Divider sx={{ mb: 2 }} /> */}
-
-      {/* {selectedCompany && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Текущая компания
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                    {selectedCompany.company_name}
-                  </Typography>
-                  {selectedCompany.description && (
-                    <Typography variant="body2" color="text.secondary">
-                      {selectedCompany.description}
-                    </Typography>
-                  )}
-                </Box>
-              )} */}
-
-      {/* <Box>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Доступные компании ({companies.length})
-            </Typography>
-            {companies.map((company) => (
-                  <Chip
-                    key={company.company_id}
-                    label={company.company_name}
-                    variant={
-                      selectedCompany?.company_id === company.company_id
-                        ? "filled"
-                        : "outlined"
-                    }
-                    sx={{ mr: 1, mb: 1 }}
-                  />
-                ))}
-          </Box> */}
-      {/* </CardContent>
-      </Card> */}
-      {/* </Grid> */}
-      {/* </Grid> */}
+      <EditUserModal
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        userData={{
+          email: userDetails.email,
+          full_name: userDetails.full_name,
+          position: userDetails.position,
+          is_verified: userDetails.is_verified,
+        }}
+        onSubmit={handleUpdateUser}
+        isSubmitting={isUpdating}
+      />
     </Box>
   );
 };

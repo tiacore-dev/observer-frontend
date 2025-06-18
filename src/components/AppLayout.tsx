@@ -33,6 +33,7 @@ import {
   Person,
   Settings,
 } from "@mui/icons-material";
+import GroupsIcon from "@mui/icons-material/Groups";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
@@ -83,17 +84,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     { text: "Промпты", icon: <Psychology />, path: "/prompts" },
     { text: "Расписания", icon: <Schedule />, path: "/schedules" },
     { text: "Анализ", icon: <Analytics />, path: "/analysis" },
+    { text: "Компании", icon: <Business />, path: "/companies" },
     // { text: "Чаты", icon: <Chat />, path: "/chats" },
     // { text: "Аккаунты", icon: <AccountCircle />, path: "/accounts" },
   ];
 
-  if (isSuperadmin) {
-    menuItems.splice(1, 0, {
-      text: "Компании",
-      icon: <Business />,
-      path: "/companies",
-    });
-  }
+  // if (isSuperadmin) {
+  // menuItems.splice(1, 0, {
+  //   text: "Компании",
+  //   icon: <Business />,
+  //   path: "/companies",
+  // });
+  // }
 
   const drawer = (
     <div>
