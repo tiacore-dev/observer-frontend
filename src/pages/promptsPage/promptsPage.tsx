@@ -18,7 +18,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import { AddPromptModal } from "./addPromptModal";
 import { PageProps } from "../../App";
-import { PromptsTable } from "./promptsTable"; // Импортируем новый компонент
+import { PromptsTable } from "./promptsTable";
 
 export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const {
@@ -56,8 +56,8 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const companies = Array.from(
     new Set(
       promptsData?.prompts.map((prompt) => ({
-        id: prompt.company,
-        name: companyMap.get(prompt.company) || prompt.company,
+        id: prompt.company_id, // изменено с company на company_id
+        name: companyMap.get(prompt.company_id) || prompt.company_id, // изменено с company на company_id
       })) || []
     )
   );
@@ -75,7 +75,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (companyFilter) {
       filteredPrompts = filteredPrompts.filter(
-        (prompt) => prompt.company === companyFilter
+        (prompt) => prompt.company_id === companyFilter // изменено с company на company_id
       );
     }
 

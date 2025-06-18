@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useAnalysisQuery } from "../../hooks/analysis/useAnalysisQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
+import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
+import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import {
   Paper,
   CircularProgress,
@@ -32,6 +34,16 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     isLoading: companiesLoading,
     error: companiesError,
   } = useCompaniesQuery();
+  const {
+    data: chatsData,
+    isLoading: chatsLoading,
+    error: chatsError,
+  } = useChatsQuery();
+  const {
+    data: promptsData,
+    isLoading: promptsLoading,
+    error: promptsError,
+  } = usePromptsQuery();
   const navigate = useNavigate();
 
   const companyMap = useMemo(() => {
@@ -42,12 +54,28 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     return map;
   }, [companiesData]);
 
-  const isLoading = analysisLoading || companiesLoading;
-  const error = analysisError || companiesError;
+  const chatMap = useMemo(() => {
+    const map = new Map<number, string>();
+    chatsData?.chats?.forEach((chat) => {
+      map.set(chat.chat_id, chat.chat_name);
+    });
+    return map;
+  }, [chatsData]);
+
+  const promptMap = useMemo(() => {
+    const map = new Map<string, string>();
+    promptsData?.prompts?.forEach((prompt) => {
+      map.set(prompt.prompt_id, prompt.prompt_name);
+    });
+    return map;
+  }, [promptsData]);
+
+  const isLoading =
+    analysisLoading || companiesLoading || chatsLoading || promptsLoading;
+  const error = analysisError || companiesError || chatsError || promptsError;
 
   const [chatFilter, setChatFilter] = useState("");
-  const [scheduleFilter, setScheduleFilter] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("");
+  // const [companyFilter, setCompanyFilter] = useState("");
   const [sortField, setSortField] = useState<keyof IAnalys>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
@@ -56,37 +84,34 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const companies = Array.from(
     new Set(
-      analysisData?.chats?.map((item) => ({
-        id: item.company,
-        name: companyMap.get(item.company) || item.company,
+      analysisData?.analysis?.map((item) => ({
+        id: item.company_id,
+        name: companyMap.get(item.company_id) || item.company_id,
       })) || []
     )
   );
 
   const getFilteredAndSortedAnalysis = () => {
-    if (!analysisData?.chats) return [];
+    if (!analysisData?.analysis) return [];
 
-    let filteredAnalysis = [...analysisData.chats];
+    let filteredAnalysis = [...analysisData.analysis];
 
     if (chatFilter) {
-      filteredAnalysis = filteredAnalysis.filter((item) =>
-        item.chat.toString().includes(chatFilter)
-      );
-    }
-
-    if (scheduleFilter) {
       filteredAnalysis = filteredAnalysis.filter(
         (item) =>
-          item.schedule &&
-          item.schedule.toLowerCase().includes(scheduleFilter.toLowerCase())
+          chatMap
+            .get(item.chat_id)
+            ?.toLowerCase()
+            .includes(chatFilter.toLowerCase()) ||
+          item.chat_id.toString().includes(chatFilter)
       );
     }
 
-    if (companyFilter) {
-      filteredAnalysis = filteredAnalysis.filter(
-        (item) => item.company === companyFilter
-      );
-    }
+    // if (companyFilter) {
+    //   filteredAnalysis = filteredAnalysis.filter(
+    //     (item) => item.company_id === companyFilter
+    //   );
+    // }
 
     filteredAnalysis.sort((a, b) => {
       const aValue = a[sortField];
@@ -116,9 +141,9 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     page * rowsPerPage
   );
 
-  useEffect(() => {
-    setPage(1);
-  }, [chatFilter, scheduleFilter, companyFilter]);
+  // useEffect(() => {
+  //   setPage(1);
+  // }, [chatFilter, companyFilter]);
 
   if (isLoading)
     return (
@@ -139,22 +164,14 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
         <TextField
-          label="Поиск по Chat ID"
+          label="Поиск по Chat"
           variant="outlined"
           size="small"
           value={chatFilter}
           onChange={(e) => setChatFilter(e.target.value)}
         />
 
-        <TextField
-          label="Поиск по Schedule"
-          variant="outlined"
-          size="small"
-          value={scheduleFilter}
-          onChange={(e) => setScheduleFilter(e.target.value)}
-        />
-
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+        {/* <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel>Компания</InputLabel>
           <Select
             value={companyFilter}
@@ -168,7 +185,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
+        </FormControl> */}
 
         <Button
           variant="contained"
@@ -182,6 +199,8 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
       <AnalysisTable
         analysis={paginatedAnalysis}
         companyMap={companyMap}
+        chatMap={chatMap}
+        promptMap={promptMap}
         developerMode={developerMode}
         sortField={sortField}
         sortDirection={sortDirection}

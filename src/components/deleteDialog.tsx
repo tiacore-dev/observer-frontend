@@ -17,7 +17,7 @@ interface DeletePromptDialogProps {
   isDeleting: boolean;
 }
 
-export const DeletePromptDialog: React.FC<DeletePromptDialogProps> = ({
+export const DeleteDialog: React.FC<DeletePromptDialogProps> = ({
   open,
   onClose,
   onConfirm,

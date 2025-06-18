@@ -22,6 +22,7 @@ import { AuthProvider } from "./context/authContext";
 import { AccountPage } from "./pages/accountPage/AccountPage";
 import theme from "./themeConfig/theme";
 import { ThemeProvider } from "@mui/material/styles";
+import { AnalysisDetailsPage } from "./pages/analysisPage/analysisDetailsPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -80,6 +81,12 @@ const App: React.FC = () => {
                   <Route
                     path="/analysis"
                     element={<AnalysisPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/analysis/:analysisId"
+                    element={
+                      <AnalysisDetailsPage developerMode={developerMode} />
+                    }
                   />
                   <Route
                     path="/schedules"

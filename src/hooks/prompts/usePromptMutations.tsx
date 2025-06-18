@@ -13,7 +13,7 @@ export const useCreatePrompt = () => {
     mutationFn: (newPrompt: {
       prompt_name: string;
       text: string;
-      company: string;
+      company_id: string; // изменено с company на company_id
     }) => createPrompt(newPrompt),
     onSuccess: () => {
       enqueueSnackbar("Успешно добавлено", { variant: "success" });

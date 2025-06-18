@@ -16,7 +16,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { EditPromptModal } from "./editPromptModal";
-import { DeletePromptDialog } from "../../components/deleteDialog";
+import { DeleteDialog } from "../../components/deleteDialog";
 
 export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
@@ -164,7 +164,7 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Компания:</Typography>
-              <Typography variant="body1">{prompt.company}</Typography>
+              <Typography variant="body1">{prompt.company_id}</Typography>
             </Box>
           </>
         )}
@@ -179,7 +179,7 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
         isSubmitting={updatePromptMutation.isPending}
       />
 
-      <DeletePromptDialog
+      <DeleteDialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDelete}

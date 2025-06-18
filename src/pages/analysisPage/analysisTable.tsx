@@ -7,14 +7,16 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Typography,
   TableSortLabel,
 } from "@mui/material";
 import { IAnalys } from "../../api/analysisApi";
+import { useNavigate } from "react-router-dom";
 
 interface AnalysisTableProps {
   analysis: IAnalys[];
   companyMap: Map<string, string>;
+  chatMap: Map<number, string>;
+  promptMap: Map<string, string>;
   developerMode: boolean;
   sortField: keyof IAnalys;
   sortDirection: "asc" | "desc";
@@ -25,22 +27,38 @@ interface AnalysisTableProps {
 export const AnalysisTable: React.FC<AnalysisTableProps> = ({
   analysis,
   companyMap,
+  chatMap,
+  promptMap,
   developerMode,
   sortField,
   sortDirection,
   onSort,
   onRowClick,
 }) => {
+  const navigate = useNavigate();
+
+  const handleRowClick = (analysisId: string) => {
+    if (onRowClick) {
+      onRowClick(analysisId);
+    } else {
+      navigate(`/analysis/${analysisId}`);
+    }
+  };
+
+  const formatResultText = (text?: string) => {
+    if (!text) return "-";
+    return text.length > 50 ? `${text.substring(0, 50)}...` : text;
+  };
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="analysis table">
         <TableHead>
           <TableRow>
             {developerMode && <TableCell>ID</TableCell>}
-            <TableCell>ID</TableCell>
+            <TableCell>Чат</TableCell>
             <TableCell>Промпт</TableCell>
             {developerMode && <TableCell>Компания</TableCell>}
-            <TableCell>Расписание</TableCell>
             <TableCell>Токены (in/out)</TableCell>
             {developerMode && (
               <TableCell
@@ -50,7 +68,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               >
                 <TableSortLabel
                   active={sortField === "created_at"}
-                  direction={sortField === "created_at" ? sortDirection : "asc"}
+                  direction={sortDirection}
                   onClick={() => onSort("created_at")}
                 >
                   Дата создания
@@ -65,36 +83,27 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
           {analysis.map((item) => (
             <TableRow
               key={item.analysis_id}
+              hover
               sx={{
                 "&:last-child td, &:last-child th": { border: 0 },
-                "&:hover": {
-                  backgroundColor: "action.hover",
-                  cursor: onRowClick ? "pointer" : "default",
-                },
+                cursor: "pointer",
               }}
-              onClick={() => onRowClick && onRowClick(item.analysis_id)}
+              onClick={() => handleRowClick(item.analysis_id)}
             >
               {developerMode && (
                 <TableCell component="th" scope="row">
                   {item.analysis_id}
                 </TableCell>
               )}
-              <TableCell>{item.chat}</TableCell>
-              <TableCell
-                sx={{
-                  maxWidth: 300,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {item.prompt}
+              <TableCell>{chatMap.get(item.chat_id) || item.chat_id}</TableCell>
+              <TableCell>
+                {promptMap.get(item.prompt_id) || item.prompt_id}
               </TableCell>
               {developerMode && (
                 <TableCell>
-                  {companyMap.get(item.company) || item.company}
+                  {companyMap.get(item.company_id) || item.company_id}
                 </TableCell>
               )}
-              <TableCell>{item.schedule || "-"}</TableCell>
               <TableCell>
                 {item.tokens_input}/{item.tokens_output}
               </TableCell>
@@ -103,15 +112,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                   {new Date(item.created_at).toLocaleString()}
                 </TableCell>
               )}
-              <TableCell
-                sx={{
-                  maxWidth: 300,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {item.result_text || "-"}
-              </TableCell>
+              <TableCell>{formatResultText(item.result_text)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

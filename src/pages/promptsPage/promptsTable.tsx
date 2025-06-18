@@ -105,7 +105,7 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
               )}
               {developerMode && (
                 <TableCell>
-                  {companyMap.get(prompt.company) || prompt.company}
+                  {companyMap.get(prompt.company_id) || prompt.company_id}
                 </TableCell>
               )}
             </TableRow>

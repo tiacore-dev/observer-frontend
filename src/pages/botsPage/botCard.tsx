@@ -22,7 +22,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDeleteBot } from "../../hooks/bots/useBotsMutations";
 import EditIcon from "@mui/icons-material/Edit";
-import { DeletePromptDialog } from "../../components/deleteDialog";
+import { DeleteDialog } from "../../components/deleteDialog";
 
 interface BotCardProps {
   bot: IBot;
@@ -243,7 +243,7 @@ export const BotCard: React.FC<BotCardProps> = ({
         )}
       </Paper>
 
-      <DeletePromptDialog
+      <DeleteDialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteBot}

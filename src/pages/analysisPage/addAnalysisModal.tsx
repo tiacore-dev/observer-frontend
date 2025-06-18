@@ -4,7 +4,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Button,
   Box,
   FormControl,
@@ -32,16 +31,15 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
   onClose,
 }) => {
   const [analysisData, setAnalysisData] = useState({
-    prompt: "",
-    chat: 0,
+    prompt_id: "",
+    chat_id: 0,
     date_from: null as Date | null,
     date_to: null as Date | null,
-    company: "",
+    company_id: "",
   });
 
   const createAnalysis = useCreateAnalys();
 
-  // Получаем списки данных
   const {
     data: companiesData,
     isLoading: companiesLoading,
@@ -64,16 +62,16 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
     };
 
   const [errors, setErrors] = useState({
-    prompt: "",
-    chat: "",
-    company: "",
+    prompt_id: "",
+    chat_id: "",
+    company_id: "",
   });
 
   const handleSubmit = async () => {
     const newErrors = {
-      prompt: !analysisData.prompt ? "Prompt обязателен" : "",
-      chat: !analysisData.chat ? "Chat обязателен" : "",
-      company: !analysisData.company ? "Выберите компанию" : "",
+      prompt_id: !analysisData.prompt_id ? "Prompt обязателен" : "",
+      chat_id: !analysisData.chat_id ? "Chat обязателен" : "",
+      company_id: !analysisData.company_id ? "Выберите компанию" : "",
     };
 
     setErrors(newErrors);
@@ -83,29 +81,28 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
     try {
       await createAnalysis.mutateAsync({
         ...analysisData,
-        chat: Number(analysisData.chat),
+        chat_id: Number(analysisData.chat_id),
         date_from: analysisData.date_from
           ? Math.floor(analysisData.date_from.getTime() / 1000)
           : 0,
         date_to: analysisData.date_to
           ? Math.floor(analysisData.date_to.getTime() / 1000)
           : 0,
-        company: analysisData.company,
+        company_id: analysisData.company_id,
       });
       onClose();
       setAnalysisData({
-        prompt: "",
-        chat: 0,
+        prompt_id: "",
+        chat_id: 0,
         date_from: null,
         date_to: null,
-        company: "",
+        company_id: "",
       });
     } catch (error) {
       console.error("Error creating analysis:", error);
     }
   };
 
-  // Обработка состояний загрузки
   const isLoading = companiesLoading || promptsLoading || chatsLoading;
   const error = companiesError || promptsError || chatsError;
 
@@ -144,16 +141,16 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
         <DialogTitle>Добавить новый анализ</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-            <FormControl fullWidth required error={!!errors.prompt}>
+            <FormControl fullWidth required error={!!errors.prompt_id}>
               <InputLabel>Промпт</InputLabel>
               <Select
-                name="prompt"
-                value={analysisData.prompt}
+                name="prompt_id"
+                value={analysisData.prompt_id}
                 label="Промпт"
                 onChange={(e) =>
                   setAnalysisData((prev) => ({
                     ...prev,
-                    prompt: e.target.value,
+                    prompt_id: e.target.value,
                   }))
                 }
               >
@@ -163,23 +160,23 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                   </MenuItem>
                 ))}
               </Select>
-              {errors.prompt && (
+              {errors.prompt_id && (
                 <Typography variant="caption" color="error">
-                  {errors.prompt}
+                  {errors.prompt_id}
                 </Typography>
               )}
             </FormControl>
 
-            <FormControl fullWidth required error={!!errors.chat}>
+            <FormControl fullWidth required error={!!errors.chat_id}>
               <InputLabel>Чат</InputLabel>
               <Select
-                name="chat"
-                value={analysisData.chat}
+                name="chat_id"
+                value={analysisData.chat_id}
                 label="Чат"
                 onChange={(e) =>
                   setAnalysisData((prev) => ({
                     ...prev,
-                    chat: Number(e.target.value),
+                    chat_id: Number(e.target.value),
                   }))
                 }
               >
@@ -189,9 +186,9 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                   </MenuItem>
                 ))}
               </Select>
-              {errors.chat && (
+              {errors.chat_id && (
                 <Typography variant="caption" color="error">
-                  {errors.chat}
+                  {errors.chat_id}
                 </Typography>
               )}
             </FormControl>
@@ -218,16 +215,16 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
               }}
             />
 
-            <FormControl fullWidth required error={!!errors.company}>
+            <FormControl fullWidth required error={!!errors.company_id}>
               <InputLabel>Компания</InputLabel>
               <Select
-                name="company"
-                value={analysisData.company}
+                name="company_id"
+                value={analysisData.company_id}
                 label="Компания"
                 onChange={(e) =>
                   setAnalysisData((prev) => ({
                     ...prev,
-                    company: e.target.value,
+                    company_id: e.target.value,
                   }))
                 }
               >
@@ -237,9 +234,9 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                   </MenuItem>
                 ))}
               </Select>
-              {errors.company && (
+              {errors.company_id && (
                 <Typography variant="caption" color="error">
-                  {errors.company}
+                  {errors.company_id}
                 </Typography>
               )}
             </FormControl>
@@ -251,9 +248,9 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
             onClick={handleSubmit}
             variant="contained"
             disabled={
-              !analysisData.prompt ||
-              !analysisData.chat ||
-              !analysisData.company
+              !analysisData.prompt_id ||
+              !analysisData.chat_id ||
+              !analysisData.company_id
             }
           >
             Создать

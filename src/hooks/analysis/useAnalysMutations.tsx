@@ -6,11 +6,11 @@ export const useCreateAnalys = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (newAnalys: {
-      prompt: string;
-      chat: number;
+      prompt_id: string;
+      chat_id: number;
       date_from: number;
       date_to: number;
-      company: string;
+      company_id: string;
     }) => createAnalysis(newAnalys),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["analysis"] });

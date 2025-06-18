@@ -6,7 +6,7 @@ export interface IPrompt {
   prompt_name: string;
   text: string;
   created_at: string; // date-time
-  company: string; // uuid4
+  company_id: string; // uuid4 (изменено с company на company_id)
 }
 
 // Функция для получения списка услуг с параметрами
@@ -28,7 +28,7 @@ export const fetchPrompts = async () => {
 export const createPrompt = async (newPrompt: {
   prompt_name: string;
   text: string;
-  company: string;
+  company_id: string; // изменено с company на company_id
 }): Promise<IPrompt> => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");

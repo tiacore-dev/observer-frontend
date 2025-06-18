@@ -14,7 +14,7 @@ import { useDeleteCompany } from "../../hooks/companies/useCompaniesMutations";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { DeletePromptDialog } from "../../components/deleteDialog";
+import { DeleteDialog } from "../../components/deleteDialog";
 import { useCompanyDetailsQuery } from "../../hooks/companies/useCompaniesQuery";
 import { EditCompanyModal } from "./companyEditModal";
 
@@ -111,7 +111,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         </Box>
       </Paper>
 
-      <DeletePromptDialog
+      <DeleteDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDelete}
