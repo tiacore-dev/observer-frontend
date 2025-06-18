@@ -4,6 +4,7 @@ import {
   fetchCompanyDetails,
   ICompany,
 } from "../../api/companiesApi";
+import { useAuth } from "../../context/authContext";
 
 export interface ICompaniesResponse {
   total: number;
@@ -11,16 +12,20 @@ export interface ICompaniesResponse {
 }
 
 export const useCompaniesQuery = () => {
+  const { selectedCompanyId } = useAuth();
+
   return useQuery<ICompaniesResponse>({
-    queryKey: ["companies"],
+    queryKey: ["companies", selectedCompanyId],
     queryFn: () => fetchCompanies(),
     staleTime: 5 * 60 * 1000,
   });
 };
 
 export const useCompanyDetailsQuery = (company_id: string) => {
+  const { selectedCompanyId } = useAuth();
+
   return useQuery({
-    queryKey: ["companyDetails", company_id],
+    queryKey: ["companyDetails", company_id, selectedCompanyId],
     queryFn: () => fetchCompanyDetails(company_id),
     staleTime: 5 * 60 * 1000,
   });

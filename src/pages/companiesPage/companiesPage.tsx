@@ -13,7 +13,7 @@ import {
   Pagination,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { AddCompanyModal } from "./companyAddModel";
+import { AddCompanyModal } from "./companyAddModal";
 import { PageProps } from "../../App";
 import { CompaniesTable } from "./companiesTable";
 import { useNavigate, useParams } from "react-router-dom";

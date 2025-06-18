@@ -19,6 +19,10 @@ import {
   Switch,
   FormControlLabel,
   Tooltip,
+  Select,
+  FormControl,
+  InputLabel,
+  Button,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -32,10 +36,12 @@ import {
   ExitToApp,
   Person,
   Settings,
+  Add,
 } from "@mui/icons-material";
 import GroupsIcon from "@mui/icons-material/Groups";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import { AddCompanyModal } from "../pages/companiesPage/companyAddModal";
 
 const drawerWidth = 240;
 
@@ -52,9 +58,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [addCompanyModalOpen, setAddCompanyModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { isSuperadmin, user, logout } = useAuth();
+  const {
+    isSuperadmin,
+    user,
+    logout,
+    selectedCompanyId,
+    availableCompanies,
+    setSelectedCompanyId,
+    checkAuth,
+  } = useAuth();
 
   const isHomePage = location.pathname === "/home";
 
@@ -79,23 +94,27 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     navigate("/home");
   };
 
+  const handleCompanyChange = (event: any) => {
+    setSelectedCompanyId(event.target.value as string);
+  };
+
+  const handleAddCompanyClick = () => {
+    setAddCompanyModalOpen(true);
+  };
+
+  const handleCompanyAdded = async () => {
+    setAddCompanyModalOpen(false);
+    // Обновляем токен после добавления компании
+    await checkAuth();
+  };
+
   const menuItems = [
     { text: "Боты", icon: <SmartToy />, path: "/bots" },
     { text: "Промпты", icon: <Psychology />, path: "/prompts" },
     { text: "Расписания", icon: <Schedule />, path: "/schedules" },
     { text: "Анализ", icon: <Analytics />, path: "/analysis" },
     { text: "Компании", icon: <Business />, path: "/companies" },
-    // { text: "Чаты", icon: <Chat />, path: "/chats" },
-    // { text: "Аккаунты", icon: <AccountCircle />, path: "/accounts" },
   ];
-
-  // if (isSuperadmin) {
-  // menuItems.splice(1, 0, {
-  //   text: "Компании",
-  //   icon: <Business />,
-  //   path: "/companies",
-  // });
-  // }
 
   const drawer = (
     <div>
@@ -144,7 +163,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           {!isHomePage && (
             <IconButton
               color="inherit"
-              // aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
               sx={{ mr: 2, display: { sm: "none" } }}
@@ -168,6 +186,45 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            {/* Блок выбора компании */}
+            {!isSuperadmin && (
+              <>
+                {availableCompanies.length > 0 ? (
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>Компания</InputLabel>
+                    <Select
+                      value={selectedCompanyId || ""}
+                      onChange={handleCompanyChange}
+                      label="Компания"
+                    >
+                      {availableCompanies.map((companyId) => (
+                        <MenuItem key={companyId} value={companyId}>
+                          {companyId}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    startIcon={<Add />}
+                    onClick={handleAddCompanyClick}
+                    size="small"
+                    sx={{
+                      color: "black", // Черный текст
+                      borderColor: "black", // Черная рамка
+                      "&:hover": {
+                        backgroundColor: "rgba(0, 0, 0, 0.04)", // Легкий серый фон при наведении
+                        borderColor: "black", // Черная рамка при наведении
+                      },
+                    }}
+                  >
+                    Добавить компанию
+                  </Button>
+                )}
+              </>
+            )}
+
             <Tooltip title="Режим разработчика">
               <FormControlLabel
                 control={
@@ -193,7 +250,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             <IconButton
               size="large"
               edge="end"
-              // aria-label="account of current user"
               aria-controls="primary-search-account-menu"
               aria-haspopup="true"
               onClick={handleProfileMenuOpen}
@@ -205,6 +261,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </Toolbar>
       </AppBar>
 
+      {/* Модальное окно добавления компании */}
+      <AddCompanyModal
+        open={addCompanyModalOpen}
+        onClose={() => setAddCompanyModalOpen(false)}
+        onSuccess={handleCompanyAdded}
+      />
+
+      {/* Остальной код остается без изменений */}
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{

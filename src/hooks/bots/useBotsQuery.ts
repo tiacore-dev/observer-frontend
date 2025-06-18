@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchBotDetails, fetchBots, IBot } from "../../api/botsApi";
+import { useAuth } from "../../context/authContext";
 
 interface IBotsResponse {
   total: number;
@@ -7,16 +8,19 @@ interface IBotsResponse {
 }
 
 export const useBotsQuery = () => {
+  const { selectedCompanyId } = useAuth();
   return useQuery<IBotsResponse>({
-    queryKey: ["bots"],
+    queryKey: ["bots", selectedCompanyId],
     queryFn: () => fetchBots(),
     staleTime: 5 * 60 * 1000,
   });
 };
 
 export const useBotDetailsQuery = (bot_id: string) => {
+  const { selectedCompanyId } = useAuth();
+
   return useQuery({
-    queryKey: ["botDetails", bot_id],
+    queryKey: ["botDetails", bot_id, selectedCompanyId],
     queryFn: () => fetchBotDetails(bot_id),
     staleTime: 5 * 60 * 1000,
   });

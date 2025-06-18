@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchUserDetails, IUser } from "../../api/usersApi";
+import { useAuth } from "../../context/authContext";
 
 export const useUserDetailsQuery = (companyId?: string) => {
+  const { selectedCompanyId } = useAuth();
   const user_id = localStorage.getItem("user_id");
   return useQuery<IUser>({
-    queryKey: ["user", companyId],
+    queryKey: ["user", companyId, selectedCompanyId],
     queryFn: () => fetchUserDetails(companyId),
     staleTime: 5 * 60 * 1000,
     enabled: !!user_id,

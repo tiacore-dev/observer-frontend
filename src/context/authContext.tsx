@@ -11,6 +11,7 @@ import { loginUser, refreshToken } from "../api/authApi";
 import { enqueueSnackbar } from "notistack";
 import { fetchUserDetails, type IUser } from "../api/usersApi";
 import { isTokenExpired, isTokenValid } from "./tokenUtils";
+import { validate as isUUID } from "uuid";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -46,7 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   });
 
   const getAvailableCompanies = (
-    permissions: Record<string, any>,
+    permissions: Record<string, any> | null,
     appId: string
   ): string[] => {
     if (!permissions || !appId) return [];
@@ -54,7 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     const appPermissions = permissions[appId];
     if (!appPermissions) return [];
 
-    return Object.keys(appPermissions);
+    return Object.keys(appPermissions).filter((id) => isUUID(id));
   };
 
   const login = useCallback(
@@ -76,6 +77,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             response.permissions,
             appId
           );
+          console.log("Available companies:", availableCompanies);
+
           localStorage.setItem(
             "available_companies",
             JSON.stringify(availableCompanies)
@@ -83,18 +86,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
           if (availableCompanies.length > 0) {
             selectedCompanyId = availableCompanies[0];
+            if (!isUUID(selectedCompanyId)) {
+              throw new Error("Invalid company ID format");
+            }
             localStorage.setItem("selected_company_id", selectedCompanyId);
           }
         }
 
-        let userDetails;
-        if (!response.is_superadmin && selectedCompanyId) {
-          userDetails = await fetchUserDetails(selectedCompanyId);
-        } else {
-          userDetails = await fetchUserDetails();
-        }
+        let userDetails: IUser | null = null;
+        // if (!response.is_superadmin && selectedCompanyId) {
+        //   userDetails = await fetchUserDetails(selectedCompanyId);
+        // } else {
+        //   userDetails = await fetchUserDetails();
+        // }
 
-        localStorage.setItem("user", JSON.stringify(userDetails));
+        // localStorage.setItem("user", JSON.stringify(userDetails));
 
         setAuthState({
           isAuthenticated: true,
@@ -167,20 +173,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
         const selectedCompanyId = localStorage.getItem("selected_company_id");
 
-        let userDetails: IUser | null = null; // Явно указываем тип
-        if (!isSuperadmin && selectedCompanyId) {
-          userDetails = await fetchUserDetails(selectedCompanyId);
-        } else {
-          userDetails = await fetchUserDetails();
-        }
+        // let userDetails: IUser | null = null;
+        // if (!isSuperadmin && selectedCompanyId && isUUID(selectedCompanyId)) {
+        //   userDetails = await fetchUserDetails(selectedCompanyId);
+        // } else {
+        //   userDetails = await fetchUserDetails();
+        // }
 
-        localStorage.setItem("user", JSON.stringify(userDetails));
+        // localStorage.setItem("user", JSON.stringify(userDetails));
 
         setAuthState((prev) => ({
           ...prev,
           isAuthenticated: true,
           accessToken: newToken,
-          user: userDetails,
+          // user: userDetails,
         }));
         return true;
       }
@@ -193,17 +199,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, [logout]);
 
   const updateUser = useCallback((userData: Partial<IUser>) => {
-    setAuthState((prev) => {
-      const updatedUser = { ...prev.user, ...userData };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      return {
-        ...prev,
-        user: updatedUser,
-      };
-    });
+    // setAuthState((prev) => {
+    // const updatedUser = { ...prev.user, ...userData };
+    //   localStorage.setItem("user", JSON.stringify(updatedUser));
+    //   return {
+    //     ...prev,
+    //     user: updatedUser,
+    //   };
+    // });
   }, []);
 
   const setSelectedCompanyId = useCallback((companyId: string) => {
+    if (!isUUID(companyId)) {
+      console.error("Attempt to set invalid company ID:", companyId);
+      return;
+    }
     localStorage.setItem("selected_company_id", companyId);
     setAuthState((prev) => ({
       ...prev,

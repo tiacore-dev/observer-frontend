@@ -15,7 +15,7 @@ import {
 import { useAuth } from "../../context/authContext";
 import { useUserDetailsQuery } from "../../hooks/users/useUsersQuery";
 import { IUserEdit, useUpdateUser } from "../../hooks/users/useUserMutations";
-import { EditUserModal } from "./editUserModal";
+import { EditUserModal } from "./userFormModal";
 
 export const AccountPage: React.FC = () => {
   const { user, updateUser: updateAuthUser } = useAuth();

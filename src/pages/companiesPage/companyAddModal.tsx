@@ -13,11 +13,13 @@ import { useCreateCompany } from "../../hooks/companies/useCompaniesMutations";
 interface AddCompanyModalProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
   open,
   onClose,
+  onSuccess,
 }) => {
   const [companyData, setCompanyData] = useState({
     company_name: "",
@@ -49,6 +51,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
         onSuccess: () => {
           onClose();
           setCompanyData({ company_name: "", description: "" });
+          if (onSuccess) onSuccess();
         },
       });
     } catch (error) {

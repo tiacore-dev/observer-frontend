@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchChats, IChat } from "../../api/chatsApi";
+import { useAuth } from "../../context/authContext";
 
 export interface IChatsResponse {
   total: number;
@@ -7,8 +8,10 @@ export interface IChatsResponse {
 }
 
 export const useChatsQuery = () => {
+  const { selectedCompanyId } = useAuth();
+
   return useQuery<IChatsResponse>({
-    queryKey: ["chats"],
+    queryKey: ["chats", selectedCompanyId],
     queryFn: () => fetchChats(),
     staleTime: 5 * 60 * 1000,
   });
