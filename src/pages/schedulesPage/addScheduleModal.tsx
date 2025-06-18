@@ -208,7 +208,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
         time_of_day:
           scheduleData.schedule_type === "daily_time"
-            ? scheduleData.time_of_day
+            ? `${new Date().toISOString().split("T")[0]}T${
+                scheduleData.time_of_day
+              }:00Z`
             : undefined,
         cron_expression:
           scheduleData.schedule_type === "cron"
@@ -216,7 +218,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
         run_at:
           scheduleData.schedule_type === "once"
-            ? scheduleData.run_at
+            ? `${new Date().toISOString().split("T")[0]}T${
+                scheduleData.run_at
+              }:00Z`
             : undefined,
         enabled: scheduleData.enabled,
         bot_id: parseInt(scheduleData.bot_id),
@@ -224,7 +228,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         send_strategy: scheduleData.send_strategy,
         time_to_send:
           scheduleData.send_strategy === "fixed"
-            ? scheduleData.time_to_send
+            ? `${new Date().toISOString().split("T")[0]}T${
+                scheduleData.time_to_send
+              }:00Z`
             : undefined,
         send_after_minutes:
           scheduleData.send_strategy === "relative"

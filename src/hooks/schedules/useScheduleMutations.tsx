@@ -18,7 +18,7 @@ export const useCreateSchedule = () => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
     },
     onError: () => {
-      enqueueSnackbar("Ошибка при создании", { variant: "error" });
+      // enqueueSnackbar("Ошибка при создании", { variant: "error" });
     },
   });
 };
