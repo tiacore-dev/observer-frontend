@@ -94,13 +94,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         let userDetails: IUser | null = null;
-        if (!response.is_superadmin && selectedCompanyId) {
-          userDetails = await fetchUserDetails(selectedCompanyId);
-        } else {
-          userDetails = await fetchUserDetails();
-        }
+        // if (!response.is_superadmin && selectedCompanyId) {
+        //   userDetails = await fetchUserDetails(selectedCompanyId);
+        // } else {
+        //   userDetails = await fetchUserDetails();
+        // }
 
-        localStorage.setItem("user", JSON.stringify(userDetails));
+        // localStorage.setItem("user", JSON.stringify(userDetails));
 
         setAuthState({
           isAuthenticated: true,
@@ -173,20 +173,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
         const selectedCompanyId = localStorage.getItem("selected_company_id");
 
-        let userDetails: IUser | null = null;
-        if (!isSuperadmin && selectedCompanyId && isUUID(selectedCompanyId)) {
-          userDetails = await fetchUserDetails(selectedCompanyId);
-        } else {
-          userDetails = await fetchUserDetails();
-        }
+        // let userDetails: IUser | null = null;
+        // if (!isSuperadmin && selectedCompanyId && isUUID(selectedCompanyId)) {
+        //   userDetails = await fetchUserDetails(selectedCompanyId);
+        // } else {
+        //   userDetails = await fetchUserDetails();
+        // }
 
-        localStorage.setItem("user", JSON.stringify(userDetails));
+        // localStorage.setItem("user", JSON.stringify(userDetails));
 
         setAuthState((prev) => ({
           ...prev,
           isAuthenticated: true,
           accessToken: newToken,
-          user: userDetails,
+          // user: userDetails,
         }));
         return true;
       }
@@ -199,14 +199,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, [logout]);
 
   const updateUser = useCallback((userData: Partial<IUser>) => {
-    setAuthState((prev) => {
-      const updatedUser = { ...prev.user, ...userData };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      return {
-        ...prev,
-        user: updatedUser,
-      };
-    });
+    // setAuthState((prev) => {
+    // const updatedUser = { ...prev.user, ...userData };
+    //   localStorage.setItem("user", JSON.stringify(updatedUser));
+    //   return {
+    //     ...prev,
+    //     user: updatedUser,
+    //   };
+    // });
   }, []);
 
   const setSelectedCompanyId = useCallback((companyId: string) => {
