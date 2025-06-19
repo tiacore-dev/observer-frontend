@@ -11,6 +11,7 @@ import {
   Chip,
   Divider,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import { useAuth } from "../../context/authContext";
 import { useUserDetailsQuery } from "../../hooks/users/useUsersQuery";
@@ -24,7 +25,11 @@ export const AccountPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
   if (!userDetails) {
-    return <Typography>Загрузка...</Typography>;
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   const handleUpdateUser = (updatedData: Partial<IUserEdit>) => {

@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           (error as any).response?.data?.message ||
           (error as any).message ||
           "Ошибка при авторизации";
-        enqueueSnackbar(errorMessage, { variant: "error" });
+        // enqueueSnackbar(errorMessage, { variant: "error" });
         throw error;
       }
     },

@@ -86,15 +86,15 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     );
   }
 
-  if (error) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <Typography color="error">
-          Ошибка при загрузке данных: {(error as Error).message}
-        </Typography>
-      </Box>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <Box display="flex" justifyContent="center" mt={4}>
+  //       <Typography color="error">
+  //         Ошибка при загрузке данных: {(error as Error).message}
+  //       </Typography>
+  //     </Box>
+  //   );
+  // }
 
   return (
     <Box sx={{ p: 3 }}>

@@ -29,9 +29,14 @@ export const createCompany = async (newCompany: {
 }): Promise<ICompany> => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const payload = {
+    ...newCompany,
+    application_id: process.env.REACT_APP_ID || "observer_app", // fallback значение
+  };
+
   const response = await axiosInstance.post(
     `${url}/api/companies/add`,
-    newCompany,
+    payload,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -40,6 +45,19 @@ export const createCompany = async (newCompany: {
     }
   );
   return response.data;
+
+  //   const payload = {
+  //     ...newUser,
+  //     application_id: process.env.REACT_APP_ID || "observer_app", // fallback значение
+  //   };
+
+  //   const response = await axiosInstance.post(`${url}/api/register`, payload, {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  //   return response.data;
+  // };
 };
 
 export const fetchCompanyDetails = async (company_id: string) => {
