@@ -37,6 +37,7 @@ import {
   Person,
   Settings,
   Add,
+  Group,
 } from "@mui/icons-material";
 // import GroupsIcon from "@mui/icons-material/Groups";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -114,6 +115,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     { text: "Расписания", icon: <Schedule />, path: "/schedules" },
     { text: "Анализ", icon: <Analytics />, path: "/analysis" },
     { text: "Компании", icon: <Business />, path: "/companies" },
+    { text: "Аккаунты", icon: <Group />, path: "/accounts" },
   ];
 
   const drawer = (

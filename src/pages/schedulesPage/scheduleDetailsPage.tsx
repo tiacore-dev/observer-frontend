@@ -19,7 +19,7 @@ import {
   useDeleteSchedule,
 } from "../../hooks/schedules/useScheduleMutations";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
-import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
+import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { EditScheduleModal } from "./editScheduleModal";
@@ -43,7 +43,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   // Получаем данные для маппинга ID к названиям
   const { data: botsData } = useBotsQuery();
-  const { data: chatsData } = useChatsQuery();
+  const { data: chatsData } = useChatsSelectQuery();
   const { data: promptsData } = usePromptsQuery();
   const { data: companiesData } = useCompaniesQuery();
 

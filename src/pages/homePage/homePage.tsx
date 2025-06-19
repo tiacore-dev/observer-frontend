@@ -14,6 +14,7 @@ import {
   Schedule,
   Analytics,
   Business,
+  Group,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
@@ -63,6 +64,13 @@ export const HomePage: React.FC = () => {
     },
     // ]
     // : []),
+    {
+      title: "Аккаунты",
+      description: "Список Telegram аккаунтов",
+      icon: <Group sx={{ fontSize: 40 }} />,
+      path: "/accounts",
+      // color: "#1976d2",
+    },
   ];
 
   return (

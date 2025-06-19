@@ -14,7 +14,7 @@ export const useCreateSchedule = () => {
   return useMutation({
     mutationFn: (newSchedule: IscheduleCreate) => createSchedule(newSchedule),
     onSuccess: () => {
-      enqueueSnackbar("Успешно добавлено", { variant: "success" });
+      // enqueueSnackbar("Успешно добавлено", { variant: "success" });
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
     },
     onError: () => {
@@ -39,10 +39,10 @@ export const useUpdateSchedule = () => {
       queryClient.invalidateQueries({
         queryKey: ["scheduleDetails", variables.schedule_id],
       });
-      enqueueSnackbar("Успешно обновлено", { variant: "success" });
+      // enqueueSnackbar("Успешно обновлено", { variant: "success" });
     },
     onError: () => {
-      enqueueSnackbar("Ошибка при обновлении", { variant: "error" });
+      // enqueueSnackbar("Ошибка при обновлении", { variant: "error" });
     },
   });
 };

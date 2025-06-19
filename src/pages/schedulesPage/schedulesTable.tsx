@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { ISchedule } from "../../api/schedulesApi";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
-import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
+import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 
@@ -36,7 +36,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
 
   // Получаем данные для маппинга ID к названиям
   const { data: botsData } = useBotsQuery();
-  const { data: chatsData } = useChatsQuery();
+  const { data: chatsData } = useChatsSelectQuery();
   const { data: promptsData } = usePromptsQuery();
   const { data: companiesData } = useCompaniesQuery();
 

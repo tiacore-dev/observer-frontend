@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAnalysDetailsQuery } from "../../hooks/analysis/useAnalysisQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
-import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
+import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import {
   Box,
@@ -36,7 +36,7 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
     data: chatsData,
     isLoading: chatsLoading,
     error: chatsError,
-  } = useChatsQuery();
+  } = useChatsSelectQuery();
 
   const {
     data: promptsData,

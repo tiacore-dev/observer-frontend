@@ -14,9 +14,9 @@ import { IAccount } from "../../api/accountsApi";
 interface AccountsTableProps {
   accounts: IAccount[];
   developerMode: boolean;
-  sortField: "account_name" | "created_at" | "email";
+  sortField: "account_name" | "created_at" | "username";
   sortDirection: "asc" | "desc";
-  onSort: (field: "account_name" | "created_at" | "email") => void;
+  onSort: (field: "account_name" | "created_at" | "username") => void;
 }
 
 export const AccountsTable: React.FC<AccountsTableProps> = ({
@@ -46,12 +46,12 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
               </TableSortLabel>
             </TableCell>
             <TableCell
-              sortDirection={sortField === "email" ? sortDirection : false}
+              sortDirection={sortField === "username" ? sortDirection : false}
             >
               <TableSortLabel
-                active={sortField === "email"}
-                direction={sortField === "email" ? sortDirection : "asc"}
-                onClick={() => onSort("email")}
+                active={sortField === "username"}
+                direction={sortField === "username" ? sortDirection : "asc"}
+                onClick={() => onSort("username")}
               >
                 Пользователь
               </TableSortLabel>
@@ -86,7 +86,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                 </TableCell>
               )}
               <TableCell>{account.account_name}</TableCell>
-              <TableCell>{account.email}</TableCell>
+              <TableCell>{account.username}</TableCell>
 
               {developerMode && (
                 <TableCell>

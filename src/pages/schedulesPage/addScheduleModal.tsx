@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -28,6 +28,8 @@ import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
 import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { enqueueSnackbar } from "notistack";
+import { format, parse } from "date-fns";
+import { ru } from "date-fns/locale";
 
 interface AddScheduleModalProps {
   open: boolean;
@@ -51,6 +53,34 @@ const generateCronExpression = (time: string, selectedDays: number[]) => {
   const daysPart = selectedDays.join(",");
 
   return `${minutes} ${hours} * * ${daysPart}`;
+};
+
+const convertLocalTimeToUTC = (timeString: string) => {
+  if (!timeString) return "";
+
+  try {
+    const [hours, minutes] = timeString.split(":");
+    const localDate = new Date();
+    localDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+    const utcHours = localDate.getUTCHours().toString().padStart(2, "0");
+    const utcMinutes = localDate.getUTCMinutes().toString().padStart(2, "0");
+
+    return `${utcHours}:${utcMinutes}`;
+  } catch (error) {
+    console.error("Error converting time to UTC:", error);
+    return timeString;
+  }
+};
+
+const formatDateRussian = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    return format(date, "dd/MM/yyyy", { locale: ru });
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return dateString;
+  }
 };
 
 export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
@@ -104,11 +134,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     isLoading: botsLoading,
     error: botsError,
   } = useBotsQuery();
+
+  // Используем useChatsQuery с bot_id только после его выбора
   const {
     data: chatsData,
     isLoading: chatsLoading,
     error: chatsError,
-  } = useChatsQuery();
+    refetch: refetchChats,
+  } = useChatsQuery(
+    scheduleData.bot_id ? parseInt(scheduleData.bot_id) : undefined
+  );
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -119,8 +154,25 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
 
   const handleSelectChange = (e: { target: { name: string; value: any } }) => {
     const { name, value } = e.target;
-    setScheduleData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "bot_id") {
+      // При изменении бота сбрасываем выбранные чаты
+      setScheduleData((prev) => ({
+        ...prev,
+        [name]: value,
+        chat_id: "",
+        target_chats: [],
+      }));
+    } else {
+      setScheduleData((prev) => ({ ...prev, [name]: value }));
+    }
   };
+
+  useEffect(() => {
+    if (scheduleData.bot_id && open) {
+      refetchChats();
+    }
+  }, [scheduleData.bot_id, open, refetchChats]);
 
   const handleChatToggle = (chatId: number) => () => {
     setScheduleData((prev) => {
@@ -151,10 +203,10 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
 
+    if (!scheduleData.bot_id) newErrors.bot_id = "Бот обязателен";
     if (!scheduleData.chat_id) newErrors.chat_id = "Чат обязателен";
     if (!scheduleData.prompt_id) newErrors.prompt_id = "Промпт обязателен";
     if (!scheduleData.company_id) newErrors.company_id = "Компания обязательна";
-    if (!scheduleData.bot_id) newErrors.bot_id = "Бот обязателен";
     if (scheduleData.target_chats.length === 0)
       newErrors.target_chats = "Необходимо выбрать хотя бы один чат";
 
@@ -193,6 +245,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     if (!validateFields()) return;
 
     try {
+      const utcTimeOfDay = scheduleData.time_of_day
+        ? convertLocalTimeToUTC(scheduleData.time_of_day)
+        : undefined;
+      const utcRunAt = scheduleData.run_at
+        ? convertLocalTimeToUTC(scheduleData.run_at)
+        : undefined;
+      const utcTimeToSend = scheduleData.time_to_send
+        ? convertLocalTimeToUTC(scheduleData.time_to_send)
+        : undefined;
+
       await createSchedule.mutateAsync({
         chat_id: parseInt(scheduleData.chat_id),
         prompt_id: scheduleData.prompt_id,
@@ -208,9 +270,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
         time_of_day:
           scheduleData.schedule_type === "daily_time"
-            ? `${new Date().toISOString().split("T")[0]}T${
-                scheduleData.time_of_day
-              }:00Z`
+            ? `${new Date().toISOString().split("T")[0]}T${utcTimeOfDay}:00Z`
             : undefined,
         cron_expression:
           scheduleData.schedule_type === "cron"
@@ -218,9 +278,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
         run_at:
           scheduleData.schedule_type === "once"
-            ? `${new Date().toISOString().split("T")[0]}T${
-                scheduleData.run_at
-              }:00Z`
+            ? `${new Date().toISOString().split("T")[0]}T${utcRunAt}:00Z`
             : undefined,
         enabled: scheduleData.enabled,
         bot_id: parseInt(scheduleData.bot_id),
@@ -228,9 +286,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         send_strategy: scheduleData.send_strategy,
         time_to_send:
           scheduleData.send_strategy === "fixed"
-            ? `${new Date().toISOString().split("T")[0]}T${
-                scheduleData.time_to_send
-              }:00Z`
+            ? `${new Date().toISOString().split("T")[0]}T${utcTimeToSend}:00Z`
             : undefined,
         send_after_minutes:
           scheduleData.send_strategy === "relative"
@@ -258,7 +314,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     }
   };
 
-  if (companiesLoading || promptsLoading || botsLoading || chatsLoading) {
+  if (companiesLoading || promptsLoading || botsLoading) {
     return (
       <Dialog open={open} onClose={onClose}>
         <DialogTitle>Добавить новое расписание</DialogTitle>
@@ -271,17 +327,14 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     );
   }
 
-  if (companiesError || promptsError || botsError || chatsError) {
+  if (companiesError || promptsError || botsError) {
     return (
       <Dialog open={open} onClose={onClose}>
         <DialogTitle>Добавить новое расписание</DialogTitle>
         <DialogContent>
           <Typography color="error">
             Ошибка при загрузке данных:{" "}
-            {
-              (companiesError || promptsError || botsError || chatsError)
-                ?.message
-            }
+            {(companiesError || promptsError || botsError)?.message}
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -296,69 +349,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       <DialogTitle>Добавить новое расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <FormControl fullWidth required error={!!errors.chat_id}>
-            <InputLabel>Анализируемый чат</InputLabel>
-            <Select
-              name="chat_id"
-              value={scheduleData.chat_id}
-              label="Анализируемый чат"
-              onChange={handleSelectChange}
-            >
-              {chatsData?.chats.map((chat) => (
-                <MenuItem key={chat.chat_id} value={chat.chat_id.toString()}>
-                  {chat.chat_name} (ID: {chat.chat_id})
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.chat_id && (
-              <Typography variant="caption" color="error">
-                {errors.chat_id}
-              </Typography>
-            )}
-          </FormControl>
-
-          <FormControl fullWidth required error={!!errors.prompt_id}>
-            <InputLabel>Промпт</InputLabel>
-            <Select
-              name="prompt_id"
-              value={scheduleData.prompt_id}
-              label="Промпт"
-              onChange={handleSelectChange}
-            >
-              {promptsData?.prompts.map((prompt) => (
-                <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
-                  {prompt.prompt_name || prompt.prompt_id}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.prompt_id && (
-              <Typography variant="caption" color="error">
-                {errors.prompt_id}
-              </Typography>
-            )}
-          </FormControl>
-
-          <FormControl fullWidth required error={!!errors.company_id}>
-            <InputLabel>Компания</InputLabel>
-            <Select
-              name="company_id"
-              value={scheduleData.company_id}
-              label="Компания"
-              onChange={handleSelectChange}
-            >
-              {companiesData?.companies.map((company) => (
-                <MenuItem key={company.company_id} value={company.company_id}>
-                  {company.company_name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.company_id && (
-              <Typography variant="caption" color="error">
-                {errors.company_id}
-              </Typography>
-            )}
-          </FormControl>
-
           <FormControl fullWidth required error={!!errors.bot_id}>
             <InputLabel>Бот</InputLabel>
             <Select
@@ -380,48 +370,128 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             )}
           </FormControl>
 
-          <FormControl fullWidth required error={!!errors.target_chats}>
-            <Typography variant="subtitle1" gutterBottom>
-              Выберите целевые чаты:
-            </Typography>
-            <Box
-              sx={{
-                maxHeight: 200,
-                overflow: "auto",
-                border: "1px solid rgba(0, 0, 0, 0.23)",
-                borderRadius: 1,
-                p: 1,
-              }}
-            >
-              <List dense>
-                {chatsData?.chats.map((chat) => (
-                  <ListItem key={chat.chat_id}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={scheduleData.target_chats.includes(
-                            chat.chat_id
-                          )}
-                          onChange={handleChatToggle(chat.chat_id)}
-                        />
-                      }
-                      label={
-                        <ListItemText
-                          primary={chat.chat_name}
-                          secondary={`ID: ${chat.chat_id}`}
-                        />
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-            {errors.target_chats && (
-              <Typography variant="caption" color="error">
-                {errors.target_chats}
-              </Typography>
-            )}
-          </FormControl>
+          {scheduleData.bot_id && (
+            <>
+              <FormControl fullWidth required error={!!errors.chat_id}>
+                <InputLabel>Анализируемый чат</InputLabel>
+                <Select
+                  name="chat_id"
+                  value={scheduleData.chat_id}
+                  label="Анализируемый чат"
+                  onChange={handleSelectChange}
+                  disabled={chatsLoading}
+                >
+                  {chatsData?.chats.map((chat) => (
+                    <MenuItem
+                      key={chat.chat_id}
+                      value={chat.chat_id.toString()}
+                    >
+                      {chat.chat_name} (ID: {chat.chat_id})
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.chat_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.chat_id}
+                  </Typography>
+                )}
+              </FormControl>
+
+              <FormControl fullWidth required error={!!errors.prompt_id}>
+                <InputLabel>Промпт</InputLabel>
+                <Select
+                  name="prompt_id"
+                  value={scheduleData.prompt_id}
+                  label="Промпт"
+                  onChange={handleSelectChange}
+                >
+                  {promptsData?.prompts.map((prompt) => (
+                    <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
+                      {prompt.prompt_name || prompt.prompt_id}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.prompt_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.prompt_id}
+                  </Typography>
+                )}
+              </FormControl>
+
+              <FormControl fullWidth required error={!!errors.company_id}>
+                <InputLabel>Компания</InputLabel>
+                <Select
+                  name="company_id"
+                  value={scheduleData.company_id}
+                  label="Компания"
+                  onChange={handleSelectChange}
+                >
+                  {companiesData?.companies.map((company) => (
+                    <MenuItem
+                      key={company.company_id}
+                      value={company.company_id}
+                    >
+                      {company.company_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.company_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.company_id}
+                  </Typography>
+                )}
+              </FormControl>
+
+              <FormControl fullWidth required error={!!errors.target_chats}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Выберите целевые чаты:
+                </Typography>
+                <Box
+                  sx={{
+                    maxHeight: 200,
+                    overflow: "auto",
+                    border: "1px solid rgba(0, 0, 0, 0.23)",
+                    borderRadius: 1,
+                    p: 1,
+                  }}
+                >
+                  {chatsLoading ? (
+                    <Box display="flex" justifyContent="center" py={2}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : (
+                    <List dense>
+                      {chatsData?.chats.map((chat) => (
+                        <ListItem key={chat.chat_id}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={scheduleData.target_chats.includes(
+                                  chat.chat_id
+                                )}
+                                onChange={handleChatToggle(chat.chat_id)}
+                              />
+                            }
+                            label={
+                              <ListItemText
+                                primary={chat.chat_name}
+                                secondary={`ID: ${chat.chat_id}`}
+                              />
+                            }
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  )}
+                </Box>
+                {errors.target_chats && (
+                  <Typography variant="caption" color="error">
+                    {errors.target_chats}
+                  </Typography>
+                )}
+              </FormControl>
+            </>
+          )}
 
           <FormControl fullWidth required>
             <InputLabel>Тип расписания</InputLabel>

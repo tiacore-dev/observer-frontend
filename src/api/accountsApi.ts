@@ -3,7 +3,7 @@ import { axiosInstance } from "../axiosConfig";
 export interface IAccount {
   account_id: number;
   account_name: string;
-  email: string;
+  username: string;
   created_at: string | Date;
 }
 export const fetchAccounts = async (selectedCompanyId?: string | null) => {

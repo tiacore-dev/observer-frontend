@@ -94,8 +94,8 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
               )}
               <TableCell>{prompt.prompt_name}</TableCell>
               <TableCell>
-                {prompt.text.length > 50
-                  ? `${prompt.text.substring(0, 50)}...`
+                {prompt.text.length > 100
+                  ? `${prompt.text.substring(0, 100)}...`
                   : prompt.text}
               </TableCell>
               {developerMode && (

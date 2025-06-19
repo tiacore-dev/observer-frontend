@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useAnalysisQuery } from "../../hooks/analysis/useAnalysisQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
-import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
+import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import {
   Paper,
@@ -38,7 +38,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     data: chatsData,
     isLoading: chatsLoading,
     error: chatsError,
-  } = useChatsQuery();
+  } = useChatsSelectQuery();
   const {
     data: promptsData,
     isLoading: promptsLoading,
