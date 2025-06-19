@@ -43,6 +43,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { AddCompanyModal } from "../pages/companiesPage/companyAddModal";
+import { logoutUser } from "../api/authApi";
 
 const drawerWidth = 240;
 
@@ -87,6 +88,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   };
 
   const handleLogout = () => {
+    logoutUser();
     logout();
     handleProfileMenuClose();
   };
@@ -270,7 +272,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         onSuccess={handleCompanyAdded}
       />
 
-      {/* Остальной код остается без изменений */}
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{

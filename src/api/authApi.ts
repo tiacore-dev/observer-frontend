@@ -23,6 +23,41 @@ export const loginUser = async (data: {
   );
   return response.data;
 };
+// /auth/logout
+// export const logoutUser = async (): Promise<AuthResponse> => {
+//   const url = process.env.REACT_APP_API_URL;
+//   const accessToken = localStorage.getItem("access_token");
+
+//   if (!url) throw new Error("REACT_APP_API_URL is not defined");
+
+//   const response = await axiosInstance.post(`${url}/auth/logout`, {
+//     headers: {
+//       Authorization: `Bearer ${accessToken}`,
+//       "Content-Type": "application/json",
+//     },
+//   });
+
+//   return response.data;
+// };
+
+export const logoutUser = async (): Promise<void> => {
+  const url = process.env.REACT_APP_API_URL;
+  if (!url) throw new Error("REACT_APP_API_URL is not defined");
+
+  const accessToken = localStorage.getItem("access_token");
+  if (!accessToken) return;
+
+  try {
+    await axiosInstance.post(`${url}/auth/logout`, null, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Даже если запрос не удался, продолжаем процесс выхода
+  }
+};
 
 export const refreshToken = async (): Promise<string | null> => {
   const r_token = localStorage.getItem("refresh_token");

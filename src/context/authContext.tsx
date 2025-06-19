@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser, refreshToken } from "../api/authApi";
+import { loginUser, logoutUser, refreshToken } from "../api/authApi";
 import { enqueueSnackbar } from "notistack";
 import { fetchUserDetails, type IUser } from "../api/usersApi";
 import { isTokenExpired, isTokenValid } from "./tokenUtils";
@@ -144,7 +144,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       selectedCompanyId: null,
       availableCompanies: [],
     });
-
     navigate("/login");
   }, [navigate]);
 

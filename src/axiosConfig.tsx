@@ -2,7 +2,6 @@ import axios from "axios";
 import { refreshToken } from "./api/authApi";
 
 export const axiosInstance = axios.create({});
-console.log("!!!!!");
 // Добавляем уникальный идентификатор для запросов
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];

@@ -6,7 +6,6 @@ import {
   Typography,
   Box,
   Button,
-  TextField,
   MenuItem,
   Select,
   InputLabel,
@@ -18,6 +17,9 @@ import AddIcon from "@mui/icons-material/Add";
 import { PageProps } from "../../App";
 import { SchedulesTable } from "./schedulesTable";
 import { AddScheduleModal } from "./addScheduleModal";
+import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
+import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
+import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 
 export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { data, isLoading, error } = useSchedulesQuery();
@@ -37,17 +39,71 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
+  // Получаем данные для маппинга ID к названиям
+  const { data: companiesData } = useCompaniesQuery();
+  const { data: chatsData } = useChatsSelectQuery();
+  const { data: promptsData } = usePromptsQuery();
+
+  // Создаем мапы для быстрого поиска названий по ID
+  const companiesMap = new Map(
+    companiesData?.companies.map((company) => [
+      company.company_id,
+      company.company_name,
+    ])
+  );
+  const chatsMap = new Map(
+    chatsData?.chats.map((chat) => [chat.chat_id.toString(), chat.chat_name])
+  );
+  const promptsMap = new Map(
+    promptsData?.prompts.map((prompt) => [prompt.prompt_id, prompt.prompt_name])
+  );
+
+  // Функция для преобразования типа расписания в читаемый формат
+  const getScheduleTypeLabel = (type: string) => {
+    switch (type) {
+      case "interval":
+        return "Интервал";
+      case "cron":
+        return "Повторяющееся";
+      case "once":
+        return "Одноразово";
+      case "daily_time":
+        return "Ежедневно";
+      default:
+        return type;
+    }
+  };
+
+  // Подготавливаем данные для фильтров
   const companies = Array.from(
     new Set(data?.schedules.map((schedule) => schedule.company_id) || [])
-  );
+  ).map((companyId) => ({
+    id: companyId,
+    name: companiesMap.get(companyId) || companyId,
+  }));
+
   const chats = Array.from(
     new Set(
       data?.schedules.map((schedule) => schedule.chat_id.toString()) || []
     )
-  );
+  ).map((chatId) => ({
+    id: chatId,
+    name: chatsMap.get(chatId) || chatId,
+  }));
+
+  const prompts = Array.from(
+    new Set(data?.schedules.map((schedule) => schedule.prompt_id) || [])
+  ).map((promptId) => ({
+    id: promptId,
+    name: promptsMap.get(promptId) || promptId,
+  }));
+
   const types = Array.from(
     new Set(data?.schedules.map((schedule) => schedule.schedule_type) || [])
-  );
+  ).map((type) => ({
+    value: type,
+    label: getScheduleTypeLabel(type),
+  }));
 
   const getFilteredAndSortedSchedules = () => {
     if (!data?.schedules) return [];
@@ -55,8 +111,8 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
     let filteredSchedules = [...data.schedules];
 
     if (nameFilter) {
-      filteredSchedules = filteredSchedules.filter((schedule) =>
-        schedule.prompt_id.toLowerCase().includes(nameFilter.toLowerCase())
+      filteredSchedules = filteredSchedules.filter(
+        (schedule) => schedule.prompt_id === nameFilter
       );
     }
 
@@ -140,13 +196,21 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
-        <TextField
-          label="Поиск по промпту"
-          variant="outlined"
-          size="small"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-        />
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel>Промпт</InputLabel>
+          <Select
+            value={nameFilter}
+            label="Промпт"
+            onChange={(e) => setNameFilter(e.target.value as string)}
+          >
+            <MenuItem value="">Все промпты</MenuItem>
+            {prompts.map((prompt) => (
+              <MenuItem key={prompt.id} value={prompt.id}>
+                {prompt.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel>Компания</InputLabel>
@@ -157,8 +221,8 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           >
             <MenuItem value="">Все компании</MenuItem>
             {companies.map((company) => (
-              <MenuItem key={company} value={company}>
-                {company}
+              <MenuItem key={company.id} value={company.id}>
+                {company.name}
               </MenuItem>
             ))}
           </Select>
@@ -173,8 +237,8 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           >
             <MenuItem value="">Все чаты</MenuItem>
             {chats.map((chat) => (
-              <MenuItem key={chat} value={chat}>
-                {chat}
+              <MenuItem key={chat.id} value={chat.id}>
+                {chat.name}
               </MenuItem>
             ))}
           </Select>
@@ -189,8 +253,8 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           >
             <MenuItem value="">Все типы</MenuItem>
             {types.map((type) => (
-              <MenuItem key={type} value={type}>
-                {type}
+              <MenuItem key={type.value} value={type.value}>
+                {type.label}
               </MenuItem>
             ))}
           </Select>
