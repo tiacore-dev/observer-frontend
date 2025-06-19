@@ -23,6 +23,7 @@ import { AccountPage } from "./pages/accountPage/AccountPage";
 import theme from "./themeConfig/theme";
 import { ThemeProvider } from "@mui/material/styles";
 import { AnalysisDetailsPage } from "./pages/analysisPage/analysisDetailsPage";
+import { ScheduleDetailsPage } from "./pages/schedulesPage/scheduleDetailsPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -92,6 +93,14 @@ const App: React.FC = () => {
                     path="/schedules"
                     element={<SchedulesPage developerMode={developerMode} />}
                   />
+
+                  <Route
+                    path="/schedules/:scheduleId"
+                    element={
+                      <ScheduleDetailsPage developerMode={developerMode} />
+                    }
+                  />
+
                   <Route
                     path="/companies"
                     element={<CompaniesPage developerMode={developerMode} />}

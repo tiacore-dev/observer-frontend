@@ -47,7 +47,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
 
   const formatResultText = (text?: string) => {
     if (!text) return "-";
-    return text.length > 50 ? `${text.substring(0, 50)}...` : text;
+    return text.length > 100 ? `${text.substring(0, 100)}...` : text;
   };
 
   return (
@@ -75,7 +75,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                 </TableSortLabel>
               </TableCell>
             )}
-            <TableCell>Результат</TableCell>
+            {/* <TableCell>Результат</TableCell> */}
           </TableRow>
         </TableHead>
 
@@ -112,7 +112,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                   {new Date(item.created_at).toLocaleString()}
                 </TableCell>
               )}
-              <TableCell>{formatResultText(item.result_text)}</TableCell>
+              {/* <TableCell>{formatResultText(item.result_text)}</TableCell> */}
             </TableRow>
           ))}
         </TableBody>

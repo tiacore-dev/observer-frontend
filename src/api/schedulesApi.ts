@@ -5,7 +5,7 @@ export interface ISchedule {
   chat_id: number;
   prompt_id: string; // uuid4
   company_id: string; // uuid4
-  schedule_type: "interval" | "cron" | "once";
+  schedule_type: "interval" | "cron" | "once" | "daily_time";
   interval_hours?: number;
   interval_minutes?: number;
   time_of_day?: string;

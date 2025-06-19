@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -11,6 +12,10 @@ import {
   TableSortLabel,
 } from "@mui/material";
 import { ISchedule } from "../../api/schedulesApi";
+import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
+import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
+import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
+import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 
 interface SchedulesTableProps {
   schedules: ISchedule[];
@@ -27,6 +32,47 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
   sortDirection,
   onSort,
 }) => {
+  const navigate = useNavigate();
+
+  // Получаем данные для маппинга ID к названиям
+  const { data: botsData } = useBotsQuery();
+  const { data: chatsData } = useChatsQuery();
+  const { data: promptsData } = usePromptsQuery();
+  const { data: companiesData } = useCompaniesQuery();
+
+  // Создаем мапы для быстрого поиска названий по ID
+  const botsMap = new Map(
+    botsData?.bots.map((bot) => [bot.bot_id.toString(), bot.bot_first_name])
+  );
+  const chatsMap = new Map(
+    chatsData?.chats.map((chat) => [chat.chat_id.toString(), chat.chat_name])
+  );
+  const promptsMap = new Map(
+    promptsData?.prompts.map((prompt) => [prompt.prompt_id, prompt.prompt_name])
+  );
+  const companiesMap = new Map(
+    companiesData?.companies.map((company) => [
+      company.company_id,
+      company.company_name,
+    ])
+  );
+
+  // Функция для преобразования типа расписания в читаемый формат
+  const getScheduleTypeLabel = (type: string) => {
+    switch (type) {
+      case "interval":
+        return "Интервал";
+      case "cron":
+        return "Повторяющееся";
+      case "once":
+        return "Одноразово";
+      case "daily_time":
+        return "Ежедневно";
+      default:
+        return type;
+    }
+  };
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="schedules table">
@@ -36,7 +82,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
             <TableCell>Промпт</TableCell>
             <TableCell>Чат</TableCell>
             {developerMode && <TableCell>Компания</TableCell>}
-            <TableCell>Тип</TableCell>
             <TableCell>
               <TableSortLabel
                 active={sortField === "schedule_type"}
@@ -59,7 +104,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
               </TableCell>
             )}
             <TableCell>Бот</TableCell>
-            <TableCell>Целевые чаты</TableCell>
           </TableRow>
         </TableHead>
 
@@ -68,16 +112,29 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
             <TableRow
               key={schedule.schedule_id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              hover
+              onClick={() => navigate(`/schedules/${schedule.schedule_id}`)}
+              style={{ cursor: "pointer" }}
             >
               {developerMode && (
                 <TableCell component="th" scope="row">
                   {schedule.schedule_id}
                 </TableCell>
               )}
-              <TableCell>{schedule.prompt_id}</TableCell>
-              <TableCell>{schedule.chat_id}</TableCell>
-              {developerMode && <TableCell>{schedule.company_id}</TableCell>}
-              <TableCell>{schedule.schedule_type}</TableCell>
+              <TableCell>
+                {promptsMap.get(schedule.prompt_id) || schedule.prompt_id}
+              </TableCell>
+              <TableCell>
+                {chatsMap.get(schedule.chat_id.toString()) || schedule.chat_id}
+              </TableCell>
+              {developerMode && (
+                <TableCell>
+                  {companiesMap.get(schedule.company_id) || schedule.company_id}
+                </TableCell>
+              )}
+              <TableCell>
+                {getScheduleTypeLabel(schedule.schedule_type)}
+              </TableCell>
               <TableCell>
                 {schedule.enabled ? (
                   <Typography color="success.main">Включен</Typography>
@@ -90,8 +147,9 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   {new Date(schedule.created_at).toLocaleString()}
                 </TableCell>
               )}
-              <TableCell>{schedule.bot_id}</TableCell>
-              <TableCell>{schedule.target_chats?.join(", ") || "-"}</TableCell>
+              <TableCell>
+                {botsMap.get(schedule.bot_id.toString()) || schedule.bot_id}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
