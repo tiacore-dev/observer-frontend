@@ -39,6 +39,24 @@ export interface IscheduleCreate {
   send_after_minutes?: number; // send_strategy relative это то, через сколько минут после создания нужно отправить
 }
 
+export interface IscheduleEdit {
+  chat_id: number; //это анализируемый чат, выбираем из списка
+  prompt_id: string; // промт, выбираем из списка
+  schedule_type: "interval" | "cron" | "once" | "daily_time"; // тип расписания
+  target_chats: number[]; //это чаты которые добавились в уже существующий список, выбираем из списка
+  removed_chats: number[]; //это чаты которые убрали из уже существующего списка, выбираем из списка
+  bot_id: number; //бот , выбираем из списка
+  send_strategy: "fixed" | "relative"; // Время в которое анализ присылается
+  interval_hours?: number; //schedule_type interval через интервал времени
+  interval_minutes?: number; //schedule_type interval через интервал времени
+  time_of_day?: string; //schedule_type daily_time ежедневно в одно и то же время
+  cron_expression?: string; //schedule_type cron
+  run_at?: string; //schedule_type once одноразовое
+  enabled?: boolean; //
+  time_to_send?: string; //send_strategy fixed конкретное время дня
+  send_after_minutes?: number; // send_strategy relative это то, через сколько минут после создания нужно отправить
+}
+
 // Функция для получения списка услуг с параметрами
 export const fetchSchedules = async (selectedCompanyId?: string | null) => {
   const url = process.env.REACT_APP_API_URL;

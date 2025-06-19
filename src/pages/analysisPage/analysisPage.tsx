@@ -15,12 +15,15 @@ import {
   FormControl,
   Pagination,
   Button,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import { PageProps } from "../../App";
 import { AnalysisTable } from "./analysisTable";
 import { useNavigate, useParams } from "react-router-dom";
 import { IAnalys } from "../../api/analysisApi";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear"; // Добавлена иконка для кнопки сброса
 import { AddAnalysisModal } from "./addAnalysisModal";
 
 export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
@@ -75,12 +78,19 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const error = analysisError || companiesError || chatsError || promptsError;
 
   const [chatFilter, setChatFilter] = useState("");
-  // const [companyFilter, setCompanyFilter] = useState("");
   const [sortField, setSortField] = useState<keyof IAnalys>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Функция для сброса всех фильтров
+  const resetAllFilters = () => {
+    setChatFilter("");
+    setSortField("created_at");
+    setSortDirection("desc");
+    setPage(1);
+  };
 
   const companies = Array.from(
     new Set(
@@ -106,12 +116,6 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
           item.chat_id.toString().includes(chatFilter)
       );
     }
-
-    // if (companyFilter) {
-    //   filteredAnalysis = filteredAnalysis.filter(
-    //     (item) => item.company_id === companyFilter
-    //   );
-    // }
 
     filteredAnalysis.sort((a, b) => {
       const aValue = a[sortField];
@@ -141,10 +145,6 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     page * rowsPerPage
   );
 
-  // useEffect(() => {
-  //   setPage(1);
-  // }, [chatFilter, companyFilter]);
-
   if (isLoading)
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -162,7 +162,15 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 3,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <TextField
           label="Поиск по Chat"
           variant="outlined"
@@ -171,22 +179,24 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
           onChange={(e) => setChatFilter(e.target.value)}
         />
 
-        {/* <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Компания</InputLabel>
-          <Select
-            value={companyFilter}
-            label="Компания"
-            onChange={(e) => setCompanyFilter(e.target.value as string)}
+        {/* Кнопка сброса фильтров */}
+        <Tooltip title="Сбросить все фильтры">
+          <Button
+            onClick={resetAllFilters}
+            color="primary"
+            sx={{
+              border: "1px solid rgba(0, 0, 0, 0.23)",
+              borderRadius: 1,
+              padding: "8px",
+              "&:hover": {
+                backgroundColor: "action.hover",
+              },
+            }}
           >
-            <MenuItem value="">Все компании</MenuItem>
-            {companies.map((company) => (
-              <MenuItem key={company.id} value={company.id}>
-                {company.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl> */}
-
+            <ClearIcon />
+            Сбросить
+          </Button>
+        </Tooltip>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

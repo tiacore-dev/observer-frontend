@@ -14,8 +14,11 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear"; // Добавлена иконка для кнопки сброса
 import { AddPromptModal } from "./addPromptModal";
 import { PageProps } from "../../App";
 import { PromptsTable } from "./promptsTable";
@@ -53,11 +56,20 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
+  // Функция для сброса всех фильтров
+  const resetAllFilters = () => {
+    setNameFilter("");
+    setCompanyFilter("");
+    setSortField("prompt_name");
+    setSortDirection("asc");
+    setPage(1);
+  };
+
   const companies = Array.from(
     new Set(
       promptsData?.prompts.map((prompt) => ({
-        id: prompt.company_id, // изменено с company на company_id
-        name: companyMap.get(prompt.company_id) || prompt.company_id, // изменено с company на company_id
+        id: prompt.company_id,
+        name: companyMap.get(prompt.company_id) || prompt.company_id,
       })) || []
     )
   );
@@ -75,7 +87,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (companyFilter) {
       filteredPrompts = filteredPrompts.filter(
-        (prompt) => prompt.company_id === companyFilter // изменено с company на company_id
+        (prompt) => prompt.company_id === companyFilter
       );
     }
 
@@ -130,7 +142,15 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 3,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <TextField
           label="Поиск по имени"
           variant="outlined"
@@ -155,6 +175,24 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
           </Select>
         </FormControl>
 
+        {/* Кнопка сброса фильтров */}
+        <Tooltip title="Сбросить все фильтры">
+          <Button
+            onClick={resetAllFilters}
+            color="primary"
+            sx={{
+              border: "1px solid rgba(0, 0, 0, 0.23)",
+              borderRadius: 1,
+              padding: "8px",
+              "&:hover": {
+                backgroundColor: "action.hover",
+              },
+            }}
+          >
+            <ClearIcon />
+            Сбросить
+          </Button>
+        </Tooltip>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

@@ -15,8 +15,11 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear"; // Добавлена иконка для кнопки сброса
 import { AddBotModal } from "./addBotModal";
 import { PageProps } from "../../App";
 import { BotsTable } from "./botsTable";
@@ -100,6 +103,16 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+
+  // Функция для сброса всех фильтров
+  const resetAllFilters = () => {
+    setNameFilter("");
+    setCompanyFilter("");
+    setStatusFilter("all");
+    setSortField("bot_username");
+    setSortDirection("asc");
+    setPage(1);
+  };
 
   const companies = Array.from(
     new Set(
@@ -187,7 +200,15 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 3,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <TextField
           label="Поиск по имени"
           variant="outlined"
@@ -229,6 +250,24 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
           </Select>
         </FormControl>
 
+        {/* Кнопка сброса фильтров */}
+        <Tooltip title="Сбросить все фильтры">
+          <Button
+            onClick={resetAllFilters}
+            color="primary"
+            sx={{
+              border: "1px solid rgba(0, 0, 0, 0.23)",
+              borderRadius: 1,
+              padding: "8px",
+              "&:hover": {
+                backgroundColor: "action.hover",
+              },
+            }}
+          >
+            <ClearIcon />
+            Сбросить
+          </Button>
+        </Tooltip>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

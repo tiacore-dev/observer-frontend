@@ -145,7 +145,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           color="primary"
           style={{ marginLeft: 8 }}
         >
-          Редактировать
+          Редактировать (в разработке)
         </Button>
         <Button
           startIcon={<DeleteIcon />}

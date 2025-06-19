@@ -28,7 +28,7 @@ import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
 import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { enqueueSnackbar } from "notistack";
-import { format, parse } from "date-fns";
+import { format, parse, isBefore } from "date-fns";
 import { ru } from "date-fns/locale";
 
 interface AddScheduleModalProps {
@@ -46,7 +46,10 @@ const daysOfWeek = [
   { id: 0, name: "Воскресенье" },
 ];
 
-const generateCronExpression = (time: string, selectedDays: number[]) => {
+export const generateCronExpression = (
+  time: string,
+  selectedDays: number[]
+) => {
   if (!time || selectedDays.length === 0) return "";
 
   const [hours, minutes] = time.split(":");
@@ -135,7 +138,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     error: botsError,
   } = useBotsQuery();
 
-  // Используем useChatsQuery с bot_id только после его выбора
   const {
     data: chatsData,
     isLoading: chatsLoading,
@@ -149,6 +151,29 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    // Валидация числовых полей (не допускаем отрицательные значения)
+    if (
+      name === "interval_hours" ||
+      name === "interval_minutes" ||
+      name === "send_after_minutes"
+    ) {
+      const numValue = parseInt(value);
+      if (numValue < 0) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "Значение не может быть отрицательным",
+        }));
+        return;
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
+    }
+
     setScheduleData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -156,7 +181,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     const { name, value } = e.target;
 
     if (name === "bot_id") {
-      // При изменении бота сбрасываем выбранные чаты
       setScheduleData((prev) => ({
         ...prev,
         [name]: value,
@@ -202,6 +226,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
 
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
+    const now = new Date();
 
     if (!scheduleData.bot_id) newErrors.bot_id = "Бот обязателен";
     if (!scheduleData.chat_id) newErrors.chat_id = "Чат обязателен";
@@ -213,6 +238,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     if (scheduleData.schedule_type === "interval") {
       if (!scheduleData.interval_hours && !scheduleData.interval_minutes) {
         newErrors.interval = "Укажите интервал (часы или минуты)";
+      } else {
+        if (scheduleData.interval_hours && scheduleData.interval_hours < 0) {
+          newErrors.interval_hours = "Часы не могут быть отрицательными";
+        }
+        if (
+          scheduleData.interval_minutes &&
+          scheduleData.interval_minutes < 0
+        ) {
+          newErrors.interval_minutes = "Минуты не могут быть отрицательными";
+        }
       }
     } else if (scheduleData.schedule_type === "cron") {
       if (selectedDays.length === 0 || !cronTime) {
@@ -221,6 +256,11 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     } else if (scheduleData.schedule_type === "once") {
       if (!scheduleData.run_at) {
         newErrors.run_at = "Время выполнения обязательно";
+      } else {
+        const selectedDateTime = new Date(scheduleData.run_at);
+        if (isBefore(selectedDateTime, now)) {
+          newErrors.run_at = "Нельзя выбрать прошедшую дату/время";
+        }
       }
     } else if (scheduleData.schedule_type === "daily_time") {
       if (!scheduleData.time_of_day) {
@@ -235,6 +275,12 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       !scheduleData.send_after_minutes
     ) {
       newErrors.send_after_minutes = "Интервал отправки обязателен";
+    } else if (
+      scheduleData.send_strategy === "relative" &&
+      scheduleData.send_after_minutes !== undefined &&
+      scheduleData.send_after_minutes < 0
+    ) {
+      newErrors.send_after_minutes = "Интервал не может быть отрицательным";
     }
 
     setErrors(newErrors);
@@ -517,8 +563,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 type="number"
                 value={scheduleData.interval_hours || ""}
                 onChange={handleChange}
-                error={!!errors.interval}
-                helperText={errors.interval}
+                error={!!errors.interval || !!errors.interval_hours}
+                helperText={errors.interval || errors.interval_hours}
+                inputProps={{ min: 0 }}
               />
               <TextField
                 fullWidth
@@ -527,6 +574,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 type="number"
                 value={scheduleData.interval_minutes || ""}
                 onChange={handleChange}
+                error={!!errors.interval_minutes}
+                helperText={errors.interval_minutes}
+                inputProps={{ min: 0 }}
               />
             </Box>
           )}
@@ -570,15 +620,18 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
           {scheduleData.schedule_type === "once" && (
             <TextField
               fullWidth
-              label="Время выполнения (HH:MM)"
+              label="Время выполнения"
               name="run_at"
-              type="time"
+              type="datetime-local"
               value={scheduleData.run_at || ""}
               onChange={handleChange}
               error={!!errors.run_at}
               helperText={errors.run_at}
               required
               InputLabelProps={{ shrink: true }}
+              inputProps={{
+                min: new Date().toISOString().slice(0, 16), // Запрещаем выбор прошедшего времени
+              }}
             />
           )}
 
@@ -638,6 +691,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               error={!!errors.send_after_minutes}
               helperText={errors.send_after_minutes}
               required
+              inputProps={{ min: 0 }}
             />
           )}
 

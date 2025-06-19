@@ -12,8 +12,11 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear"; // Иконка для кнопки сброса
 import { PageProps } from "../../App";
 import { SchedulesTable } from "./schedulesTable";
 import { AddScheduleModal } from "./addScheduleModal";
@@ -25,6 +28,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { data, isLoading, error } = useSchedulesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Состояния фильтров
   const [nameFilter, setNameFilter] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
   const [chatFilter, setChatFilter] = useState("");
@@ -38,6 +42,16 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+
+  // Функция для сброса всех фильтров
+  const resetAllFilters = () => {
+    setNameFilter("");
+    setCompanyFilter("");
+    setChatFilter("");
+    setTypeFilter("");
+    setEnabledFilter("all");
+    setPage(1);
+  };
 
   // Получаем данные для маппинга ID к названиям
   const { data: companiesData } = useCompaniesQuery();
@@ -195,7 +209,15 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 3,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
         <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel>Промпт</InputLabel>
           <Select
@@ -276,6 +298,24 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             <MenuItem value="false">Выключен</MenuItem>
           </Select>
         </FormControl>
+        {/* Кнопка сброса фильтров */}
+        <Tooltip title="Сбросить все фильтры">
+          <Button
+            onClick={resetAllFilters}
+            color="primary"
+            sx={{
+              border: "1px solid rgba(0, 0, 0, 0.23)",
+              borderRadius: 1,
+              padding: "8px",
+              "&:hover": {
+                backgroundColor: "action.hover",
+              },
+            }}
+          >
+            <ClearIcon />
+            Сбросить
+          </Button>
+        </Tooltip>
 
         <Button
           variant="contained"
