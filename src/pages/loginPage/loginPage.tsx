@@ -185,10 +185,10 @@ export const LoginPage: React.FC = () => {
         open={isRegisterModalVisible}
         onClose={() => setIsRegisterModalVisible(false)}
         onSuccess={() => {
-          enqueueSnackbar(
-            "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения email.",
-            { variant: "success" }
-          );
+          // enqueueSnackbar(
+          //   "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения email.",
+          //   { variant: "success" }
+          // );
         }}
       />
     </Box>

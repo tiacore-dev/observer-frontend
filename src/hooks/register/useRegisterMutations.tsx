@@ -17,14 +17,21 @@ export const useRegisterMutation = () => {
       );
     },
     onError: (error: any) => {
-      enqueueSnackbar(
-        error.response?.data?.message || "Ошибка при регистрации",
-        { variant: "error" }
-      );
+      if (error.response?.status === 400) {
+        enqueueSnackbar("Пользователь с таким email уже зарегистрирован", {
+          variant: "error",
+        });
+      } else {
+        enqueueSnackbar(
+          error.response?.data?.message || "Ошибка при регистрации",
+          { variant: "error" }
+        );
+      }
     },
   });
 };
 
+// Остальной код остается без изменений
 export const useVerifyEmailMutation = () => {
   return useMutation({
     mutationFn: verifyEmail,
