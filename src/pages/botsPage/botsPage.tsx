@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
-import { useBotDetailsQuery } from "../../hooks/bots/useBotsQuery";
 import {
   Paper,
   CircularProgress,
@@ -15,58 +14,16 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
-  IconButton,
   Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import ClearIcon from "@mui/icons-material/Clear"; // Добавлена иконка для кнопки сброса
+import ClearIcon from "@mui/icons-material/Clear";
 import { AddBotModal } from "./addBotModal";
 import { PageProps } from "../../App";
 import { BotsTable } from "./botsTable";
 import { useNavigate, useParams } from "react-router-dom";
-import { BotCard } from "./botCard";
-
-const BotDetailsPage: React.FC<{ botId: string; developerMode: boolean }> = ({
-  botId,
-  developerMode,
-}) => {
-  const { data: bot, isLoading, error } = useBotDetailsQuery(botId);
-  const { data: companiesData } = useCompaniesQuery();
-
-  const companyMap = useMemo(() => {
-    const map = new Map<string, string>();
-    companiesData?.companies?.forEach((company) => {
-      map.set(company.company_id, company.company_name);
-    });
-    return map;
-  }, [companiesData]);
-
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error || !bot) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <Typography color="error">
-          Ошибка: {(error as Error)?.message || "Бот не найден"}
-        </Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <BotCard
-      bot={bot}
-      companyName={companyMap.get(bot.company) || bot.company}
-      developerMode={developerMode}
-    />
-  );
-};
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { BotDetailsPage } from "./botDetailsPage";
 
 export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const { botId } = useParams();
@@ -83,13 +40,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const companyMap = useMemo(() => {
-    const map = new Map<string, string>();
-    companiesData?.companies?.forEach((company) => {
-      map.set(company.company_id, company.company_name);
-    });
-    return map;
-  }, [companiesData]);
+  const companyMap = useCompanyMap();
 
   const isLoading = botsLoading || companiesLoading;
   const error = botsError || companiesError;
@@ -104,7 +55,6 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Функция для сброса всех фильтров
   const resetAllFilters = () => {
     setNameFilter("");
     setCompanyFilter("");
@@ -250,7 +200,6 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
           </Select>
         </FormControl>
 
-        {/* Кнопка сброса фильтров */}
         <Tooltip title="Сбросить все фильтры">
           <Button
             onClick={resetAllFilters}

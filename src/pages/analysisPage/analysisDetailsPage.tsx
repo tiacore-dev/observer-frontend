@@ -12,6 +12,9 @@ import {
   Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { useChatMap } from "../../hooks/maps/useChatMap";
+import { usePromptMap } from "../../hooks/maps/usePromptMap";
 // import DeleteIcon from "@mui/icons-material/Delete";
 // import { DeleteDialog } from "../../components/deleteDialog";
 
@@ -50,29 +53,11 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
     analysisLoading || companiesLoading || chatsLoading || promptsLoading;
   const error = analysisError || companiesError || chatsError || promptsError;
 
-  const companyMap = React.useMemo(() => {
-    const map = new Map<string, string>();
-    companiesData?.companies?.forEach((company) => {
-      map.set(company.company_id, company.company_name);
-    });
-    return map;
-  }, [companiesData]);
+  const companyMap = useCompanyMap();
 
-  const chatMap = React.useMemo(() => {
-    const map = new Map<number, string>();
-    chatsData?.chats?.forEach((chat) => {
-      map.set(chat.chat_id, chat.chat_name);
-    });
-    return map;
-  }, [chatsData]);
+  const chatMap = useChatMap();
 
-  const promptMap = React.useMemo(() => {
-    const map = new Map<string, string>();
-    promptsData?.prompts?.forEach((prompt) => {
-      map.set(prompt.prompt_id, prompt.prompt_name);
-    });
-    return map;
-  }, [promptsData]);
+  const promptMap = usePromptMap();
 
   //   const handleDelete = async () => {
   //     // Здесь будет логика удаления анализа

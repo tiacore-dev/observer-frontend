@@ -18,10 +18,10 @@ import {
   useUpdateSchedule,
   useDeleteSchedule,
 } from "../../hooks/schedules/useScheduleMutations";
-import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
-import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
-import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
-import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { useChatMap } from "../../hooks/maps/useChatMap";
+import { usePromptMap } from "../../hooks/maps/usePromptMap";
+import { useBotMap } from "../../hooks/maps/useBotMap";
 import { EditScheduleModal } from "./editScheduleModal";
 import { DeleteDialog } from "../../components/deleteDialog";
 
@@ -41,28 +41,11 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Получаем данные для маппинга ID к названиям
-  const { data: botsData } = useBotsQuery();
-  const { data: chatsData } = useChatsSelectQuery();
-  const { data: promptsData } = usePromptsQuery();
-  const { data: companiesData } = useCompaniesQuery();
-
-  // Создаем мапы для быстрого поиска названий по ID
-  const botsMap = new Map(
-    botsData?.bots.map((bot) => [bot.bot_id.toString(), bot.bot_first_name])
-  );
-  const chatsMap = new Map(
-    chatsData?.chats.map((chat) => [chat.chat_id.toString(), chat.chat_name])
-  );
-  const promptsMap = new Map(
-    promptsData?.prompts.map((prompt) => [prompt.prompt_id, prompt.prompt_name])
-  );
-  const companiesMap = new Map(
-    companiesData?.companies.map((company) => [
-      company.company_id,
-      company.company_name,
-    ])
-  );
+  // Используем хуки для маппинга
+  const companyMap = useCompanyMap();
+  const chatMap = useChatMap();
+  const promptMap = usePromptMap();
+  const botMap = useBotMap();
 
   const getScheduleTypeLabel = (type: string) => {
     switch (type) {
@@ -183,21 +166,21 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Анализируемый чат:</Typography>
           <Typography variant="body1">
-            {chatsMap.get(schedule.chat_id.toString()) || schedule.chat_id}
+            {chatMap.get(schedule.chat_id) || schedule.chat_id}
           </Typography>
         </Box>
 
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Промпт:</Typography>
           <Typography variant="body1">
-            {promptsMap.get(schedule.prompt_id) || schedule.prompt_id}
+            {promptMap.get(schedule.prompt_id) || schedule.prompt_id}
           </Typography>
         </Box>
 
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Бот:</Typography>
           <Typography variant="body1">
-            {botsMap.get(schedule.bot_id.toString()) || schedule.bot_id}
+            {botMap.get(schedule.bot_id.toString()) || schedule.bot_id}
           </Typography>
         </Box>
 
@@ -214,7 +197,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
               {schedule.target_chats.map((chatId: number) => (
                 <Chip
                   key={chatId}
-                  label={chatsMap.get(chatId.toString()) || chatId}
+                  label={chatMap.get(chatId) || chatId}
                   variant="outlined"
                 />
               ))}
@@ -310,7 +293,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Компания:</Typography>
               <Typography variant="body1">
-                {companiesMap.get(schedule.company_id) || schedule.company_id}
+                {companyMap.get(schedule.company_id) || schedule.company_id}
               </Typography>
             </Box>
 

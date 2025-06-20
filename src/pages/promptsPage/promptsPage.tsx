@@ -22,6 +22,7 @@ import ClearIcon from "@mui/icons-material/Clear"; // Добавлена ико�
 import { AddPromptModal } from "./addPromptModal";
 import { PageProps } from "../../App";
 import { PromptsTable } from "./promptsTable";
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 
 export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const {
@@ -36,13 +37,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const companyMap = useMemo(() => {
-    const map = new Map<string, string>();
-    companiesData?.companies?.forEach((company) => {
-      map.set(company.company_id, company.company_name);
-    });
-    return map;
-  }, [companiesData]);
+  const companyMap = useCompanyMap();
 
   const isLoading = promptsLoading || companiesLoading;
   const error = promptsError || companiesError;

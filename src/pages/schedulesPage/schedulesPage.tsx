@@ -12,17 +12,16 @@ import {
   FormControl,
   Pagination,
   SelectChangeEvent,
-  IconButton,
   Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import ClearIcon from "@mui/icons-material/Clear"; // Иконка для кнопки сброса
+import ClearIcon from "@mui/icons-material/Clear";
 import { PageProps } from "../../App";
 import { SchedulesTable } from "./schedulesTable";
 import { AddScheduleModal } from "./addScheduleModal";
-import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
-import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
-import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { useChatMap } from "../../hooks/maps/useChatMap";
+import { usePromptMap } from "../../hooks/maps/usePromptMap";
 
 export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { data, isLoading, error } = useSchedulesQuery();
@@ -43,6 +42,11 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
+  // Используем хуки для маппингов
+  const companyMap = useCompanyMap();
+  const chatMap = useChatMap();
+  const promptMap = usePromptMap();
+
   // Функция для сброса всех фильтров
   const resetAllFilters = () => {
     setNameFilter("");
@@ -52,25 +56,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
     setEnabledFilter("all");
     setPage(1);
   };
-
-  // Получаем данные для маппинга ID к названиям
-  const { data: companiesData } = useCompaniesQuery();
-  const { data: chatsData } = useChatsSelectQuery();
-  const { data: promptsData } = usePromptsQuery();
-
-  // Создаем мапы для быстрого поиска названий по ID
-  const companiesMap = new Map(
-    companiesData?.companies.map((company) => [
-      company.company_id,
-      company.company_name,
-    ])
-  );
-  const chatsMap = new Map(
-    chatsData?.chats.map((chat) => [chat.chat_id.toString(), chat.chat_name])
-  );
-  const promptsMap = new Map(
-    promptsData?.prompts.map((prompt) => [prompt.prompt_id, prompt.prompt_name])
-  );
 
   // Функция для преобразования типа расписания в читаемый формат
   const getScheduleTypeLabel = (type: string) => {
@@ -93,7 +78,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
     new Set(data?.schedules.map((schedule) => schedule.company_id) || [])
   ).map((companyId) => ({
     id: companyId,
-    name: companiesMap.get(companyId) || companyId,
+    name: companyMap.get(companyId) || companyId,
   }));
 
   const chats = Array.from(
@@ -102,14 +87,14 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
     )
   ).map((chatId) => ({
     id: chatId,
-    name: chatsMap.get(chatId) || chatId,
+    name: chatMap.get(Number(chatId)) || chatId,
   }));
 
   const prompts = Array.from(
     new Set(data?.schedules.map((schedule) => schedule.prompt_id) || [])
   ).map((promptId) => ({
     id: promptId,
-    name: promptsMap.get(promptId) || promptId,
+    name: promptMap.get(promptId) || promptId,
   }));
 
   const types = Array.from(
@@ -298,7 +283,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             <MenuItem value="false">Выключен</MenuItem>
           </Select>
         </FormControl>
-        {/* Кнопка сброса фильтров */}
+
         <Tooltip title="Сбросить все фильтры">
           <Button
             onClick={resetAllFilters}

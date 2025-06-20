@@ -25,6 +25,9 @@ import { IAnalys } from "../../api/analysisApi";
 import AddIcon from "@mui/icons-material/Add";
 import ClearIcon from "@mui/icons-material/Clear"; // Добавлена иконка для кнопки сброса
 import { AddAnalysisModal } from "./addAnalysisModal";
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { useChatMap } from "../../hooks/maps/useChatMap";
+import { usePromptMap } from "../../hooks/maps/usePromptMap";
 
 export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const {
@@ -49,29 +52,11 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   } = usePromptsQuery();
   const navigate = useNavigate();
 
-  const companyMap = useMemo(() => {
-    const map = new Map<string, string>();
-    companiesData?.companies?.forEach((company) => {
-      map.set(company.company_id, company.company_name);
-    });
-    return map;
-  }, [companiesData]);
+  const companyMap = useCompanyMap();
 
-  const chatMap = useMemo(() => {
-    const map = new Map<number, string>();
-    chatsData?.chats?.forEach((chat) => {
-      map.set(chat.chat_id, chat.chat_name);
-    });
-    return map;
-  }, [chatsData]);
+  const chatMap = useChatMap();
 
-  const promptMap = useMemo(() => {
-    const map = new Map<string, string>();
-    promptsData?.prompts?.forEach((prompt) => {
-      map.set(prompt.prompt_id, prompt.prompt_name);
-    });
-    return map;
-  }, [promptsData]);
+  const promptMap = usePromptMap();
 
   const isLoading =
     analysisLoading || companiesLoading || chatsLoading || promptsLoading;
