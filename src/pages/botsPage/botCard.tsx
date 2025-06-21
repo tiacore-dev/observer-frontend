@@ -164,7 +164,7 @@ export const BotCard: React.FC<BotCardProps> = ({
             <strong>ID:</strong> {bot.bot_id}
           </Typography>
           <Typography>
-            <strong>Имя:</strong> {bot.bot_first_name}
+            <strong>Название:</strong> {bot.bot_first_name}
           </Typography>
           {developerMode && (
             <>

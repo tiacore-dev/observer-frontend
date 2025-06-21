@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import {
-  Paper,
-  CircularProgress,
   Typography,
   Box,
   TextField,
   Pagination,
+  Button,
+  Tooltip,
 } from "@mui/material";
 import { PageProps } from "../../App";
 import { useAccountsQuery } from "../../hooks/accounts/useAccountsQuery";
 import { AccountsTable } from "./accountsTable";
+import ClearIcon from "@mui/icons-material/Clear";
+import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
+import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
+import { PaginationControls } from "../../components/table/paginationControls";
 
 export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   const {
@@ -23,13 +27,20 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const [nameFilter, setNameFilter] = useState("");
   const [usernameFilter, setUsernameFilter] = useState("");
-
   const [sortField, setSortField] = useState<
-    "account_name" | "created_at" | "username"
+    "account_name" | "username" | "created_at"
   >("created_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+
+  const resetAllFilters = () => {
+    setNameFilter("");
+    setUsernameFilter("");
+    setSortField("created_at");
+    setSortDirection("desc");
+    setPage(1);
+  };
 
   const getFilteredAndSortedAccounts = () => {
     if (!accountsData?.accounts) return [];
@@ -48,8 +59,10 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
 
     filteredAccounts.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      // Используем нулевой coalescing оператор для безопасной сортировки
+      const aValue = a[sortField] ?? "";
+      const bValue = b[sortField] ?? "";
+
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
@@ -58,7 +71,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     return filteredAccounts;
   };
 
-  const handleSort = (field: "account_name" | "created_at" | "username") => {
+  const handleSort = (field: "account_name" | "username" | "created_at") => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -76,15 +89,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   useEffect(() => {
     setPage(1);
-  }, [nameFilter]);
-
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  }, [nameFilter, usernameFilter]);
 
   if (error) {
     return (
@@ -98,41 +103,55 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
-        <TextField
-          label="Поиск по имени"
-          variant="outlined"
-          size="small"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-        />
-        <TextField
-          label="Поиск по пользователю"
-          variant="outlined"
-          size="small"
-          value={usernameFilter}
-          onChange={(e) => setUsernameFilter(e.target.value)}
-        />
-      </Box>
+      {isLoading ? (
+        <PageSkeleton filterCount={3} tableHeight={200} pagination={true} />
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              mb: 3,
+              flexWrap: "wrap",
+              alignItems: "center",
+              width: "100%", // Добавлено для полной ширины
+            }}
+          >
+            <TextField
+              label="Поиск по имени"
+              variant="outlined"
+              size="small"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+            />
+            <TextField
+              label="Поиск по пользователю"
+              variant="outlined"
+              size="small"
+              value={usernameFilter}
+              onChange={(e) => setUsernameFilter(e.target.value)}
+            />
 
-      <AccountsTable
-        accounts={paginatedChats}
-        developerMode={developerMode}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-      />
+            <ResetFiltersButton onClick={resetAllFilters} />
+          </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_, value) => setPage(value)}
-          color="primary"
-          showFirstButton
-          showLastButton
-        />
-      </Box>
+          <AccountsTable
+            accounts={paginatedChats}
+            developerMode={developerMode}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+          />
+
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+            <PaginationControls
+              count={totalPages}
+              page={page}
+              onPageChange={setPage}
+            />
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

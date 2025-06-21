@@ -1,9 +1,9 @@
-// src/pages/botsPage/botDetailsPage.tsx
 import React from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useBotDetailsQuery } from "../../hooks/bots/useBotsQuery";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { BotCard } from "./botCard";
+import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 
 interface BotDetailsPageProps {
   botId: string;
@@ -15,14 +15,10 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
   developerMode,
 }) => {
   const { data: bot, isLoading, error } = useBotDetailsQuery(botId);
-  const companyMap = useCompanyMap();
+  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
+  if (isLoading || isLoadingCompanyMap) {
+    return <DetailsPageSkeleton developerMode={developerMode} />;
   }
 
   if (error || !bot) {

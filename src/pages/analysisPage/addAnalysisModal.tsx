@@ -15,9 +15,10 @@ import {
   TextField,
 } from "@mui/material";
 import { useCreateAnalys } from "../../hooks/analysis/useAnalysMutations";
-import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
-import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
-import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { useChatMap } from "../../hooks/maps/useChatMap";
+import { usePromptMap } from "../../hooks/maps/usePromptMap";
+import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 
 interface AddAnalysisModalProps {
   open: boolean;
@@ -30,7 +31,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 }) => {
   const [analysisData, setAnalysisData] = useState({
     prompt_id: "",
-    chat_id: 0,
+    chat_id: "", // Изменено с 0 на пустую строку
     date_from: "",
     date_to: "",
     company_id: "",
@@ -38,27 +39,19 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 
   const createAnalysis = useCreateAnalys();
 
-  const {
-    data: companiesData,
-    isLoading: companiesLoading,
-    error: companiesError,
-  } = useCompaniesQuery();
-  const {
-    data: promptsData,
-    isLoading: promptsLoading,
-    error: promptsError,
-  } = usePromptsQuery();
-  const {
-    data: chatsData,
-    isLoading: chatsLoading,
-    error: chatsError,
-  } = useChatsQuery();
+  // Получение map
+  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
+  const chatMap = useChatMap();
+  const promptMap = usePromptMap();
 
   const [errors, setErrors] = useState({
     prompt_id: "",
     chat_id: "",
     company_id: "",
   });
+
+  const isLoading =
+    isLoadingCompanyMap || !chatMap.size || !promptMap.size || !companyMap.size;
 
   const handleSubmit = async () => {
     const newErrors = {
@@ -74,7 +67,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
     try {
       await createAnalysis.mutateAsync({
         ...analysisData,
-        chat_id: Number(analysisData.chat_id),
+        chat_id: Number(analysisData.chat_id), // Приводим к числу только при отправке
         date_from: analysisData.date_from
           ? Math.floor(new Date(analysisData.date_from).getTime() / 1000)
           : 0,
@@ -86,7 +79,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
       onClose();
       setAnalysisData({
         prompt_id: "",
-        chat_id: 0,
+        chat_id: "",
         date_from: "",
         date_to: "",
         company_id: "",
@@ -96,36 +89,10 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
     }
   };
 
-  const isLoading = companiesLoading || promptsLoading || chatsLoading;
-  const error = companiesError || promptsError || chatsError;
+  if (!open) return null;
 
   if (isLoading) {
-    return (
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Добавить новый анализ</DialogTitle>
-        <DialogContent>
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
-          </Box>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (error) {
-    return (
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Добавить новый анализ</DialogTitle>
-        <DialogContent>
-          <Typography color="error">
-            Ошибка при загрузке данных: {(error as Error).message}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Закрыть</Button>
-        </DialogActions>
-      </Dialog>
-    );
+    return <ModalSkeleton fieldCount={5} hasActions />;
   }
 
   return (
@@ -146,9 +113,9 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                 }))
               }
             >
-              {promptsData?.prompts.map((prompt) => (
-                <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
-                  {prompt.prompt_name}
+              {Array.from(promptMap.entries()).map(([id, name]) => (
+                <MenuItem key={id} value={id}>
+                  {name}
                 </MenuItem>
               ))}
             </Select>
@@ -168,13 +135,13 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
               onChange={(e) =>
                 setAnalysisData((prev) => ({
                   ...prev,
-                  chat_id: Number(e.target.value),
+                  chat_id: e.target.value, // Сохраняем как строку
                 }))
               }
             >
-              {chatsData?.chats.map((chat) => (
-                <MenuItem key={chat.chat_id} value={chat.chat_id}>
-                  {chat.chat_name}
+              {Array.from(chatMap.entries()).map(([id, name]) => (
+                <MenuItem key={id} value={id.toString()}>
+                  {name}
                 </MenuItem>
               ))}
             </Select>
@@ -191,7 +158,10 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
             fullWidth
             value={analysisData.date_from}
             onChange={(e) =>
-              setAnalysisData({ ...analysisData, date_from: e.target.value })
+              setAnalysisData({
+                ...analysisData,
+                date_from: e.target.value,
+              })
             }
             InputLabelProps={{
               shrink: true,
@@ -224,9 +194,9 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                 }))
               }
             >
-              {companiesData?.companies.map((company) => (
-                <MenuItem key={company.company_id} value={company.company_id}>
-                  {company.company_name}
+              {Array.from(companyMap.entries()).map(([id, name]) => (
+                <MenuItem key={id} value={id}>
+                  {name}
                 </MenuItem>
               ))}
             </Select>
@@ -249,7 +219,11 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
             !analysisData.company_id
           }
         >
-          Создать
+          {createAnalysis.isPending ? (
+            <CircularProgress size={24} />
+          ) : (
+            "Создать"
+          )}
         </Button>
       </DialogActions>
     </Dialog>

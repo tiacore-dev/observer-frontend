@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useCreatePrompt } from "../../hooks/prompts/usePromptMutations";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
-
+import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 interface AddPromptModalProps {
   open: boolean;
   onClose: () => void;
@@ -29,11 +29,10 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   const [promptData, setPromptData] = useState({
     prompt_name: "",
     text: "",
-    company_id: "", // изменено с company на company_id
+    company_id: "",
   });
   const createPrompt = useCreatePrompt();
 
-  // Получаем список компаний
   const { data: companiesData, isLoading, error } = useCompaniesQuery();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,39 +42,11 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
 
   const [errors, setErrors] = useState({
     prompt_name: "",
-    company_id: "", // изменено с company на company_id
+    company_id: "",
   });
 
-  const handleSubmit = async () => {
-    const newErrors = {
-      prompt_name: !promptData.prompt_name ? "Название обязательно" : "",
-      company_id: !promptData.company_id ? "Выберите компанию" : "", // изменено с company на company_id
-    };
-
-    setErrors(newErrors);
-
-    if (Object.values(newErrors).some((e) => e)) return;
-
-    try {
-      await createPrompt.mutateAsync(promptData);
-      onClose();
-      setPromptData({ prompt_name: "", text: "", company_id: "" }); // изменено с company на company_id
-    } catch (error) {
-      console.error("Error creating prompt:", error);
-    }
-  };
-
   if (isLoading) {
-    return (
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Добавить новый промпт</DialogTitle>
-        <DialogContent>
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
-          </Box>
-        </DialogContent>
-      </Dialog>
-    );
+    return <ModalSkeleton fieldCount={3} hasActions={false} />;
   }
 
   if (error) {
@@ -93,6 +64,25 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
       </Dialog>
     );
   }
+
+  const handleSubmit = async () => {
+    const newErrors = {
+      prompt_name: !promptData.prompt_name ? "Название обязательно" : "",
+      company_id: !promptData.company_id ? "Выберите компанию" : "",
+    };
+
+    setErrors(newErrors);
+
+    if (Object.values(newErrors).some((e) => e)) return;
+
+    try {
+      await createPrompt.mutateAsync(promptData);
+      onClose();
+      setPromptData({ prompt_name: "", text: "", company_id: "" });
+    } catch (error) {
+      console.error("Error creating prompt:", error);
+    }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -127,12 +117,11 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
               name="company_id"
               value={promptData.company_id}
               label="Компания"
-              onChange={
-                (e) =>
-                  setPromptData((prev) => ({
-                    ...prev,
-                    company_id: e.target.value,
-                  })) // изменено с company на company_id
+              onChange={(e) =>
+                setPromptData((prev) => ({
+                  ...prev,
+                  company_id: e.target.value,
+                }))
               }
             >
               {companiesData?.companies.map((company) => (

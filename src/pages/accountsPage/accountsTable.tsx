@@ -7,16 +7,20 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TableSortLabel,
 } from "@mui/material";
 import { IAccount } from "../../api/accountsApi";
+import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
+import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+
+type SortField = "account_name" | "username" | "created_at";
 
 interface AccountsTableProps {
   accounts: IAccount[];
   developerMode: boolean;
-  sortField: "account_name" | "created_at" | "username";
+  sortField: SortField;
   sortDirection: "asc" | "desc";
-  onSort: (field: "account_name" | "created_at" | "username") => void;
+  onSort: (field: SortField) => void;
+  isLoading?: boolean;
 }
 
 export const AccountsTable: React.FC<AccountsTableProps> = ({
@@ -25,51 +29,48 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   sortField,
   sortDirection,
   onSort,
+  isLoading = false,
 }) => {
+  if (isLoading) {
+    return (
+      <TableSkeleton
+        columns={2}
+        developerMode={developerMode}
+        additionalColumns={1}
+        rows={5}
+      />
+    );
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="accounts table">
         <TableHead>
           <TableRow>
             {developerMode && <TableCell>ID</TableCell>}
-            <TableCell
-              sortDirection={
-                sortField === "account_name" ? sortDirection : false
-              }
-            >
-              <TableSortLabel
-                active={sortField === "account_name"}
-                direction={sortField === "account_name" ? sortDirection : "asc"}
-                onClick={() => onSort("account_name")}
-              >
-                Название аккаунта
-              </TableSortLabel>
-            </TableCell>
-            <TableCell
-              sortDirection={sortField === "username" ? sortDirection : false}
-            >
-              <TableSortLabel
-                active={sortField === "username"}
-                direction={sortField === "username" ? sortDirection : "asc"}
-                onClick={() => onSort("username")}
-              >
-                Пользователь
-              </TableSortLabel>
-            </TableCell>
+            <SortableTableHeader<SortField>
+              field="account_name"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Название аккаунта"
+            />
+            <SortableTableHeader<SortField>
+              field="username"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Пользователь"
+            />
             {developerMode && (
-              <TableCell
-                sortDirection={
-                  sortField === "created_at" ? sortDirection : false
-                }
-              >
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortField === "created_at" ? sortDirection : "asc"}
-                  onClick={() => onSort("created_at")}
-                >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
+              <SortableTableHeader<SortField>
+                field="created_at"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Дата создания"
+                defaultDirection="desc"
+              />
             )}
           </TableRow>
         </TableHead>
@@ -87,7 +88,6 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
               )}
               <TableCell>{account.account_name}</TableCell>
               <TableCell>{account.username}</TableCell>
-
               {developerMode && (
                 <TableCell>
                   {new Date(account.created_at).toLocaleString()}

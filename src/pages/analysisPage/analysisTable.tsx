@@ -7,10 +7,14 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TableSortLabel,
 } from "@mui/material";
 import { IAnalys } from "../../api/analysisApi";
 import { useNavigate } from "react-router-dom";
+import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
+import { useAuth } from "../../context/authContext";
+import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+
+type SortField = keyof IAnalys;
 
 interface AnalysisTableProps {
   analysis: IAnalys[];
@@ -18,10 +22,11 @@ interface AnalysisTableProps {
   chatMap: Map<number, string>;
   promptMap: Map<string, string>;
   developerMode: boolean;
-  sortField: keyof IAnalys;
+  sortField: SortField;
   sortDirection: "asc" | "desc";
-  onSort: (field: keyof IAnalys) => void;
+  onSort: (field: SortField) => void;
   onRowClick?: (analysisId: string) => void;
+  isLoading?: boolean;
 }
 
 export const AnalysisTable: React.FC<AnalysisTableProps> = ({
@@ -34,8 +39,10 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
   sortDirection,
   onSort,
   onRowClick,
+  isLoading = false,
 }) => {
   const navigate = useNavigate();
+  const { isSuperadmin } = useAuth();
 
   const handleRowClick = (analysisId: string) => {
     if (onRowClick) {
@@ -50,32 +57,56 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
     return text.length > 100 ? `${text.substring(0, 100)}...` : text;
   };
 
+  if (isLoading) {
+    return (
+      <TableSkeleton
+        columns={3}
+        developerMode={developerMode}
+        additionalColumns={developerMode ? 2 : 0}
+      />
+    );
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="analysis table">
         <TableHead>
           <TableRow>
             {developerMode && <TableCell>ID</TableCell>}
-            <TableCell>Чат</TableCell>
-            <TableCell>Промпт</TableCell>
-            {developerMode && <TableCell>Компания</TableCell>}
+            <SortableTableHeader<SortField>
+              field="chat_id"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Чат"
+            />
+            <SortableTableHeader<SortField>
+              field="prompt_id"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Промпт"
+            />
+            {isSuperadmin && (
+              <SortableTableHeader<SortField>
+                field="company_id"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Компания"
+              />
+            )}
             <TableCell>Токены (in/out)</TableCell>
             {developerMode && (
-              <TableCell
-                sortDirection={
-                  sortField === "created_at" ? sortDirection : false
-                }
-              >
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortDirection}
-                  onClick={() => onSort("created_at")}
-                >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
+              <SortableTableHeader<SortField>
+                field="created_at"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Дата создания"
+                defaultDirection="desc"
+              />
             )}
-            {/* <TableCell>Результат</TableCell> */}
           </TableRow>
         </TableHead>
 
@@ -99,7 +130,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               <TableCell>
                 {promptMap.get(item.prompt_id) || item.prompt_id}
               </TableCell>
-              {developerMode && (
+              {isSuperadmin && (
                 <TableCell>
                   {companyMap.get(item.company_id) || item.company_id}
                 </TableCell>
@@ -112,7 +143,6 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                   {new Date(item.created_at).toLocaleString()}
                 </TableCell>
               )}
-              {/* <TableCell>{formatResultText(item.result_text)}</TableCell> */}
             </TableRow>
           ))}
         </TableBody>

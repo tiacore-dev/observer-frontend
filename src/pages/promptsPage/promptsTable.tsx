@@ -7,33 +7,58 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TableSortLabel,
 } from "@mui/material";
 import { IPrompt } from "../../api/promptsApi";
 import { useNavigate } from "react-router-dom";
+import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
+import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+
+type SortField = "prompt_name" | "company_id" | "created_at";
 
 interface PromptsTableProps {
   prompts: IPrompt[];
   companyMap: Map<string, string>;
   developerMode: boolean;
-  sortField: "prompt_name" | "created_at";
+  isSuperadmin: boolean;
+  sortField: SortField;
   sortDirection: "asc" | "desc";
-  onSort: (field: "prompt_name" | "created_at") => void;
+  onSort: (field: SortField) => void;
+  isLoading?: boolean;
 }
 
 export const PromptsTable: React.FC<PromptsTableProps> = ({
   prompts,
   companyMap,
   developerMode,
+  isSuperadmin,
   sortField,
   sortDirection,
   onSort,
+  isLoading = false,
 }) => {
   const navigate = useNavigate();
 
   const handleRowClick = (promptId: string) => {
-    navigate(`/prompts/${promptId}`);
+    if (!isLoading) {
+      navigate(`/prompts/${promptId}`);
+    }
   };
+
+  if (isLoading) {
+    const columns = 2; // Основные колонки (Название, Текст)
+    const additionalColumns =
+      (developerMode ? 1 : 0) + // Колонка ID если developerMode
+      (developerMode ? 1 : 0) + // Колонка даты если developerMode
+      (isSuperadmin ? 1 : 0); // Колонка компании если isSuperadmin
+
+    return (
+      <TableSkeleton
+        columns={columns}
+        additionalColumns={additionalColumns}
+        developerMode={developerMode}
+      />
+    );
+  }
 
   return (
     <TableContainer component={Paper}>
@@ -41,36 +66,33 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
         <TableHead>
           <TableRow>
             {developerMode && <TableCell>ID</TableCell>}
-            <TableCell
-              sortDirection={
-                sortField === "prompt_name" ? sortDirection : false
-              }
-            >
-              <TableSortLabel
-                active={sortField === "prompt_name"}
-                direction={sortField === "prompt_name" ? sortDirection : "asc"}
-                onClick={() => onSort("prompt_name")}
-              >
-                Название промпта
-              </TableSortLabel>
-            </TableCell>
+            <SortableTableHeader<SortField>
+              field="prompt_name"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Название промпта"
+            />
             <TableCell>Текст</TableCell>
             {developerMode && (
-              <TableCell
-                sortDirection={
-                  sortField === "created_at" ? sortDirection : false
-                }
-              >
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortField === "created_at" ? sortDirection : "asc"}
-                  onClick={() => onSort("created_at")}
-                >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
+              <SortableTableHeader<SortField>
+                field="created_at"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Дата создания"
+                defaultDirection="desc"
+              />
             )}
-            {developerMode && <TableCell>Компания</TableCell>}
+            {isSuperadmin && (
+              <SortableTableHeader<SortField>
+                field="company_id"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Компания"
+              />
+            )}
           </TableRow>
         </TableHead>
 
@@ -103,7 +125,7 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
                   {new Date(prompt.created_at).toLocaleString()}
                 </TableCell>
               )}
-              {developerMode && (
+              {isSuperadmin && (
                 <TableCell>
                   {companyMap.get(prompt.company_id) || prompt.company_id}
                 </TableCell>

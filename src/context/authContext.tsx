@@ -58,6 +58,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     return Object.keys(appPermissions).filter((id) => isUUID(id));
   };
 
+  // В методе login authContext.tsx
   const login = useCallback(
     async (data: { email: string; password: string }) => {
       try {
@@ -77,7 +78,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             response.permissions,
             appId
           );
-          console.log("Available companies:", availableCompanies);
 
           localStorage.setItem(
             "available_companies",
@@ -93,14 +93,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           }
         }
 
+        // Загружаем данные пользователя сразу после логина
         let userDetails: IUser | null = null;
-        // if (!response.is_superadmin && selectedCompanyId) {
-        //   userDetails = await fetchUserDetails(selectedCompanyId);
-        // } else {
-        //   userDetails = await fetchUserDetails();
-        // }
-
-        // localStorage.setItem("user", JSON.stringify(userDetails));
+        try {
+          userDetails = await fetchUserDetails(selectedCompanyId || undefined);
+          localStorage.setItem("user", JSON.stringify(userDetails));
+        } catch (error) {
+          console.error("Failed to fetch user details:", error);
+        }
 
         setAuthState({
           isAuthenticated: true,
@@ -119,13 +119,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           (error as any).response?.data?.message ||
           (error as any).message ||
           "Ошибка при авторизации";
-        // enqueueSnackbar(errorMessage, { variant: "error" });
         throw error;
       }
     },
     [navigate]
   );
-
   const logout = useCallback(() => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");

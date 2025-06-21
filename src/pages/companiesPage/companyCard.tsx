@@ -17,6 +17,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { useCompanyDetailsQuery } from "../../hooks/companies/useCompaniesQuery";
 import { EditCompanyModal } from "./companyEditModal";
+import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 
 interface CompanyCardProps {
   company: ICompany;
@@ -44,11 +45,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
   };
 
   if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
+    return <DetailsPageSkeleton developerMode={developerMode} />;
   }
 
   const currentCompany = companyDetails || company;

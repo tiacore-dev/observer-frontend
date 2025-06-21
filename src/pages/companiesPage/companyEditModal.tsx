@@ -1,4 +1,3 @@
-// companyEditModal.tsx
 import React from "react";
 import {
   Dialog,
@@ -12,6 +11,7 @@ import {
 } from "@mui/material";
 import { useUpdateCompany } from "../../hooks/companies/useCompaniesMutations";
 import { ICompany } from "../../api/companiesApi";
+import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 
 interface EditCompanyModalProps {
   open: boolean;
@@ -60,6 +60,10 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
       console.error("Error updating company:", error);
     }
   };
+
+  if (updateCompany.isPending) {
+    return <ModalSkeleton fieldCount={2} hasActions />;
+  }
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>

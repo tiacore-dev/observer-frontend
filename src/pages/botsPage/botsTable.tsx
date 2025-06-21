@@ -8,17 +8,26 @@ import {
   TableRow,
   Paper,
   Typography,
-  TableSortLabel,
 } from "@mui/material";
 import { IBot } from "../../api/botsApi";
+import { useAuth } from "../../context/authContext";
+import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+
+type SortField =
+  | "bot_username"
+  | "bot_first_name"
+  | "company_id"
+  | "is_active"
+  | "comment"
+  | "created_at";
 
 interface BotsTableProps {
   bots: IBot[];
   companyMap: Map<string, string>;
   developerMode: boolean;
-  sortField: "bot_username" | "created_at";
+  sortField: SortField;
   sortDirection: "asc" | "desc";
-  onSort: (field: "bot_username" | "created_at") => void;
+  onSort: (field: SortField) => void;
   onRowClick: (botId: string) => void;
 }
 
@@ -31,44 +40,61 @@ export const BotsTable: React.FC<BotsTableProps> = ({
   onSort,
   onRowClick,
 }) => {
+  const { isSuperadmin } = useAuth();
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="bots table">
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>
-            <TableCell
-              sortDirection={
-                sortField === "bot_username" ? sortDirection : false
-              }
-            >
-              <TableSortLabel
-                active={sortField === "bot_username"}
-                direction={sortField === "bot_username" ? sortDirection : "asc"}
-                onClick={() => onSort("bot_username")}
-              >
-                Имя бота
-              </TableSortLabel>
-            </TableCell>
-            <TableCell>Имя</TableCell>
-            {developerMode && <TableCell>Компания</TableCell>}
-            <TableCell>Статус</TableCell>
-            {developerMode && (
-              <TableCell
-                sortDirection={
-                  sortField === "created_at" ? sortDirection : false
-                }
-              >
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortField === "created_at" ? sortDirection : "asc"}
-                  onClick={() => onSort("created_at")}
-                >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
+            <SortableTableHeader<SortField>
+              field="bot_username"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Имя бота"
+            />
+            <SortableTableHeader<SortField>
+              field="bot_first_name"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Название"
+            />
+            {isSuperadmin && (
+              <SortableTableHeader<SortField>
+                field="company_id"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Компания"
+              />
             )}
-            <TableCell>Комментарий</TableCell>
+            <SortableTableHeader<SortField>
+              field="is_active"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Статус"
+            />
+            {developerMode && (
+              <SortableTableHeader<SortField>
+                field="created_at"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Дата создания"
+                defaultDirection="desc"
+              />
+            )}
+            <SortableTableHeader<SortField>
+              field="comment"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Комментарий"
+            />
           </TableRow>
         </TableHead>
 
@@ -90,7 +116,7 @@ export const BotsTable: React.FC<BotsTableProps> = ({
               </TableCell>
               <TableCell>{bot.bot_username}</TableCell>
               <TableCell>{bot.bot_first_name}</TableCell>
-              {developerMode && (
+              {isSuperadmin && (
                 <TableCell>
                   {companyMap.get(bot.company_id) || bot.company_id}
                 </TableCell>

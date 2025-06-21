@@ -1,4 +1,3 @@
-// src/pages/schedules/editScheduleModal.tsx
 import React from "react";
 import {
   Dialog,
@@ -27,6 +26,7 @@ import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
 import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
+import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 
 const daysOfWeek = [
   { id: 1, name: "Понедельник" },
@@ -85,6 +85,9 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   const { data: promptsData, isLoading: promptsLoading } = usePromptsQuery();
   const { data: companiesData, isLoading: companiesLoading } =
     useCompaniesQuery();
+
+  const isLoadingAll =
+    botsLoading || chatsLoading || promptsLoading || companiesLoading;
 
   React.useEffect(() => {
     if (schedule.schedule_type === "cron" && schedule.cron_expression) {
@@ -267,17 +270,8 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     }
   };
 
-  if (botsLoading || chatsLoading || promptsLoading || companiesLoading) {
-    return (
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Редактировать расписание</DialogTitle>
-        <DialogContent>
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
-          </Box>
-        </DialogContent>
-      </Dialog>
-    );
+  if (isLoadingAll) {
+    return <ModalSkeleton fieldCount={8} hasActions />;
   }
 
   return (

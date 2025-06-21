@@ -1,72 +1,64 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
-import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
-  Paper,
-  CircularProgress,
   Typography,
   Box,
   Button,
   TextField,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Pagination,
-  SelectChangeEvent,
-  IconButton,
   Tooltip,
+  Autocomplete,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import ClearIcon from "@mui/icons-material/Clear"; // Добавлена иконка для кнопки сброса
+import ClearIcon from "@mui/icons-material/Clear";
 import { AddPromptModal } from "./addPromptModal";
 import { PageProps } from "../../App";
 import { PromptsTable } from "./promptsTable";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { useAuth } from "../../context/authContext";
+import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
+import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
+import { PaginationControls } from "../../components/table/paginationControls";
 
 export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
+  const { isSuperadmin } = useAuth();
   const {
     data: promptsData,
     isLoading: promptsLoading,
     error: promptsError,
   } = usePromptsQuery();
-  const {
-    data: companiesData,
-    isLoading: companiesLoading,
-    error: companiesError,
-  } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const companyMap = useCompanyMap();
+  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
 
-  const isLoading = promptsLoading || companiesLoading;
-  const error = promptsError || companiesError;
+  const isLoading = promptsLoading || isLoadingCompanyMap;
+  const error = promptsError;
 
   const [nameFilter, setNameFilter] = useState("");
+  const [nameSelectFilter, setNameSelectFilter] = useState("");
+  const [textFilter, setTextFilter] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
-  const [sortField, setSortField] = useState<"prompt_name" | "created_at">(
-    "prompt_name"
-  );
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [companySelectFilter, setCompanySelectFilter] = useState("");
+  const [sortField, setSortField] = useState<
+    "prompt_name" | "company_id" | "created_at"
+  >("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  // Функция для сброса всех фильтров
   const resetAllFilters = () => {
     setNameFilter("");
+    setNameSelectFilter("");
+    setTextFilter("");
     setCompanyFilter("");
-    setSortField("prompt_name");
-    setSortDirection("asc");
+    setCompanySelectFilter("");
+    setSortField("created_at");
+    setSortDirection("desc");
     setPage(1);
   };
 
-  const companies = Array.from(
-    new Set(
-      promptsData?.prompts.map((prompt) => ({
-        id: prompt.company_id,
-        name: companyMap.get(prompt.company_id) || prompt.company_id,
-      })) || []
-    )
+  const promptNames = Array.from(
+    new Set(promptsData?.prompts.map((prompt) => prompt.prompt_name) || [])
   );
 
   const getFilteredAndSortedPrompts = () => {
@@ -74,21 +66,47 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
     let filteredPrompts = [...promptsData.prompts];
 
-    if (nameFilter) {
+    if (nameFilter || nameSelectFilter) {
+      const nameFilterValue = nameSelectFilter || nameFilter;
       filteredPrompts = filteredPrompts.filter((prompt) =>
-        prompt.prompt_name.toLowerCase().includes(nameFilter.toLowerCase())
+        prompt.prompt_name.toLowerCase().includes(nameFilterValue.toLowerCase())
       );
     }
 
-    if (companyFilter) {
+    if (textFilter) {
+      filteredPrompts = filteredPrompts.filter((prompt) =>
+        prompt.text.toLowerCase().includes(textFilter.toLowerCase())
+      );
+    }
+
+    if (isSuperadmin && (companyFilter || companySelectFilter)) {
+      const companyFilterValue = companySelectFilter || companyFilter;
       filteredPrompts = filteredPrompts.filter(
-        (prompt) => prompt.company_id === companyFilter
+        (prompt) =>
+          companyMap
+            .get(prompt.company_id)
+            ?.toLowerCase()
+            .includes(companyFilterValue.toLowerCase()) ||
+          prompt.company_id
+            .toLowerCase()
+            .includes(companyFilterValue.toLowerCase())
       );
     }
 
     filteredPrompts.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      // Для сортировки по компании используем названия компаний из companyMap
+      if (sortField === "company_id") {
+        const aCompany = companyMap.get(a.company_id) ?? a.company_id;
+        const bCompany = companyMap.get(b.company_id) ?? b.company_id;
+        if (aCompany < bCompany) return sortDirection === "asc" ? -1 : 1;
+        if (aCompany > bCompany) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      }
+
+      // Для остальных полей используем нулевой coalescing оператор
+      const aValue = a[sortField] ?? "";
+      const bValue = b[sortField] ?? "";
+
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
@@ -97,7 +115,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
     return filteredPrompts;
   };
 
-  const handleSort = (field: "prompt_name" | "created_at") => {
+  const handleSort = (field: "prompt_name" | "company_id" | "created_at") => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -115,14 +133,18 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   useEffect(() => {
     setPage(1);
-  }, [nameFilter, companyFilter]);
+  }, [
+    nameFilter,
+    nameSelectFilter,
+    textFilter,
+    companyFilter,
+    companySelectFilter,
+    sortField,
+    sortDirection,
+  ]);
 
   if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
+    return <PageSkeleton filterCount={isSuperadmin ? 5 : 4} />;
   }
 
   if (error) {
@@ -144,50 +166,69 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
           mb: 3,
           flexWrap: "wrap",
           alignItems: "center",
+          width: "100%", // Добавлено для полной ширины
         }}
       >
-        <TextField
-          label="Поиск по имени"
-          variant="outlined"
-          size="small"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
+        <Autocomplete
+          freeSolo
+          options={promptNames}
+          value={nameSelectFilter || nameFilter}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Поиск по названию"
+              variant="outlined"
+              size="small"
+              onChange={(e) => {
+                setNameFilter(e.target.value);
+                setNameSelectFilter("");
+              }}
+            />
+          )}
+          onChange={(_, value) => {
+            setNameSelectFilter(value || "");
+            setNameFilter("");
+          }}
+          sx={{ width: 250 }}
         />
 
-        <FormControl size="small" sx={{ minWidth: 200 }}>
-          <InputLabel>Компания</InputLabel>
-          <Select
-            value={companyFilter}
-            label="Компания"
-            onChange={(e) => setCompanyFilter(e.target.value as string)}
-          >
-            <MenuItem value="">Все компании</MenuItem>
-            {companies.map((company) => (
-              <MenuItem key={company.id} value={company.id}>
-                {company.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <TextField
+          label="Поиск по тексту"
+          variant="outlined"
+          size="small"
+          value={textFilter}
+          onChange={(e) => setTextFilter(e.target.value)}
+          sx={{ width: 250 }}
+        />
 
-        {/* Кнопка сброса фильтров */}
-        <Tooltip title="Сбросить все фильтры">
-          <Button
-            onClick={resetAllFilters}
-            color="primary"
-            sx={{
-              border: "1px solid rgba(0, 0, 0, 0.23)",
-              borderRadius: 1,
-              padding: "8px",
-              "&:hover": {
-                backgroundColor: "action.hover",
-              },
+        {isSuperadmin && (
+          <Autocomplete
+            freeSolo
+            options={Array.from(companyMap.values())}
+            value={companySelectFilter || companyFilter}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Поиск по компании"
+                variant="outlined"
+                size="small"
+                onChange={(e) => {
+                  setCompanyFilter(e.target.value);
+                  setCompanySelectFilter("");
+                }}
+              />
+            )}
+            onChange={(_, value) => {
+              setCompanySelectFilter(value || "");
+              setCompanyFilter("");
             }}
-          >
-            <ClearIcon />
-            Сбросить
-          </Button>
-        </Tooltip>
+            sx={{ width: 250 }}
+          />
+        )}
+
+        <ResetFiltersButton onClick={resetAllFilters} />
+        <Box sx={{ flexGrow: 1 }} />
+
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -201,19 +242,17 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         prompts={paginatedPrompts}
         companyMap={companyMap}
         developerMode={developerMode}
+        isSuperadmin={isSuperadmin}
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
       />
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <Pagination
+        <PaginationControls
           count={totalPages}
           page={page}
-          onChange={(_, value) => setPage(value)}
-          color="primary"
-          showFirstButton
-          showLastButton
+          onPageChange={setPage}
         />
       </Box>
 

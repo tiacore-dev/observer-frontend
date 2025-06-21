@@ -23,6 +23,7 @@ import {
   FormControl,
   InputLabel,
   Button,
+  Skeleton,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -30,7 +31,6 @@ import {
   Psychology,
   Schedule,
   Analytics,
-  // Chat,
   AccountCircle,
   Business,
   ExitToApp,
@@ -39,11 +39,11 @@ import {
   Add,
   Group,
 } from "@mui/icons-material";
-// import GroupsIcon from "@mui/icons-material/Groups";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { AddCompanyModal } from "../pages/companiesPage/companyAddModal";
 import { logoutUser } from "../api/authApi";
+import { useCompanyMap } from "../hooks/maps/useCompanyMap";
 
 const drawerWidth = 240;
 
@@ -72,6 +72,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     setSelectedCompanyId,
     checkAuth,
   } = useAuth();
+  const { companyMap, isLoading } = useCompanyMap();
 
   const isHomePage = location.pathname === "/home";
 
@@ -107,7 +108,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   const handleCompanyAdded = async () => {
     setAddCompanyModalOpen(false);
-    // Обновляем токен после добавления компании
     await checkAuth();
   };
 
@@ -194,20 +194,24 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             {!isSuperadmin && (
               <>
                 {availableCompanies.length > 0 ? (
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Компания</InputLabel>
-                    <Select
-                      value={selectedCompanyId || ""}
-                      onChange={handleCompanyChange}
-                      label="Компания"
-                    >
-                      {availableCompanies.map((companyId) => (
-                        <MenuItem key={companyId} value={companyId}>
-                          {companyId}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  isLoading ? (
+                    <Skeleton variant="rectangular" width={120} height={40} />
+                  ) : (
+                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                      <InputLabel>Компания</InputLabel>
+                      <Select
+                        value={selectedCompanyId || ""}
+                        onChange={handleCompanyChange}
+                        label="Компания"
+                      >
+                        {availableCompanies.map((companyId) => (
+                          <MenuItem key={companyId} value={companyId}>
+                            {companyMap.get(companyId) || companyId}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )
                 ) : (
                   <Button
                     variant="outlined"
@@ -215,11 +219,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     onClick={handleAddCompanyClick}
                     size="small"
                     sx={{
-                      color: "black", // Черный текст
-                      borderColor: "black", // Черная рамка
+                      color: "black",
+                      borderColor: "black",
                       "&:hover": {
-                        backgroundColor: "rgba(0, 0, 0, 0.04)", // Легкий серый фон при наведении
-                        borderColor: "black", // Черная рамка при наведении
+                        backgroundColor: "rgba(0, 0, 0, 0.04)",
+                        borderColor: "black",
                       },
                     }}
                   >
@@ -265,7 +269,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </Toolbar>
       </AppBar>
 
-      {/* Модальное окно добавления компании */}
       <AddCompanyModal
         open={addCompanyModalOpen}
         onClose={() => setAddCompanyModalOpen(false)}

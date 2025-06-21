@@ -7,8 +7,10 @@ import {
   TextField,
   Button,
   Box,
+  CircularProgress,
 } from "@mui/material";
 import { useCreateCompany } from "../../hooks/companies/useCompaniesMutations";
+import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 
 interface AddCompanyModalProps {
   open: boolean;
@@ -58,6 +60,10 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
       console.error("Error creating company:", error);
     }
   };
+
+  if (createCompany.isPending) {
+    return <ModalSkeleton fieldCount={2} hasActions />;
+  }
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>

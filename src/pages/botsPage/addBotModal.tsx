@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { useCreateBot } from "../../hooks/bots/useBotsMutations";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
+import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 
 interface AddBotModalProps {
   open: boolean;
@@ -73,16 +74,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
 
   // Обработка состояний загрузки и ошибок
   if (isLoading) {
-    return (
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Добавить нового бота</DialogTitle>
-        <DialogContent>
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
-          </Box>
-        </DialogContent>
-      </Dialog>
-    );
+    return <ModalSkeleton fieldCount={3} hasActions />;
   }
 
   if (error) {

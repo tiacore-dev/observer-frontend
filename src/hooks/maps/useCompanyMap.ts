@@ -3,7 +3,7 @@ import { useCompaniesQuery } from "../companies/useCompaniesQuery";
 import { useMemo } from "react";
 
 export const useCompanyMap = () => {
-  const { data: companiesData } = useCompaniesQuery();
+  const { data: companiesData, isLoading } = useCompaniesQuery();
 
   const companyMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -13,5 +13,5 @@ export const useCompanyMap = () => {
     return map;
   }, [companiesData]);
 
-  return companyMap;
+  return { companyMap, isLoading };
 };

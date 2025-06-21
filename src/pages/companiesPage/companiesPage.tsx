@@ -1,9 +1,5 @@
-// companiesPage.tsx
-import React, { useState } from "react";
-import {
-  useCompaniesQuery,
-  useCompanyDetailsQuery,
-} from "../../hooks/companies/useCompaniesQuery";
+import React, { useEffect, useState } from "react";
+import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
   Paper,
   CircularProgress,
@@ -11,40 +7,20 @@ import {
   Box,
   Button,
   Pagination,
+  Tooltip,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import ClearIcon from "@mui/icons-material/Clear";
 import { AddCompanyModal } from "./companyAddModal";
 import { PageProps } from "../../App";
 import { CompaniesTable } from "./companiesTable";
 import { useNavigate, useParams } from "react-router-dom";
-import { CompanyCard } from "./companyCard";
-
-const CompanyDetailsPage: React.FC<{
-  companyId: string;
-  developerMode: boolean;
-}> = ({ companyId, developerMode }) => {
-  const { data: company, isLoading, error } = useCompanyDetailsQuery(companyId);
-
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error || !company) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <Typography color="error">
-          Ошибка: {(error as Error)?.message || "Компания не найдена"}
-        </Typography>
-      </Box>
-    );
-  }
-
-  return <CompanyCard company={company} developerMode={developerMode} />;
-};
+import { CompanyDetailsPage } from "./companyDetailsPage";
+import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
+import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
+import { PaginationControls } from "../../components/table/paginationControls";
 
 export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { companyId } = useParams();
@@ -52,7 +28,72 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { data, isLoading, error } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [companyFilter, setCompanyFilter] = useState("");
+  const [companySelectFilter, setCompanySelectFilter] = useState("");
+  const [sortField, setSortField] = useState<"company_name" | "description">(
+    "company_name"
+  );
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const rowsPerPage = 10;
+
+  const resetAllFilters = () => {
+    setCompanyFilter("");
+    setCompanySelectFilter("");
+    setSortField("company_name");
+    setSortDirection("asc");
+    setPage(1);
+  };
+
+  const companyNames = Array.from(
+    new Set(data?.companies?.map((company) => company.company_name) || [])
+  );
+
+  const getFilteredAndSortedCompanies = () => {
+    if (!data?.companies) return [];
+
+    let filteredCompanies = [...data.companies];
+
+    if (companyFilter || companySelectFilter) {
+      const companyFilterValue = companySelectFilter || companyFilter;
+      filteredCompanies = filteredCompanies.filter((company) =>
+        company.company_name
+          .toLowerCase()
+          .includes(companyFilterValue.toLowerCase())
+      );
+    }
+
+    filteredCompanies.sort((a, b) => {
+      // Используем нулевой coalescing оператор для обработки возможных undefined значений
+      const aValue = a[sortField] ?? "";
+      const bValue = b[sortField] ?? "";
+
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return filteredCompanies;
+  };
+
+  const handleSort = (field: "company_name" | "description") => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const filteredCompanies = getFilteredAndSortedCompanies();
+  const totalPages = Math.ceil(filteredCompanies.length / rowsPerPage);
+  const paginatedCompanies = filteredCompanies.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [companyFilter, companySelectFilter, sortField, sortDirection]);
 
   if (companyId) {
     return (
@@ -61,11 +102,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
+    return <PageSkeleton filterCount={3} tableHeight={200} pagination />;
   }
 
   if (error) {
@@ -86,15 +123,43 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
     );
   }
 
-  const totalPages = Math.ceil(data.total / rowsPerPage);
-  const paginatedCompanies = data.companies.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
-
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 3,
+          flexWrap: "wrap",
+          width: "100%", // Добавлено для полной ширины
+        }}
+      >
+        <Autocomplete
+          freeSolo
+          options={companyNames}
+          value={companySelectFilter || companyFilter}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Поиск по компании"
+              variant="outlined"
+              size="small"
+              onChange={(e) => {
+                setCompanyFilter(e.target.value);
+                setCompanySelectFilter("");
+              }}
+            />
+          )}
+          onChange={(_, value) => {
+            setCompanySelectFilter(value || "");
+            setCompanyFilter("");
+          }}
+          sx={{ width: 250 }}
+        />
+
+        <ResetFiltersButton onClick={resetAllFilters} />
+        <Box sx={{ flexGrow: 1 }} />
+
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -107,17 +172,17 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
       <CompaniesTable
         companies={paginatedCompanies}
         developerMode={developerMode}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
         onRowClick={(companyId) => navigate(`/companies/${companyId}`)}
       />
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <Pagination
+        <PaginationControls
           count={totalPages}
           page={page}
-          onChange={(_, value) => setPage(value)}
-          color="primary"
-          showFirstButton
-          showLastButton
+          onPageChange={setPage}
         />
       </Box>
 

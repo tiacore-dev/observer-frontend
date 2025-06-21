@@ -1,4 +1,3 @@
-// companiesTable.tsx
 import React from "react";
 import {
   Table,
@@ -10,16 +9,25 @@ import {
   Paper,
 } from "@mui/material";
 import { ICompany } from "../../api/companiesApi";
+import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+
+type SortField = "company_name" | "description";
 
 interface CompaniesTableProps {
   companies: ICompany[];
   developerMode: boolean;
+  sortField: SortField;
+  sortDirection: "asc" | "desc";
+  onSort: (field: SortField) => void;
   onRowClick?: (companyId: string) => void;
 }
 
 export const CompaniesTable: React.FC<CompaniesTableProps> = ({
   companies,
   developerMode,
+  sortField,
+  sortDirection,
+  onSort,
   onRowClick,
 }) => {
   return (
@@ -28,8 +36,20 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
         <TableHead>
           <TableRow>
             {developerMode && <TableCell>ID</TableCell>}
-            <TableCell>Название</TableCell>
-            <TableCell>Описание</TableCell>
+            <SortableTableHeader<SortField>
+              field="company_name"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Название"
+            />
+            <SortableTableHeader<SortField>
+              field="description"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Описание"
+            />
           </TableRow>
         </TableHead>
 

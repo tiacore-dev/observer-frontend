@@ -24,6 +24,7 @@ import { usePromptMap } from "../../hooks/maps/usePromptMap";
 import { useBotMap } from "../../hooks/maps/useBotMap";
 import { EditScheduleModal } from "./editScheduleModal";
 import { DeleteDialog } from "../../components/deleteDialog";
+import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 
 export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
@@ -42,10 +43,12 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Используем хуки для маппинга
-  const companyMap = useCompanyMap();
+  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
   const chatMap = useChatMap();
   const promptMap = usePromptMap();
   const botMap = useBotMap();
+
+  const isLoadingAll = isLoading || isLoadingCompanyMap;
 
   const getScheduleTypeLabel = (type: string) => {
     switch (type) {
@@ -84,12 +87,8 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     }
   };
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
+  if (isLoadingAll) {
+    return <DetailsPageSkeleton developerMode={developerMode} />;
   }
 
   if (error) {
@@ -128,7 +127,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           color="primary"
           style={{ marginLeft: 8 }}
         >
-          Редактировать (в разработке)
+          Редактировать
         </Button>
         <Button
           startIcon={<DeleteIcon />}

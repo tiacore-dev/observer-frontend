@@ -17,6 +17,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { EditPromptModal } from "./editPromptModal";
 import { DeleteDialog } from "../../components/deleteDialog";
+import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 
 export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
@@ -80,11 +81,7 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   };
 
   if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
+    return <DetailsPageSkeleton developerMode={developerMode} />;
   }
 
   if (error) {

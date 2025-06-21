@@ -12,15 +12,14 @@ import {
   Select,
   MenuItem,
   Typography,
-  CircularProgress,
+  Chip,
+  Stack,
   Checkbox,
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   FormControlLabel,
-  Chip,
-  Stack,
+  CircularProgress,
 } from "@mui/material";
 import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
@@ -30,6 +29,7 @@ import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { enqueueSnackbar } from "notistack";
 import { format, parse, isBefore } from "date-fns";
 import { ru } from "date-fns/locale";
+import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 
 interface AddScheduleModalProps {
   open: boolean;
@@ -147,12 +147,13 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     scheduleData.bot_id ? parseInt(scheduleData.bot_id) : undefined
   );
 
+  const isLoadingAll = companiesLoading || promptsLoading || botsLoading;
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
 
-    // Валидация числовых полей (не допускаем отрицательные значения)
     if (
       name === "interval_hours" ||
       name === "interval_minutes" ||
@@ -360,17 +361,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     }
   };
 
-  if (companiesLoading || promptsLoading || botsLoading) {
-    return (
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Добавить новое расписание</DialogTitle>
-        <DialogContent>
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
-          </Box>
-        </DialogContent>
-      </Dialog>
-    );
+  if (isLoadingAll) {
+    return <ModalSkeleton fieldCount={8} hasActions />;
   }
 
   if (companiesError || promptsError || botsError) {
@@ -630,7 +622,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               required
               InputLabelProps={{ shrink: true }}
               inputProps={{
-                min: new Date().toISOString().slice(0, 16), // Запрещаем выбор прошедшего времени
+                min: new Date().toISOString().slice(0, 16),
               }}
             />
           )}

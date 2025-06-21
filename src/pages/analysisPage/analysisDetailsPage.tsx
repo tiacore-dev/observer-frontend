@@ -4,19 +4,12 @@ import { useAnalysDetailsQuery } from "../../hooks/analysis/useAnalysisQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
-import {
-  Box,
-  Paper,
-  Typography,
-  CircularProgress,
-  Button,
-} from "@mui/material";
+import { Box, Paper, Typography, Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useChatMap } from "../../hooks/maps/useChatMap";
 import { usePromptMap } from "../../hooks/maps/usePromptMap";
-// import DeleteIcon from "@mui/icons-material/Delete";
-// import { DeleteDialog } from "../../components/deleteDialog";
+import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 
 export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
@@ -29,49 +22,26 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
     error: analysisError,
   } = useAnalysDetailsQuery(analysisId || "");
 
-  const {
-    data: companiesData,
-    isLoading: companiesLoading,
-    error: companiesError,
-  } = useCompaniesQuery();
-
-  const {
-    data: chatsData,
-    isLoading: chatsLoading,
-    error: chatsError,
-  } = useChatsSelectQuery();
-
-  const {
-    data: promptsData,
-    isLoading: promptsLoading,
-    error: promptsError,
-  } = usePromptsQuery();
-
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { isLoading: companiesLoading, error: companiesError } =
+    useCompaniesQuery();
+  const { isLoading: chatsLoading, error: chatsError } = useChatsSelectQuery();
+  const { isLoading: promptsLoading, error: promptsError } = usePromptsQuery();
+  const { isLoading: isLoadingCompanyMap } = useCompanyMap();
 
   const isLoading =
-    analysisLoading || companiesLoading || chatsLoading || promptsLoading;
+    analysisLoading ||
+    companiesLoading ||
+    chatsLoading ||
+    promptsLoading ||
+    isLoadingCompanyMap;
   const error = analysisError || companiesError || chatsError || promptsError;
 
-  const companyMap = useCompanyMap();
-
   const chatMap = useChatMap();
-
   const promptMap = usePromptMap();
-
-  //   const handleDelete = async () => {
-  //     // Здесь будет логика удаления анализа
-  //     // Пока просто закрываем диалог и возвращаемся назад
-  //     setIsDeleteDialogOpen(false);
-  //     navigate(-1);
-  //   };
+  const { companyMap } = useCompanyMap();
 
   if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
+    return <DetailsPageSkeleton developerMode={developerMode} />;
   }
 
   if (error) {
@@ -102,18 +72,6 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
         >
           Назад
         </Button>
-        {/* 
-        {developerMode && (
-          <Button
-            startIcon={<DeleteIcon />}
-            onClick={() => setIsDeleteDialogOpen(true)}
-            variant="contained"
-            color="error"
-            style={{ marginLeft: 8 }}
-          >
-            Удалить
-          </Button>
-        )} */}
       </Box>
 
       <Paper sx={{ p: 3 }}>
@@ -187,12 +145,6 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
           </>
         )}
       </Paper>
-
-      {/* <DeleteDialog
-        open={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDelete}
-      /> */}
     </Box>
   );
 };
