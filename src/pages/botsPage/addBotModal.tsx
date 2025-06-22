@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -17,6 +17,7 @@ import {
 import { useCreateBot } from "../../hooks/bots/useBotsMutations";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
+import { useAuth } from "../../context/authContext";
 
 interface AddBotModalProps {
   open: boolean;
@@ -24,12 +25,23 @@ interface AddBotModalProps {
 }
 
 export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
+  const { isSuperadmin, selectedCompanyId } = useAuth();
   const [botData, setBotData] = useState({
     token: "",
     company_id: "",
     comment: "",
   });
   const createBot = useCreateBot();
+
+  // Автоматически устанавливаем company_id для обычных пользователей
+  useEffect(() => {
+    if (!isSuperadmin && selectedCompanyId) {
+      setBotData((prev) => ({
+        ...prev,
+        company_id: selectedCompanyId,
+      }));
+    }
+  }, [isSuperadmin, selectedCompanyId]);
 
   // Получаем список компаний
   const { data: companiesData, isLoading, error } = useCompaniesQuery();
@@ -98,28 +110,34 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
       <DialogTitle>Добавить нового бота</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <FormControl fullWidth required error={!!errors.company_id}>
-            <InputLabel>Компания </InputLabel>
-            <Select
-              name="company"
-              value={botData.company_id}
-              label="Компания"
-              onChange={(e) =>
-                setBotData((prev) => ({ ...prev, company_id: e.target.value }))
-              }
-            >
-              {companiesData?.companies.map((company) => (
-                <MenuItem key={company.company_id} value={company.company_id}>
-                  {company.company_name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.company_id && (
-              <Typography variant="caption" color="error">
-                {errors.company_id}
-              </Typography>
-            )}
-          </FormControl>
+          {isSuperadmin && (
+            <FormControl fullWidth required error={!!errors.company_id}>
+              <InputLabel>Компания</InputLabel>
+              <Select
+                name="company"
+                value={botData.company_id}
+                label="Компания"
+                onChange={(e) =>
+                  setBotData((prev) => ({
+                    ...prev,
+                    company_id: e.target.value,
+                  }))
+                }
+              >
+                {companiesData?.companies.map((company) => (
+                  <MenuItem key={company.company_id} value={company.company_id}>
+                    {company.company_name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.company_id && (
+                <Typography variant="caption" color="error">
+                  {errors.company_id}
+                </Typography>
+              )}
+            </FormControl>
+          )}
+
           <TextField
             fullWidth
             label="Токен бота"
@@ -147,7 +165,11 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={!botData.token || !botData.company_id}
+          disabled={
+            !botData.token ||
+            (!isSuperadmin && !botData.company_id) ||
+            (isSuperadmin && !botData.company_id)
+          }
         >
           Создать
         </Button>

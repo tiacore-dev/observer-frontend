@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -21,6 +21,7 @@ import { useChatMap } from "../../hooks/maps/useChatMap";
 import { usePromptMap } from "../../hooks/maps/usePromptMap";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
+import { useAuth } from "../../context/authContext";
 
 interface AddAnalysisModalProps {
   open: boolean;
@@ -31,6 +32,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
   open,
   onClose,
 }) => {
+  const { isSuperadmin, selectedCompanyId } = useAuth();
   const [analysisData, setAnalysisData] = useState({
     prompt_id: "",
     chat_id: "",
@@ -38,6 +40,16 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
     date_to: "",
     company_id: "",
   });
+
+  // Автоматически устанавливаем company_id для обычных пользователей
+  useEffect(() => {
+    if (!isSuperadmin && selectedCompanyId) {
+      setAnalysisData((prev) => ({
+        ...prev,
+        company_id: selectedCompanyId,
+      }));
+    }
+  }, [isSuperadmin, selectedCompanyId]);
 
   const createAnalysis = useCreateAnalys();
 
@@ -85,7 +97,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
         chat_id: "",
         date_from: "",
         date_to: "",
-        company_id: "",
+        company_id: isSuperadmin ? "" : selectedCompanyId || "",
       });
     } catch (error) {
       console.error("Error creating analysis:", error);
@@ -112,31 +124,33 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
       <DialogTitle>Добавить новый анализ</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <FormControl fullWidth required error={!!errors.company_id}>
-            <InputLabel>Компания</InputLabel>
-            <Select
-              name="company_id"
-              value={analysisData.company_id}
-              label="Компания"
-              onChange={(e) =>
-                setAnalysisData((prev) => ({
-                  ...prev,
-                  company_id: e.target.value,
-                }))
-              }
-            >
-              {Array.from(companyMap.entries()).map(([id, name]) => (
-                <MenuItem key={id} value={id}>
-                  {name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.company_id && (
-              <Typography variant="caption" color="error">
-                {errors.company_id}
-              </Typography>
-            )}
-          </FormControl>
+          {isSuperadmin ? (
+            <FormControl fullWidth required error={!!errors.company_id}>
+              <InputLabel>Компания</InputLabel>
+              <Select
+                name="company_id"
+                value={analysisData.company_id}
+                label="Компания"
+                onChange={(e) =>
+                  setAnalysisData((prev) => ({
+                    ...prev,
+                    company_id: e.target.value,
+                  }))
+                }
+              >
+                {Array.from(companyMap.entries()).map(([id, name]) => (
+                  <MenuItem key={id} value={id}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.company_id && (
+                <Typography variant="caption" color="error">
+                  {errors.company_id}
+                </Typography>
+              )}
+            </FormControl>
+          ) : null}
 
           {isLoadingPromptMap ? (
             <SelectSkeleton />

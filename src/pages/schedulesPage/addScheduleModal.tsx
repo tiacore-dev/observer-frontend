@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -29,6 +29,7 @@ import {
   generateCronExpression,
   convertLocalTimeToUTC,
 } from "./helpers/scheduleUtils";
+import { useAuth } from "../../context/authContext";
 
 interface AddScheduleModalProps {
   open: boolean;
@@ -42,13 +43,14 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   open,
   onClose,
 }) => {
+  const { isSuperadmin, selectedCompanyId } = useAuth();
   const [scheduleData, setScheduleData] = useState({
     chat_id: "",
     prompt_id: "",
     company_id: "",
     schedule_type: "interval" as ScheduleType,
-    interval_hours: "", // Изменено с number | undefined на string
-    interval_minutes: "", // Изменено с number | undefined на string
+    interval_hours: "",
+    interval_minutes: "",
     time_of_day: "",
     cron_expression: "",
     run_at: "",
@@ -57,7 +59,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     target_chats: [] as number[],
     send_strategy: "fixed" as SendStrategy,
     time_to_send: "",
-    send_after_minutes: "", // Изменено с number | undefined на string
+    send_after_minutes: "",
   });
 
   const [cronTime, setCronTime] = useState<string>("09:00");
@@ -66,6 +68,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   const createSchedule = useCreateSchedule();
   const { errors, validateFields, clearError, setError } =
     useScheduleValidation();
+
+  // Автоматически устанавливаем company_id для обычных пользователей
+  useEffect(() => {
+    if (!isSuperadmin && selectedCompanyId) {
+      setScheduleData((prev) => ({
+        ...prev,
+        company_id: selectedCompanyId,
+      }));
+    }
+  }, [isSuperadmin, selectedCompanyId]);
 
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { botMap, isLoadingBotMap } = useBotMap(scheduleData.company_id);
@@ -97,13 +109,11 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       name === "interval_minutes" ||
       name === "send_after_minutes"
     ) {
-      // Разрешаем пустую строку или только цифры
       if (value !== "" && !/^\d+$/.test(value)) {
         setError(name, "Только целые положительные числа");
         return;
       }
 
-      // Дополнительная проверка для минут (0-59)
       if (name === "interval_minutes" && value !== "") {
         const numValue = Number.parseInt(value);
         if (numValue < 0 || numValue > 59) {
@@ -112,7 +122,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         }
       }
 
-      // Проверка на отрицательные числа для других полей
       if (
         (name === "interval_hours" || name === "send_after_minutes") &&
         value !== ""
@@ -140,7 +149,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         chat_id: "",
         target_chats: [],
       }));
-    } else if (name === "company_id") {
+    } else if (name === "company_id" && isSuperadmin) {
+      // Разрешаем изменение company_id только для суперадминов
       setScheduleData((prev) => ({
         ...prev,
         [name]: value,
@@ -181,7 +191,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    // Создаем объект для валидации с правильными типами
     const dataForValidation = {
       chat_id: scheduleData.chat_id,
       prompt_id: scheduleData.prompt_id,
@@ -257,7 +266,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       });
 
       onClose();
-      // Сброс формы
       setScheduleData({
         chat_id: "",
         prompt_id: "",
@@ -293,26 +301,28 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       <DialogTitle>Добавить новое расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <FormControl fullWidth required error={!!errors.company_id}>
-            <InputLabel>Компания</InputLabel>
-            <Select
-              name="company_id"
-              value={scheduleData.company_id}
-              label="Компания"
-              onChange={handleSelectChange}
-            >
-              {Array.from(companyMap.entries()).map(([id, name]) => (
-                <MenuItem key={id} value={id}>
-                  {name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.company_id && (
-              <Typography variant="caption" color="error">
-                {errors.company_id}
-              </Typography>
-            )}
-          </FormControl>
+          {isSuperadmin ? (
+            <FormControl fullWidth required error={!!errors.company_id}>
+              <InputLabel>Компания</InputLabel>
+              <Select
+                name="company_id"
+                value={scheduleData.company_id}
+                label="Компания"
+                onChange={handleSelectChange}
+              >
+                {Array.from(companyMap.entries()).map(([id, name]) => (
+                  <MenuItem key={id} value={id}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.company_id && (
+                <Typography variant="caption" color="error">
+                  {errors.company_id}
+                </Typography>
+              )}
+            </FormControl>
+          ) : null}
 
           {isLoadingBotMap ? (
             <SelectSkeleton />

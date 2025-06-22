@@ -175,7 +175,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
-        onRowClick={(companyId) => navigate(`/companies/${companyId}`)}
+        // onRowClick={(companyId) => navigate(`/companies/${companyId}`)}
       />
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>

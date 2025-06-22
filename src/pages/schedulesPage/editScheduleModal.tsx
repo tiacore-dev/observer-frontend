@@ -112,9 +112,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-
-    // Для числовых полей дополнительная проверка уже выполнена в компонентах
-    // Здесь просто передаем значение дальше
     updateField(name, value);
   };
 
@@ -124,13 +121,10 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     if (name === "bot_id") {
       updateField(name, value);
       updateField("chat_id", 0);
-      updateTargetChats([]); // Сбрасываем выбранные чаты при смене бота
+      updateTargetChats([]);
     } else if (name === "company_id") {
-      updateField(name, value);
-      updateField("bot_id", 0);
-      updateField("chat_id", 0);
-      updateField("prompt_id", "");
-      updateTargetChats([]); // Сбрасываем выбранные чаты при смене компании
+      // Запрещаем изменение company_id
+      return;
     } else {
       updateField(name, value);
     }
@@ -158,7 +152,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    // Создаем объект для валидации с текущими значениями
     const dataForValidation = {
       chat_id: getCurrentValue("chat_id"),
       prompt_id: getCurrentStringValue("prompt_id"),
@@ -177,7 +170,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
     if (!validateFields(dataForValidation, selectedDays, cronTime)) return;
 
-    // Проверяем, есть ли изменения
     if (!hasAnyChanges) {
       onClose();
       return;
@@ -186,10 +178,8 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     try {
       const changedData = getChangedData();
 
-      // Добавляем специальные поля только если они изменились
       const dataToUpdate: Partial<IScheduleEdit> = { ...changedData };
 
-      // Обрабатываем cron_expression только если изменился schedule_type на cron или изменились дни/время
       const currentScheduleType = getCurrentValue("schedule_type");
       if (
         currentScheduleType === "cron" &&
@@ -201,7 +191,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
         );
       }
 
-      // Обрабатываем time_to_send только если изменилась стратегия или время
       const currentSendStrategy = getCurrentValue("send_strategy");
       if (
         currentSendStrategy === "fixed" &&
@@ -213,7 +202,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
           : undefined;
       }
 
-      // Обрабатываем time_of_day только если изменился тип расписания или время
       if (
         currentScheduleType === "daily_time" &&
         (changedData.schedule_type || changedData.time_of_day)
@@ -243,29 +231,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       <DialogTitle>Редактировать расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          {renderWithSkeleton(
-            <FormControl fullWidth required error={!!errors.company_id}>
-              <InputLabel>Компания</InputLabel>
-              <Select
-                name="company_id"
-                value={getCurrentStringValue("company_id") || ""}
-                label="Компания"
-                onChange={handleSelectChange}
-              >
-                {Array.from(companyMap.entries()).map(([id, name]) => (
-                  <MenuItem key={id} value={id}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.company_id && (
-                <Typography variant="caption" color="error">
-                  {errors.company_id}
-                </Typography>
-              )}
-            </FormControl>,
-            isLoadingCompanyMap
-          )}
+          {/* Поле компании полностью удалено из интерфейса */}
 
           {renderWithSkeleton(
             renderWithTooltip(
