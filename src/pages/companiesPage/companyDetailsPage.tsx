@@ -17,7 +17,9 @@ export const CompanyDetailsPage: React.FC<CompanyDetailsPageProps> = ({
   const { data: company, isLoading, error } = useCompanyDetailsQuery(companyId);
 
   if (isLoading) {
-    return <DetailsPageSkeleton developerMode={developerMode} />;
+    return (
+      <DetailsPageSkeleton developerMode={developerMode} buttonCount={3} />
+    );
   }
 
   if (error || !company) {

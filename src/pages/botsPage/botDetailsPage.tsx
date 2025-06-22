@@ -18,7 +18,9 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
   if (isLoading || isLoadingCompanyMap) {
-    return <DetailsPageSkeleton developerMode={developerMode} />;
+    return (
+      <DetailsPageSkeleton developerMode={developerMode} buttonCount={2} />
+    );
   }
 
   if (error || !bot) {

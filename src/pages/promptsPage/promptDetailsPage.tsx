@@ -81,7 +81,9 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   };
 
   if (isLoading) {
-    return <DetailsPageSkeleton developerMode={developerMode} />;
+    return (
+      <DetailsPageSkeleton developerMode={developerMode} buttonCount={3} />
+    );
   }
 
   if (error) {

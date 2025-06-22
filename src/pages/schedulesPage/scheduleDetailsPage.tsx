@@ -13,10 +13,12 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import { useScheduleDetailsQuery } from "../../hooks/schedules/useSchedulesQuery";
 import {
   useUpdateSchedule,
   useDeleteSchedule,
+  useToggleSchedule,
 } from "../../hooks/schedules/useScheduleMutations";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useChatMap } from "../../hooks/maps/useChatMap";
@@ -35,9 +37,11 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     data: schedule,
     isLoading,
     error,
+    refetch,
   } = useScheduleDetailsQuery(scheduleId || "");
   const updateScheduleMutation = useUpdateSchedule();
   const deleteScheduleMutation = useDeleteSchedule();
+  const toggleScheduleMutation = useToggleSchedule();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -87,8 +91,21 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     }
   };
 
+  const handleToggle = async () => {
+    if (!scheduleId) return;
+
+    try {
+      await toggleScheduleMutation.mutateAsync(scheduleId);
+      refetch(); // Обновляем данные после переключения
+    } catch (error) {
+      console.error("Error toggling schedule:", error);
+    }
+  };
+
   if (isLoadingAll) {
-    return <DetailsPageSkeleton developerMode={developerMode} />;
+    return (
+      <DetailsPageSkeleton developerMode={developerMode} buttonCount={4} />
+    );
   }
 
   if (error) {
@@ -108,6 +125,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
       </Box>
     );
   }
+  const showToggleButton = schedule.schedule_type !== "once";
 
   return (
     <Box sx={{ p: 3 }}>
@@ -119,7 +137,21 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
         >
           Назад
         </Button>
-
+        {showToggleButton && (
+          <Button
+            startIcon={<PowerSettingsNewIcon />}
+            onClick={handleToggle}
+            variant="outlined"
+            color={schedule.enabled ? "error" : "success"}
+            style={{ marginLeft: 8 }}
+            disabled={toggleScheduleMutation.isPending}
+          >
+            {schedule.enabled ? "Выключить" : "Включить"}
+            {toggleScheduleMutation.isPending && (
+              <CircularProgress size={20} sx={{ ml: 1 }} />
+            )}
+          </Button>
+        )}
         <Button
           startIcon={<EditIcon />}
           onClick={() => setIsEditModalOpen(true)}
