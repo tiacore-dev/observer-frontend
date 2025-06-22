@@ -69,10 +69,16 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
 
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="analysis table">
+      <Table
+        sx={{
+          minWidth: 650,
+          tableLayout: "fixed", // Фиксированное распределение ширины
+        }}
+        aria-label="analysis table"
+      >
         <TableHead>
           <TableRow>
-            {developerMode && <TableCell>ID</TableCell>}
+            {developerMode && <TableCell sx={{ width: "10%" }}>ID</TableCell>}
             <SortableTableHeader<SortField>
               field="chat_id"
               currentSortField={sortField}
@@ -96,7 +102,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                 label="Компания"
               />
             )}
-            <TableCell>Токены (in/out)</TableCell>
+            <TableCell sx={{ width: "15%" }}>Токены (in/out)</TableCell>
             {developerMode && (
               <SortableTableHeader<SortField>
                 field="created_at"
@@ -122,24 +128,26 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               onClick={() => handleRowClick(item.analysis_id)}
             >
               {developerMode && (
-                <TableCell component="th" scope="row">
+                <TableCell component="th" scope="row" sx={{ width: "10%" }}>
                   {item.analysis_id}
                 </TableCell>
               )}
-              <TableCell>{chatMap.get(item.chat_id) || item.chat_id}</TableCell>
-              <TableCell>
+              <TableCell sx={{ width: "20%" }}>
+                {chatMap.get(item.chat_id) || item.chat_id}
+              </TableCell>
+              <TableCell sx={{ width: "20%" }}>
                 {promptMap.get(item.prompt_id) || item.prompt_id}
               </TableCell>
               {isSuperadmin && (
-                <TableCell>
+                <TableCell sx={{ width: "15%" }}>
                   {companyMap.get(item.company_id) || item.company_id}
                 </TableCell>
               )}
-              <TableCell>
+              <TableCell sx={{ width: "15%" }}>
                 {item.tokens_input}/{item.tokens_output}
               </TableCell>
               {developerMode && (
-                <TableCell>
+                <TableCell sx={{ width: "20%" }}>
                   {new Date(item.created_at).toLocaleString()}
                 </TableCell>
               )}

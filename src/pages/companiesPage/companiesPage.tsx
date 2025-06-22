@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ClearIcon from "@mui/icons-material/Clear";
-import { AddCompanyModal } from "./companyAddModal";
+import { AddCompanyModal } from "./addCompanyModal";
 import { PageProps } from "../../App";
 import { CompaniesTable } from "./companiesTable";
 import { useNavigate, useParams } from "react-router-dom";
@@ -102,7 +102,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   if (isLoading) {
-    return <PageSkeleton filterCount={3} tableHeight={200} pagination />;
+    return <PageSkeleton filterCount={1} pagination hasAddButton={true} />;
   }
 
   if (error) {

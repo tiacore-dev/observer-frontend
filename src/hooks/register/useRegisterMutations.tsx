@@ -22,10 +22,7 @@ export const useRegisterMutation = () => {
           variant: "error",
         });
       } else {
-        enqueueSnackbar(
-          error.response?.data?.message || "Ошибка при регистрации",
-          { variant: "error" }
-        );
+        enqueueSnackbar("Ошибка при регистрации", { variant: "error" });
       }
     },
   });
@@ -42,10 +39,7 @@ export const useVerifyEmailMutation = () => {
       );
     },
     onError: (error: any) => {
-      enqueueSnackbar(
-        error.response?.data?.message || "Ошибка при подтверждении email",
-        { variant: "error" }
-      );
+      enqueueSnackbar("Ошибка при подтверждении email", { variant: "error" });
     },
   });
 };

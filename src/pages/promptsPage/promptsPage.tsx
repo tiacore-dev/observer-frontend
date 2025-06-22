@@ -144,7 +144,9 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   ]);
 
   if (isLoading) {
-    return <PageSkeleton filterCount={isSuperadmin ? 5 : 4} />;
+    return (
+      <PageSkeleton filterCount={isSuperadmin ? 3 : 2} hasAddButton={true} />
+    );
   }
 
   if (error) {

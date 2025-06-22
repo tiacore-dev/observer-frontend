@@ -89,28 +89,6 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
       <DialogTitle>Добавить новый промпт</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <TextField
-            fullWidth
-            label="Название промпта"
-            name="prompt_name"
-            value={promptData.prompt_name}
-            onChange={handleChange}
-            error={!!errors.prompt_name}
-            helperText={errors.prompt_name}
-            required
-          />
-
-          <TextField
-            fullWidth
-            label="Текст промпта"
-            name="text"
-            value={promptData.text}
-            onChange={handleChange}
-            multiline
-            rows={6}
-            required
-          />
-
           <FormControl fullWidth required error={!!errors.company_id}>
             <InputLabel>Компания</InputLabel>
             <Select
@@ -136,6 +114,27 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
               </Typography>
             )}
           </FormControl>
+          <TextField
+            fullWidth
+            label="Название промпта"
+            name="prompt_name"
+            value={promptData.prompt_name}
+            onChange={handleChange}
+            error={!!errors.prompt_name}
+            helperText={errors.prompt_name}
+            required
+          />
+
+          <TextField
+            fullWidth
+            label="Текст промпта"
+            name="text"
+            value={promptData.text}
+            onChange={handleChange}
+            multiline
+            rows={6}
+            required
+          />
         </Box>
       </DialogContent>
       <DialogActions>

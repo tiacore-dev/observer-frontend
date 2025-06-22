@@ -20,13 +20,14 @@ import {
   ListItemText,
   FormControlLabel,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
 import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
-import { enqueueSnackbar } from "notistack";
+// import { enqueueSnackbar } from "notistack";
 import { format, parse, isBefore } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
@@ -148,6 +149,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   );
 
   const isLoadingAll = companiesLoading || promptsLoading || botsLoading;
+  const isCompanySelected = !!scheduleData.company_id;
+  const tooltipMessage = "Сначала выберите компанию";
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -341,7 +344,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
       });
 
-      enqueueSnackbar("Расписание успешно создано", { variant: "success" });
+      // enqueueSnackbar("Расписание успешно создано", { variant: "success" });
       onClose();
       setScheduleData({
         chat_id: "",
@@ -356,9 +359,17 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       setCronTime("09:00");
       setSelectedDays([1, 2, 3, 4, 5]);
     } catch (error) {
-      enqueueSnackbar("Ошибка при создании расписания", { variant: "error" });
+      // enqueueSnackbar("Ошибка при создании расписания", { variant: "error" });
       console.error("Error creating schedule:", error);
     }
+  };
+
+  const renderWithTooltip = (element: React.ReactElement) => {
+    return !isCompanySelected ? (
+      <Tooltip title={tooltipMessage}>{element}</Tooltip>
+    ) : (
+      element
+    );
   };
 
   if (isLoadingAll) {
@@ -387,330 +398,382 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       <DialogTitle>Добавить новое расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <FormControl fullWidth required error={!!errors.bot_id}>
-            <InputLabel>Бот</InputLabel>
+          <FormControl fullWidth required error={!!errors.company_id}>
+            <InputLabel>Компания</InputLabel>
             <Select
-              name="bot_id"
-              value={scheduleData.bot_id}
-              label="Бот"
+              name="company_id"
+              value={scheduleData.company_id}
+              label="Компания"
               onChange={handleSelectChange}
             >
-              {botsData?.bots.map((bot) => (
-                <MenuItem key={bot.bot_id} value={bot.bot_id}>
-                  {bot.bot_username} (ID: {bot.bot_id})
+              {companiesData?.companies.map((company) => (
+                <MenuItem key={company.company_id} value={company.company_id}>
+                  {company.company_name}
                 </MenuItem>
               ))}
             </Select>
-            {errors.bot_id && (
+            {errors.company_id && (
               <Typography variant="caption" color="error">
-                {errors.bot_id}
+                {errors.company_id}
               </Typography>
             )}
           </FormControl>
 
+          {renderWithTooltip(
+            <FormControl fullWidth required error={!!errors.bot_id}>
+              <InputLabel>Бот</InputLabel>
+              <Select
+                name="bot_id"
+                value={scheduleData.bot_id}
+                label="Бот"
+                onChange={handleSelectChange}
+                disabled={!isCompanySelected}
+              >
+                {botsData?.bots.map((bot) => (
+                  <MenuItem key={bot.bot_id} value={bot.bot_id}>
+                    {bot.bot_username} (ID: {bot.bot_id})
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.bot_id && (
+                <Typography variant="caption" color="error">
+                  {errors.bot_id}
+                </Typography>
+              )}
+            </FormControl>
+          )}
+
           {scheduleData.bot_id && (
             <>
-              <FormControl fullWidth required error={!!errors.chat_id}>
-                <InputLabel>Анализируемый чат</InputLabel>
-                <Select
-                  name="chat_id"
-                  value={scheduleData.chat_id}
-                  label="Анализируемый чат"
-                  onChange={handleSelectChange}
-                  disabled={chatsLoading}
-                >
-                  {chatsData?.chats.map((chat) => (
-                    <MenuItem
-                      key={chat.chat_id}
-                      value={chat.chat_id.toString()}
-                    >
-                      {chat.chat_name} (ID: {chat.chat_id})
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.chat_id && (
-                  <Typography variant="caption" color="error">
-                    {errors.chat_id}
-                  </Typography>
-                )}
-              </FormControl>
-
-              <FormControl fullWidth required error={!!errors.prompt_id}>
-                <InputLabel>Промпт</InputLabel>
-                <Select
-                  name="prompt_id"
-                  value={scheduleData.prompt_id}
-                  label="Промпт"
-                  onChange={handleSelectChange}
-                >
-                  {promptsData?.prompts.map((prompt) => (
-                    <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
-                      {prompt.prompt_name || prompt.prompt_id}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.prompt_id && (
-                  <Typography variant="caption" color="error">
-                    {errors.prompt_id}
-                  </Typography>
-                )}
-              </FormControl>
-
-              <FormControl fullWidth required error={!!errors.company_id}>
-                <InputLabel>Компания</InputLabel>
-                <Select
-                  name="company_id"
-                  value={scheduleData.company_id}
-                  label="Компания"
-                  onChange={handleSelectChange}
-                >
-                  {companiesData?.companies.map((company) => (
-                    <MenuItem
-                      key={company.company_id}
-                      value={company.company_id}
-                    >
-                      {company.company_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.company_id && (
-                  <Typography variant="caption" color="error">
-                    {errors.company_id}
-                  </Typography>
-                )}
-              </FormControl>
-
-              <FormControl fullWidth required error={!!errors.target_chats}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Выберите целевые чаты:
-                </Typography>
-                <Box
-                  sx={{
-                    maxHeight: 200,
-                    overflow: "auto",
-                    border: "1px solid rgba(0, 0, 0, 0.23)",
-                    borderRadius: 1,
-                    p: 1,
-                  }}
-                >
-                  {chatsLoading ? (
-                    <Box display="flex" justifyContent="center" py={2}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : (
-                    <List dense>
-                      {chatsData?.chats.map((chat) => (
-                        <ListItem key={chat.chat_id}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={scheduleData.target_chats.includes(
-                                  chat.chat_id
-                                )}
-                                onChange={handleChatToggle(chat.chat_id)}
-                              />
-                            }
-                            label={
-                              <ListItemText
-                                primary={chat.chat_name}
-                                secondary={`ID: ${chat.chat_id}`}
-                              />
-                            }
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
+              {renderWithTooltip(
+                <FormControl fullWidth required error={!!errors.chat_id}>
+                  <InputLabel>Анализируемый чат</InputLabel>
+                  <Select
+                    name="chat_id"
+                    value={scheduleData.chat_id}
+                    label="Анализируемый чат"
+                    onChange={handleSelectChange}
+                    disabled={chatsLoading || !isCompanySelected}
+                  >
+                    {chatsData?.chats.map((chat) => (
+                      <MenuItem
+                        key={chat.chat_id}
+                        value={chat.chat_id.toString()}
+                      >
+                        {chat.chat_name} (ID: {chat.chat_id})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.chat_id && (
+                    <Typography variant="caption" color="error">
+                      {errors.chat_id}
+                    </Typography>
                   )}
-                </Box>
-                {errors.target_chats && (
-                  <Typography variant="caption" color="error">
-                    {errors.target_chats}
+                </FormControl>
+              )}
+
+              {renderWithTooltip(
+                <FormControl fullWidth required error={!!errors.prompt_id}>
+                  <InputLabel>Промпт</InputLabel>
+                  <Select
+                    name="prompt_id"
+                    value={scheduleData.prompt_id}
+                    label="Промпт"
+                    onChange={handleSelectChange}
+                    disabled={!isCompanySelected}
+                  >
+                    {promptsData?.prompts.map((prompt) => (
+                      <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
+                        {prompt.prompt_name || prompt.prompt_id}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.prompt_id && (
+                    <Typography variant="caption" color="error">
+                      {errors.prompt_id}
+                    </Typography>
+                  )}
+                </FormControl>
+              )}
+
+              {renderWithTooltip(
+                <FormControl fullWidth required error={!!errors.target_chats}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Выберите целевые чаты:
                   </Typography>
-                )}
-              </FormControl>
+                  <Box
+                    sx={{
+                      maxHeight: 200,
+                      overflow: "auto",
+                      border: "1px solid rgba(0, 0, 0, 0.23)",
+                      borderRadius: 1,
+                      p: 1,
+                    }}
+                  >
+                    {chatsLoading ? (
+                      <Box display="flex" justifyContent="center" py={2}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : (
+                      <List dense>
+                        {chatsData?.chats.map((chat) => (
+                          <ListItem key={chat.chat_id}>
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={scheduleData.target_chats.includes(
+                                    chat.chat_id
+                                  )}
+                                  onChange={handleChatToggle(chat.chat_id)}
+                                  disabled={!isCompanySelected}
+                                />
+                              }
+                              label={
+                                <ListItemText
+                                  primary={chat.chat_name}
+                                  secondary={`ID: ${chat.chat_id}`}
+                                />
+                              }
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    )}
+                  </Box>
+                  {errors.target_chats && (
+                    <Typography variant="caption" color="error">
+                      {errors.target_chats}
+                    </Typography>
+                  )}
+                </FormControl>
+              )}
             </>
           )}
 
-          <FormControl fullWidth required>
-            <InputLabel>Тип расписания</InputLabel>
-            <Select
-              name="schedule_type"
-              value={scheduleData.schedule_type}
-              label="Тип расписания"
-              onChange={handleSelectChange}
-            >
-              <MenuItem value="interval">Интервал</MenuItem>
-              <MenuItem value="cron">Повторяющееся (Cron)</MenuItem>
-              <MenuItem value="once">Одноразово</MenuItem>
-              <MenuItem value="daily_time">Ежедневно</MenuItem>
-            </Select>
-          </FormControl>
-
-          {scheduleData.schedule_type === "interval" && (
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Интервал (часы)"
-                name="interval_hours"
-                type="number"
-                value={scheduleData.interval_hours || ""}
-                onChange={handleChange}
-                error={!!errors.interval || !!errors.interval_hours}
-                helperText={errors.interval || errors.interval_hours}
-                inputProps={{ min: 0 }}
-              />
-              <TextField
-                fullWidth
-                label="Интервал (минуты)"
-                name="interval_minutes"
-                type="number"
-                value={scheduleData.interval_minutes || ""}
-                onChange={handleChange}
-                error={!!errors.interval_minutes}
-                helperText={errors.interval_minutes}
-                inputProps={{ min: 0 }}
-              />
-            </Box>
+          {renderWithTooltip(
+            <FormControl fullWidth required>
+              <InputLabel>Тип расписания</InputLabel>
+              <Select
+                name="schedule_type"
+                value={scheduleData.schedule_type}
+                label="Тип расписания"
+                onChange={handleSelectChange}
+                disabled={!isCompanySelected}
+              >
+                <MenuItem value="interval">Интервал</MenuItem>
+                <MenuItem value="cron">Повторяющееся (Cron)</MenuItem>
+                <MenuItem value="once">Одноразово</MenuItem>
+                <MenuItem value="daily_time">Ежедневно</MenuItem>
+              </Select>
+            </FormControl>
           )}
 
-          {scheduleData.schedule_type === "cron" && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {scheduleData.schedule_type === "interval" &&
+            renderWithTooltip(
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Интервал (часы)"
+                  name="interval_hours"
+                  type="number"
+                  value={scheduleData.interval_hours || ""}
+                  onChange={handleChange}
+                  error={!!errors.interval || !!errors.interval_hours}
+                  helperText={errors.interval || errors.interval_hours}
+                  inputProps={{ min: 0 }}
+                  disabled={!isCompanySelected}
+                />
+                <TextField
+                  fullWidth
+                  label="Интервал (минуты)"
+                  name="interval_minutes"
+                  type="number"
+                  value={scheduleData.interval_minutes || ""}
+                  onChange={handleChange}
+                  error={!!errors.interval_minutes}
+                  helperText={errors.interval_minutes}
+                  inputProps={{ min: 0 }}
+                  disabled={!isCompanySelected}
+                />
+              </Box>
+            )}
+
+          {scheduleData.schedule_type === "cron" &&
+            renderWithTooltip(
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Время выполнения (HH:MM)"
+                  type="time"
+                  value={cronTime}
+                  onChange={(e) => setCronTime(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  disabled={!isCompanySelected}
+                />
+
+                <Typography variant="subtitle2">Дни недели:</Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                  {daysOfWeek.map((day) => (
+                    <Tooltip
+                      key={day.id}
+                      title={!isCompanySelected ? tooltipMessage : ""}
+                    >
+                      <span>
+                        <Chip
+                          label={day.name}
+                          color={
+                            selectedDays.includes(day.id)
+                              ? "primary"
+                              : "default"
+                          }
+                          onClick={() =>
+                            isCompanySelected && toggleDaySelection(day.id)
+                          }
+                          variant={
+                            selectedDays.includes(day.id)
+                              ? "filled"
+                              : "outlined"
+                          }
+                          disabled={!isCompanySelected}
+                        />
+                      </span>
+                    </Tooltip>
+                  ))}
+                </Stack>
+
+                {errors.cron_expression && (
+                  <Typography variant="caption" color="error">
+                    {errors.cron_expression}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+          {scheduleData.schedule_type === "once" &&
+            renderWithTooltip(
+              <TextField
+                fullWidth
+                label="Время выполнения"
+                name="run_at"
+                type="datetime-local"
+                value={scheduleData.run_at || ""}
+                onChange={handleChange}
+                error={!!errors.run_at}
+                helperText={errors.run_at}
+                required
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: new Date().toISOString().slice(0, 16),
+                }}
+                disabled={!isCompanySelected}
+              />
+            )}
+
+          {scheduleData.schedule_type === "daily_time" &&
+            renderWithTooltip(
               <TextField
                 fullWidth
                 label="Время выполнения (HH:MM)"
+                name="time_of_day"
                 type="time"
-                value={cronTime}
-                onChange={(e) => setCronTime(e.target.value)}
+                value={scheduleData.time_of_day || ""}
+                onChange={handleChange}
+                error={!!errors.time_of_day}
+                helperText={errors.time_of_day}
+                required
                 InputLabelProps={{ shrink: true }}
+                disabled={!isCompanySelected}
               />
+            )}
 
-              <Typography variant="subtitle2">Дни недели:</Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-                {daysOfWeek.map((day) => (
-                  <Chip
-                    key={day.id}
-                    label={day.name}
-                    color={
-                      selectedDays.includes(day.id) ? "primary" : "default"
-                    }
-                    onClick={() => toggleDaySelection(day.id)}
-                    variant={
-                      selectedDays.includes(day.id) ? "filled" : "outlined"
-                    }
-                  />
-                ))}
-              </Stack>
-
-              {errors.cron_expression && (
-                <Typography variant="caption" color="error">
-                  {errors.cron_expression}
-                </Typography>
-              )}
-            </Box>
+          {renderWithTooltip(
+            <FormControl fullWidth required>
+              <InputLabel>Стратегия отправки</InputLabel>
+              <Select
+                name="send_strategy"
+                value={scheduleData.send_strategy}
+                label="Стратегия отправки"
+                onChange={handleSelectChange}
+                disabled={!isCompanySelected}
+              >
+                <MenuItem value="fixed">Фиксированное время</MenuItem>
+                <MenuItem value="relative">
+                  Относительно времени выполнения
+                </MenuItem>
+              </Select>
+            </FormControl>
           )}
 
-          {scheduleData.schedule_type === "once" && (
-            <TextField
-              fullWidth
-              label="Время выполнения"
-              name="run_at"
-              type="datetime-local"
-              value={scheduleData.run_at || ""}
-              onChange={handleChange}
-              error={!!errors.run_at}
-              helperText={errors.run_at}
-              required
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: new Date().toISOString().slice(0, 16),
-              }}
-            />
+          {scheduleData.send_strategy === "fixed" &&
+            renderWithTooltip(
+              <TextField
+                fullWidth
+                label="Время отправки (HH:MM)"
+                name="time_to_send"
+                type="time"
+                value={scheduleData.time_to_send || ""}
+                onChange={handleChange}
+                error={!!errors.time_to_send}
+                helperText={errors.time_to_send}
+                required
+                InputLabelProps={{ shrink: true }}
+                disabled={!isCompanySelected}
+              />
+            )}
+
+          {scheduleData.send_strategy === "relative" &&
+            renderWithTooltip(
+              <TextField
+                fullWidth
+                label="Отправить через (минуты)"
+                name="send_after_minutes"
+                type="number"
+                value={scheduleData.send_after_minutes || ""}
+                onChange={handleChange}
+                error={!!errors.send_after_minutes}
+                helperText={errors.send_after_minutes}
+                required
+                inputProps={{ min: 0 }}
+                disabled={!isCompanySelected}
+              />
+            )}
+
+          {renderWithTooltip(
+            <FormControl fullWidth>
+              <InputLabel>Статус</InputLabel>
+              <Select
+                name="enabled"
+                value={scheduleData.enabled ? "true" : "false"}
+                label="Статус"
+                onChange={(e) =>
+                  setScheduleData((prev) => ({
+                    ...prev,
+                    enabled: e.target.value === "true",
+                  }))
+                }
+                disabled={!isCompanySelected}
+              >
+                <MenuItem value="true">Включено</MenuItem>
+                <MenuItem value="false">Выключено</MenuItem>
+              </Select>
+            </FormControl>
           )}
-
-          {scheduleData.schedule_type === "daily_time" && (
-            <TextField
-              fullWidth
-              label="Время выполнения (HH:MM)"
-              name="time_of_day"
-              type="time"
-              value={scheduleData.time_of_day || ""}
-              onChange={handleChange}
-              error={!!errors.time_of_day}
-              helperText={errors.time_of_day}
-              required
-              InputLabelProps={{ shrink: true }}
-            />
-          )}
-
-          <FormControl fullWidth required>
-            <InputLabel>Стратегия отправки</InputLabel>
-            <Select
-              name="send_strategy"
-              value={scheduleData.send_strategy}
-              label="Стратегия отправки"
-              onChange={handleSelectChange}
-            >
-              <MenuItem value="fixed">Фиксированное время</MenuItem>
-              <MenuItem value="relative">
-                Относительно времени выполнения
-              </MenuItem>
-            </Select>
-          </FormControl>
-
-          {scheduleData.send_strategy === "fixed" && (
-            <TextField
-              fullWidth
-              label="Время отправки (HH:MM)"
-              name="time_to_send"
-              type="time"
-              value={scheduleData.time_to_send || ""}
-              onChange={handleChange}
-              error={!!errors.time_to_send}
-              helperText={errors.time_to_send}
-              required
-              InputLabelProps={{ shrink: true }}
-            />
-          )}
-
-          {scheduleData.send_strategy === "relative" && (
-            <TextField
-              fullWidth
-              label="Отправить через (минуты)"
-              name="send_after_minutes"
-              type="number"
-              value={scheduleData.send_after_minutes || ""}
-              onChange={handleChange}
-              error={!!errors.send_after_minutes}
-              helperText={errors.send_after_minutes}
-              required
-              inputProps={{ min: 0 }}
-            />
-          )}
-
-          <FormControl fullWidth>
-            <InputLabel>Статус</InputLabel>
-            <Select
-              name="enabled"
-              value={scheduleData.enabled ? "true" : "false"}
-              label="Статус"
-              onChange={(e) =>
-                setScheduleData((prev) => ({
-                  ...prev,
-                  enabled: e.target.value === "true",
-                }))
-              }
-            >
-              <MenuItem value="true">Включено</MenuItem>
-              <MenuItem value="false">Выключено</MenuItem>
-            </Select>
-          </FormControl>
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
-          Создать
-        </Button>
+        <Tooltip title={!isCompanySelected ? tooltipMessage : ""}>
+          <span>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              color="primary"
+              disabled={!isCompanySelected}
+            >
+              Создать
+            </Button>
+          </span>
+        </Tooltip>
       </DialogActions>
     </Dialog>
   );

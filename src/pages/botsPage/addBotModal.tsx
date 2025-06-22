@@ -98,17 +98,6 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
       <DialogTitle>Добавить нового бота</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <TextField
-            fullWidth
-            label="Токен бота"
-            name="token"
-            value={botData.token}
-            onChange={handleChange}
-            error={!!errors.token}
-            helperText={errors.token}
-            required
-          />
-
           <FormControl fullWidth required error={!!errors.company_id}>
             <InputLabel>Компания </InputLabel>
             <Select
@@ -131,6 +120,16 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
               </Typography>
             )}
           </FormControl>
+          <TextField
+            fullWidth
+            label="Токен бота"
+            name="token"
+            value={botData.token}
+            onChange={handleChange}
+            error={!!errors.token}
+            helperText={errors.token}
+            required
+          />
 
           <TextField
             fullWidth

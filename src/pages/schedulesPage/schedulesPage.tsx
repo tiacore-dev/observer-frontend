@@ -274,7 +274,9 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   ]);
 
   if (isLoadingAll) {
-    return <PageSkeleton filterCount={isSuperadmin ? 7 : 6} />;
+    return (
+      <PageSkeleton filterCount={isSuperadmin ? 5 : 4} hasAddButton={true} />
+    );
   }
 
   if (error) {

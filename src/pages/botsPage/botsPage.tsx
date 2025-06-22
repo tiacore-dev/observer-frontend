@@ -193,9 +193,9 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   if (isLoading) {
     return (
       <PageSkeleton
-        filterCount={isSuperadmin ? 5 : 4}
-        tableHeight={200}
+        filterCount={isSuperadmin ? 3 : 2}
         pagination
+        hasAddButton={true}
       />
     );
   }

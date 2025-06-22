@@ -41,7 +41,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-import { AddCompanyModal } from "../pages/companiesPage/companyAddModal";
+import { AddCompanyModal } from "../pages/companiesPage/addCompanyModal";
 import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
 

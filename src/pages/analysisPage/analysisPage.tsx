@@ -169,9 +169,9 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     <Box sx={{ p: 3 }}>
       {isLoading ? (
         <PageSkeleton
-          filterCount={isSuperadmin ? 5 : 4}
-          tableHeight={200}
+          filterCount={isSuperadmin ? 3 : 2}
           pagination={true}
+          hasAddButton={true}
         />
       ) : (
         <>

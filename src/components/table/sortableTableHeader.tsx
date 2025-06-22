@@ -33,6 +33,10 @@ export function SortableTableHeader<T extends string>({
   return (
     <TableCell
       sortDirection={currentSortField === field ? sortDirection : false}
+      sx={{
+        minWidth: 150, // Установите минимальную ширину для заголовков
+        width: "auto", // Или фиксированную ширину
+      }}
     >
       <TableSortLabel
         active={currentSortField === field}

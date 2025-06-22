@@ -16,7 +16,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { useCompanyDetailsQuery } from "../../hooks/companies/useCompaniesQuery";
-import { EditCompanyModal } from "./companyEditModal";
+import { EditCompanyModal } from "./editCompanyModal";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 
 interface CompanyCardProps {

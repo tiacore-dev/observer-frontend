@@ -104,7 +104,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   return (
     <Box sx={{ p: 3 }}>
       {isLoading ? (
-        <PageSkeleton filterCount={3} tableHeight={200} pagination={true} />
+        <PageSkeleton filterCount={2} pagination={true} hasAddButton={false} />
       ) : (
         <>
           <Box
@@ -114,7 +114,6 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
               mb: 3,
               flexWrap: "wrap",
               alignItems: "center",
-              width: "100%", // Добавлено для полной ширины
             }}
           >
             <TextField

@@ -40,6 +40,7 @@ export const LoginPage: React.FC = () => {
   const location = useLocation();
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
   const [showResendLink, setShowResendLink] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const emailValue = watch("email");
 
   const resendVerificationMutation = useResendVerificationMutation();
@@ -58,6 +59,7 @@ export const LoginPage: React.FC = () => {
 
   const onSubmit = useCallback(
     async (data: FormData) => {
+      setIsSubmitting(true);
       try {
         await login(data);
         setShowResendLink(false);
@@ -67,11 +69,10 @@ export const LoginPage: React.FC = () => {
           enqueueSnackbar("Email не подтвержден", { variant: "error" });
         } else {
           setShowResendLink(false);
-          enqueueSnackbar(
-            error.response?.data?.message || "Ошибка при авторизации",
-            { variant: "error" }
-          );
+          enqueueSnackbar("Ошибка при авторизации", { variant: "error" });
         }
+      } finally {
+        setIsSubmitting(false);
       }
     },
     [login]
@@ -107,7 +108,11 @@ export const LoginPage: React.FC = () => {
               disabled={resendVerificationMutation.isPending}
               onClick={() => resendVerificationMutation.mutate(emailValue)}
             >
-              Отправить письмо повторно
+              {resendVerificationMutation.isPending ? (
+                <CircularProgress size={20} />
+              ) : (
+                "Отправить письмо повторно"
+              )}
             </Button>
           </Box>
         )}
@@ -166,8 +171,9 @@ export const LoginPage: React.FC = () => {
             variant="contained"
             color="primary"
             sx={{ mt: 3, mb: 2 }}
+            disabled={isSubmitting}
           >
-            Войти
+            {isSubmitting ? <CircularProgress size={24} /> : "Войти"}
           </Button>
 
           <Button
@@ -175,6 +181,7 @@ export const LoginPage: React.FC = () => {
             fullWidth
             variant="text"
             onClick={() => setIsRegisterModalVisible(true)}
+            disabled={isSubmitting}
           >
             Зарегистрироваться
           </Button>
@@ -185,10 +192,10 @@ export const LoginPage: React.FC = () => {
         open={isRegisterModalVisible}
         onClose={() => setIsRegisterModalVisible(false)}
         onSuccess={() => {
-          // enqueueSnackbar(
-          //   "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения email.",
-          //   { variant: "success" }
-          // );
+          enqueueSnackbar(
+            "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения email.",
+            { variant: "success" }
+          );
         }}
       />
     </Box>

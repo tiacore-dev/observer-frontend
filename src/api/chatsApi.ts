@@ -18,7 +18,7 @@ export const fetchChats = async (
   if (bot_id) {
     params.bot_id = bot_id;
   }
-  if (!isSuperadmin && selectedCompanyId) {
+  if (selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
   const response = await axiosInstance.get(`${url}/api/chats/all`, {
