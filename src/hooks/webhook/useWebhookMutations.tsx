@@ -2,18 +2,20 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteWebhook, setWebhook } from "../../api/webhookApi";
 import { enqueueSnackbar } from "notistack";
 import { IBot } from "../../api/botsApi";
+import { useAuth } from "../../context/authContext";
 
 export const useSetWebhookMutation = () => {
   const queryClient = useQueryClient();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
+  console.log("Mutation  sci:", selectedCompanyId, " isa:", isSuperadmin);
   return useMutation({
-    mutationFn: (bot_id: string) => setWebhook(bot_id),
+    mutationFn: (bot_id: string) =>
+      setWebhook(bot_id, selectedCompanyId, isSuperadmin),
     onMutate: async (bot_id) => {
-      // Отменяем текущие запросы, чтобы они не перезаписали наши optimistic updates
       await queryClient.cancelQueries({ queryKey: ["webhook", bot_id] });
       await queryClient.cancelQueries({ queryKey: ["botDetails", bot_id] });
       await queryClient.cancelQueries({ queryKey: ["bots"] });
 
-      // Сохраняем предыдущее состояние для отката в случае ошибки
       const previousWebhook = queryClient.getQueryData(["webhook", bot_id]);
       const previousBotDetails = queryClient.getQueryData([
         "botDetails",
@@ -21,7 +23,6 @@ export const useSetWebhookMutation = () => {
       ]);
       const previousBots = queryClient.getQueryData(["bots"]);
 
-      // Оптимистично обновляем данные
       queryClient.setQueryData(["webhook", bot_id], (old: any) => ({
         ...old,
         result: {
@@ -41,7 +42,6 @@ export const useSetWebhookMutation = () => {
       return { previousWebhook, previousBotDetails, previousBots };
     },
     onError: (err, bot_id, context) => {
-      // В случае ошибки возвращаем предыдущее состояние
       if (context?.previousWebhook) {
         queryClient.setQueryData(["webhook", bot_id], context.previousWebhook);
       }
@@ -57,7 +57,6 @@ export const useSetWebhookMutation = () => {
       enqueueSnackbar("Ошибка", { variant: "error" });
     },
     onSuccess: (data, bot_id) => {
-      // Инвалидируем запросы для получения актуальных данных
       queryClient.invalidateQueries({ queryKey: ["webhook", bot_id] });
       queryClient.invalidateQueries({ queryKey: ["botDetails", bot_id] });
       queryClient.invalidateQueries({ queryKey: ["bots"] });
@@ -68,8 +67,10 @@ export const useSetWebhookMutation = () => {
 
 export const useDeleteWebhookMutation = () => {
   const queryClient = useQueryClient();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
   return useMutation({
-    mutationFn: (bot_id: string) => deleteWebhook(bot_id),
+    mutationFn: (bot_id: string) =>
+      deleteWebhook(bot_id, selectedCompanyId, isSuperadmin),
     onMutate: async (bot_id) => {
       await queryClient.cancelQueries({ queryKey: ["webhook", bot_id] });
       await queryClient.cancelQueries({ queryKey: ["botDetails", bot_id] });
@@ -82,7 +83,6 @@ export const useDeleteWebhookMutation = () => {
       ]);
       const previousBots = queryClient.getQueryData(["bots"]);
 
-      // Оптимистичное обновление
       queryClient.setQueryData(["webhook", bot_id], null);
 
       queryClient.setQueryData(["bots"], (old: any) => ({

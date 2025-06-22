@@ -8,11 +8,15 @@ import {
   updateSchedule,
 } from "../../api/schedulesApi";
 import { enqueueSnackbar } from "notistack";
+import { useAuth } from "../../context/authContext";
 
 export const useCreateSchedule = () => {
   const queryClient = useQueryClient();
+  const { isSuperadmin, selectedCompanyId } = useAuth();
+
   return useMutation({
-    mutationFn: (newSchedule: IscheduleCreate) => createSchedule(newSchedule),
+    mutationFn: (newSchedule: IscheduleCreate) =>
+      createSchedule(newSchedule, isSuperadmin, selectedCompanyId),
     onSuccess: () => {
       enqueueSnackbar("Успешно добавлено", { variant: "success" });
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
@@ -25,6 +29,7 @@ export const useCreateSchedule = () => {
 
 export const useUpdateSchedule = () => {
   const queryClient = useQueryClient();
+  const { isSuperadmin, selectedCompanyId } = useAuth();
 
   return useMutation({
     mutationFn: ({
@@ -33,7 +38,8 @@ export const useUpdateSchedule = () => {
     }: {
       schedule_id: string;
       updatedData: Partial<ISchedule>;
-    }) => updateSchedule(schedule_id, updatedData),
+    }) =>
+      updateSchedule(schedule_id, updatedData, isSuperadmin, selectedCompanyId),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       queryClient.invalidateQueries({
@@ -49,9 +55,11 @@ export const useUpdateSchedule = () => {
 
 export const useToggleSchedule = () => {
   const queryClient = useQueryClient();
+  const { isSuperadmin, selectedCompanyId } = useAuth();
 
   return useMutation({
-    mutationFn: (schedule_id: string) => toggleSchedule(schedule_id),
+    mutationFn: (schedule_id: string) =>
+      toggleSchedule(schedule_id, isSuperadmin, selectedCompanyId),
     onSuccess: (data, schedule_id) => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       queryClient.invalidateQueries({
@@ -63,8 +71,11 @@ export const useToggleSchedule = () => {
 
 export const useDeleteSchedule = () => {
   const queryClient = useQueryClient();
+  const { isSuperadmin, selectedCompanyId } = useAuth();
+
   return useMutation({
-    mutationFn: (schedule_id: string) => deleteSchedule(schedule_id),
+    mutationFn: (schedule_id: string) =>
+      deleteSchedule(schedule_id, isSuperadmin, selectedCompanyId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       enqueueSnackbar("Успешно удалено", { variant: "success" });

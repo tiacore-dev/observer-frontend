@@ -1,22 +1,22 @@
 import { axiosInstance } from "../axiosConfig";
 
 export interface IPrompt {
-  prompt_id: string; // uuid4
+  prompt_id: string;
   prompt_name: string;
   text: string;
-  created_at: string; // date-time
-  company_id: string; // uuid4 (изменено с company на company_id)
+  created_at: string;
+  company_id: string;
 }
 
-// Функция для получения списка услуг с параметрами
 export const fetchPrompts = async (selectedCompanyId?: string | null) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = { page: 1, page_size: 100 };
+
   if (selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
+
   const response = await axiosInstance.get(`${url}/api/prompts/all`, {
     params,
     headers: {
@@ -27,18 +27,28 @@ export const fetchPrompts = async (selectedCompanyId?: string | null) => {
   return response.data;
 };
 
-// Функция для создания новой услуги
-export const createPrompt = async (newPrompt: {
-  prompt_name: string;
-  text: string;
-  company_id: string; // изменено с company на company_id
-}): Promise<IPrompt> => {
+export const createPrompt = async (
+  newPrompt: {
+    prompt_name: string;
+    text: string;
+    company_id: string;
+  },
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+): Promise<IPrompt> => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+
   const response = await axiosInstance.post(
     `${url}/api/prompts/add`,
     newPrompt,
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -50,18 +60,20 @@ export const createPrompt = async (newPrompt: {
 
 export const fetchPromptDetails = async (
   prompt_id: string,
-  selectedCompanyId?: string | null
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
 ) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = {};
+
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
+
   const response = await axiosInstance.get(`${url}/api/prompts/${prompt_id}`, {
+    params,
     headers: {
-      params,
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
@@ -69,13 +81,25 @@ export const fetchPromptDetails = async (
   return response.data;
 };
 
-export const updatePrompt = async (prompt_id: string, updatedData: any) => {
+export const updatePrompt = async (
+  prompt_id: string,
+  updatedData: any,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+
   const response = await axiosInstance.patch(
     `${url}/api/prompts/${prompt_id}`,
     updatedData,
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -85,11 +109,21 @@ export const updatePrompt = async (prompt_id: string, updatedData: any) => {
   return response.data;
 };
 
-export const deletePrompt = async (prompt_id: string) => {
+export const deletePrompt = async (
+  prompt_id: string,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
 
   await axiosInstance.delete(`${url}/api/prompts/${prompt_id}`, {
+    params,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",

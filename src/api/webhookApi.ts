@@ -11,11 +11,11 @@ export interface IWebhook {
 
 export const fetchWebhook = async (
   bot_id: string,
-  selectedCompanyId?: string | null
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
 ) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = {};
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
@@ -32,13 +32,25 @@ export const fetchWebhook = async (
   );
   return response.data;
 };
-// /api/webhook/{bot_id}/set
-export const setWebhook = async (bot_id: string) => {
+
+export const setWebhook = async (
+  bot_id: string,
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+  console.log("api  sci:", selectedCompanyId, " isa:", isSuperadmin);
+
   const response = await axiosInstance.patch(
     `${url}/api/webhook/${bot_id}/set`,
+    null, // тело запроса пустое, так как мы передаем параметры в URL
     {
+      params, // параметры теперь передаются правильно
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -47,13 +59,22 @@ export const setWebhook = async (bot_id: string) => {
   );
   return response.data;
 };
-// /api/webhook/{bot_id}/delete
-export const deleteWebhook = async (bot_id: string) => {
+
+export const deleteWebhook = async (
+  bot_id: string,
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
   const response = await axiosInstance.delete(
     `${url}/api/webhook/${bot_id}/delete`,
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",

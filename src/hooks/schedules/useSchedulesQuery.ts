@@ -12,22 +12,24 @@ interface ISchedulesResponse {
 }
 
 export const useSchedulesQuery = () => {
-  const { selectedCompanyId } = useAuth();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
 
   return useQuery<ISchedulesResponse>({
     queryKey: ["schedules", selectedCompanyId],
-    queryFn: () => fetchSchedules(selectedCompanyId),
+    queryFn: () => fetchSchedules(selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Отключает повторные попытки
+    retry: false,
   });
 };
 
 export const useScheduleDetailsQuery = (schedule_id: string) => {
-  const { selectedCompanyId } = useAuth();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
+
   return useQuery({
     queryKey: ["scheduleDetails", schedule_id, selectedCompanyId],
-    queryFn: () => fetchScheduleDetails(schedule_id, selectedCompanyId),
-    retry: false, // Отключает повторные попытки
+    queryFn: () =>
+      fetchScheduleDetails(schedule_id, selectedCompanyId, isSuperadmin),
+    retry: false,
     staleTime: 5 * 60 * 1000,
   });
 };

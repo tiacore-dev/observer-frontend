@@ -8,11 +8,12 @@ export interface IAccountsResponse {
 }
 
 export const useAccountsQuery = () => {
-  const { selectedCompanyId } = useAuth();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
+
   return useQuery<IAccountsResponse>({
     queryKey: ["accounts", selectedCompanyId],
-    queryFn: () => fetchAccounts(selectedCompanyId),
+    queryFn: () => fetchAccounts(selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Отключает повторные попытки
+    retry: false,
   });
 };

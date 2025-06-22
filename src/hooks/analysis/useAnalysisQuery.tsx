@@ -1,4 +1,3 @@
-// useAnalysisQuery.tsx
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchAnalysDetails,
@@ -9,27 +8,28 @@ import { useAuth } from "../../context/authContext";
 
 export interface IAnalysisResponse {
   total: number;
-  analysis: IAnalys[]; // Изменили chats на analysis
+  analysis: IAnalys[];
 }
 
 export const useAnalysisQuery = () => {
-  const { selectedCompanyId } = useAuth();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
 
   return useQuery<IAnalysisResponse>({
     queryKey: ["analysis", selectedCompanyId],
-    queryFn: () => fetchAnalysis(selectedCompanyId),
+    queryFn: () => fetchAnalysis(selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Отключает повторные попытки
+    retry: false,
   });
 };
 
 export const useAnalysDetailsQuery = (analysis_id: string) => {
-  const { selectedCompanyId } = useAuth();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
 
   return useQuery({
     queryKey: ["analysDetails", analysis_id, selectedCompanyId],
-    queryFn: () => fetchAnalysDetails(analysis_id, selectedCompanyId),
+    queryFn: () =>
+      fetchAnalysDetails(analysis_id, selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Отключает повторные попытки
+    retry: false,
   });
 };

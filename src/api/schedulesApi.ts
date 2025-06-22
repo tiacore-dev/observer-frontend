@@ -1,10 +1,10 @@
 import { axiosInstance } from "../axiosConfig";
 
 export interface ISchedule {
-  schedule_id: string; // uuid4
+  schedule_id: string;
   chat_id: number;
-  prompt_id: string; // uuid4
-  company_id: string; // uuid4
+  prompt_id: string;
+  company_id: string;
   schedule_type: "interval" | "cron" | "once" | "daily_time";
   interval_hours?: number;
   interval_minutes?: number;
@@ -13,7 +13,7 @@ export interface ISchedule {
   run_at?: string;
   enabled: boolean;
   last_run_at?: string;
-  created_at: string; // date-time
+  created_at: string;
   send_strategy: "fixed" | "relative";
   time_to_send?: string;
   send_after_minutes?: number;
@@ -22,51 +22,54 @@ export interface ISchedule {
 }
 
 export interface IscheduleCreate {
-  chat_id: number; //это анализируемый чат, выбираем из списка
-  prompt_id: string; // промт, выбираем из списка
-  schedule_type: "interval" | "cron" | "once" | "daily_time"; // тип расписания
-  company_id: string; // компания, выбираем из списка
-  target_chats: number[]; //это чаты в которые надо разослать, выбираем из списка
-  bot_id: number; //бот , выбираем из списка
-  send_strategy: "fixed" | "relative"; // Время в которое анализ присылается
-  interval_hours?: number; //schedule_type interval через интервал времени
-  interval_minutes?: number; //schedule_type interval через интервал времени
-  time_of_day?: string; //schedule_type daily_time ежедневно в одно и то же время
-  cron_expression?: string; //schedule_type cron
-  run_at?: string; //schedule_type once одноразовое
-  enabled?: boolean; //
-  time_to_send?: string; //send_strategy fixed конкретное время дня
-  send_after_minutes?: number; // send_strategy relative это то, через сколько минут после создания нужно отправить
+  chat_id: number;
+  prompt_id: string;
+  schedule_type: "interval" | "cron" | "once" | "daily_time";
+  company_id: string;
+  target_chats: number[];
+  bot_id: number;
+  send_strategy: "fixed" | "relative";
+  interval_hours?: number;
+  interval_minutes?: number;
+  time_of_day?: string;
+  cron_expression?: string;
+  run_at?: string;
+  enabled?: boolean;
+  time_to_send?: string;
+  send_after_minutes?: number;
 }
 
-export interface IscheduleEdit {
-  chat_id: number; //это анализируемый чат, выбираем из списка
-  prompt_id: string; // промт, выбираем из списка
-  schedule_type: "interval" | "cron" | "once" | "daily_time"; // тип расписания
-  target_chats: number[]; //это чаты которые добавились в уже существующий список, выбираем из списка
-  removed_chats: number[]; //это чаты которые убрали из уже существующего списка, выбираем из списка
-  bot_id: number; //бот , выбираем из списка
-  send_strategy: "fixed" | "relative"; // Время в которое анализ присылается
-  interval_hours?: number; //schedule_type interval через интервал времени
-  interval_minutes?: number; //schedule_type interval через интервал времени
-  time_of_day?: string; //schedule_type daily_time ежедневно в одно и то же время
-  cron_expression?: string; //schedule_type cron
-  run_at?: string; //schedule_type once одноразовое
-  enabled?: boolean; //
-  time_to_send?: string; //send_strategy fixed конкретное время дня
-  send_after_minutes?: number; // send_strategy relative это то, через сколько минут после создания нужно отправить
-  company_id: string; // компания, выбираем из списка
+export interface IScheduleEdit {
+  chat_id: number;
+  prompt_id: string;
+  schedule_type: "interval" | "cron" | "once" | "daily_time";
+  target_chats: number[];
+  removed_chats: number[];
+  bot_id: number;
+  send_strategy: "fixed" | "relative";
+  interval_hours?: number;
+  interval_minutes?: number;
+  time_of_day?: string;
+  cron_expression?: string;
+  run_at?: string;
+  enabled?: boolean;
+  time_to_send?: string;
+  send_after_minutes?: number;
+  company_id: string;
 }
 
-// Функция для получения списка услуг с параметрами
-export const fetchSchedules = async (selectedCompanyId?: string | null) => {
+export const fetchSchedules = async (
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = { page: 1, page_size: 100 };
+
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
+
   const response = await axiosInstance.get(`${url}/api/schedules/all`, {
     params,
     headers: {
@@ -77,16 +80,24 @@ export const fetchSchedules = async (selectedCompanyId?: string | null) => {
   return response.data;
 };
 
-// Функция для создания новой услуги
 export const createSchedule = async (
-  newSchedule: IscheduleCreate
+  newSchedule: IscheduleCreate,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
 ): Promise<ISchedule> => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+
   const response = await axiosInstance.post(
     `${url}/api/schedules/add`,
     newSchedule,
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -98,15 +109,17 @@ export const createSchedule = async (
 
 export const fetchScheduleDetails = async (
   schedule_id: string,
-  selectedCompanyId?: string | null
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
 ) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = {};
+
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
+
   const response = await axiosInstance.get(
     `${url}/api/schedules/${schedule_id}`,
     {
@@ -120,13 +133,25 @@ export const fetchScheduleDetails = async (
   return response.data;
 };
 
-export const updateSchedule = async (schedule_id: string, updatedData: any) => {
+export const updateSchedule = async (
+  schedule_id: string,
+  updatedData: any,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+
   const response = await axiosInstance.patch(
     `${url}/api/schedules/${schedule_id}`,
     updatedData,
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -136,12 +161,24 @@ export const updateSchedule = async (schedule_id: string, updatedData: any) => {
   return response.data;
 };
 
-export const toggleSchedule = async (schedule_id: string) => {
+export const toggleSchedule = async (
+  schedule_id: string,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+
   const response = await axiosInstance.patch(
     `${url}/api/schedules/${schedule_id}/toggle`,
+    {},
     {
+      params,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -151,11 +188,21 @@ export const toggleSchedule = async (schedule_id: string) => {
   return response.data;
 };
 
-export const deleteSchedule = async (schedule_id: string) => {
+export const deleteSchedule = async (
+  schedule_id: string,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
 
   await axiosInstance.delete(`${url}/api/schedules/${schedule_id}`, {
+    params,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",

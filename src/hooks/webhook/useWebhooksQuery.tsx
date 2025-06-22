@@ -8,10 +8,10 @@ interface IWebhookResponse {
 }
 
 export const useWebhookQuery = (bot_id: string) => {
-  const { selectedCompanyId } = useAuth();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
   return useQuery<IWebhookResponse>({
     queryKey: ["webhook", bot_id, selectedCompanyId],
-    queryFn: () => fetchWebhook(bot_id, selectedCompanyId),
+    queryFn: () => fetchWebhook(bot_id, selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
   });
 };

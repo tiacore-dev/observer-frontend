@@ -1,11 +1,10 @@
-// src/components/addScheduleModal.tsx
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Button,
   Box,
   FormControl,
@@ -13,14 +12,6 @@ import {
   Select,
   MenuItem,
   Typography,
-  Chip,
-  Stack,
-  Checkbox,
-  List,
-  ListItem,
-  ListItemText,
-  FormControlLabel,
-  CircularProgress,
   Tooltip,
 } from "@mui/material";
 import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
@@ -28,101 +19,53 @@ import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useBotMap } from "../../hooks/maps/useBotMap";
 import { usePromptMap } from "../../hooks/maps/usePromptMap";
 import { useChatMap } from "../../hooks/maps/useChatMap";
-import { format, parse, isBefore } from "date-fns";
-import { ru } from "date-fns/locale";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
+import { ScheduleTypeFields } from "./components/scheduleTypeFields";
+import { SendStrategyFields } from "./components/sendStrategyFields";
+import { TargetChatSelector } from "./components/targetChatSelector";
+import { useScheduleValidation } from "./helpers/useScheduleValidation";
+import {
+  generateCronExpression,
+  convertLocalTimeToUTC,
+} from "./helpers/scheduleUtils";
 
 interface AddScheduleModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-const daysOfWeek = [
-  { id: 1, name: "Понедельник" },
-  { id: 2, name: "Вторник" },
-  { id: 3, name: "Среда" },
-  { id: 4, name: "Четверг" },
-  { id: 5, name: "Пятница" },
-  { id: 6, name: "Суббота" },
-  { id: 0, name: "Воскресенье" },
-];
-
-export const generateCronExpression = (
-  time: string,
-  selectedDays: number[]
-) => {
-  if (!time || selectedDays.length === 0) return "";
-
-  const [hours, minutes] = time.split(":");
-  const daysPart = selectedDays.join(",");
-
-  return `${minutes} ${hours} * * ${daysPart}`;
-};
-
-const convertLocalTimeToUTC = (timeString: string) => {
-  if (!timeString) return "";
-
-  try {
-    const [hours, minutes] = timeString.split(":");
-    const localDate = new Date();
-    localDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-
-    const utcHours = localDate.getUTCHours().toString().padStart(2, "0");
-    const utcMinutes = localDate.getUTCMinutes().toString().padStart(2, "0");
-
-    return `${utcHours}:${utcMinutes}`;
-  } catch (error) {
-    console.error("Error converting time to UTC:", error);
-    return timeString;
-  }
-};
-
-const formatDateRussian = (dateString: string) => {
-  try {
-    const date = new Date(dateString);
-    return format(date, "dd/MM/yyyy", { locale: ru });
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return dateString;
-  }
-};
+type ScheduleType = "interval" | "cron" | "once" | "daily_time";
+type SendStrategy = "fixed" | "relative";
 
 export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   open,
   onClose,
 }) => {
-  const [scheduleData, setScheduleData] = useState<{
-    chat_id: string;
-    prompt_id: string;
-    company_id: string;
-    schedule_type: "interval" | "cron" | "once" | "daily_time";
-    interval_hours?: number;
-    interval_minutes?: number;
-    time_of_day?: string;
-    cron_expression?: string;
-    run_at?: string;
-    enabled: boolean;
-    bot_id: string;
-    target_chats: number[];
-    send_strategy: "fixed" | "relative";
-    time_to_send?: string;
-    send_after_minutes?: number;
-  }>({
+  const [scheduleData, setScheduleData] = useState({
     chat_id: "",
     prompt_id: "",
     company_id: "",
-    schedule_type: "interval",
+    schedule_type: "interval" as ScheduleType,
+    interval_hours: "", // Изменено с number | undefined на string
+    interval_minutes: "", // Изменено с number | undefined на string
+    time_of_day: "",
+    cron_expression: "",
+    run_at: "",
     enabled: true,
     bot_id: "",
-    target_chats: [],
-    send_strategy: "fixed",
+    target_chats: [] as number[],
+    send_strategy: "fixed" as SendStrategy,
+    time_to_send: "",
+    send_after_minutes: "", // Изменено с number | undefined на string
   });
 
   const [cronTime, setCronTime] = useState<string>("09:00");
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const createSchedule = useCreateSchedule();
+  const { errors, validateFields, clearError, setError } =
+    useScheduleValidation();
 
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { botMap, isLoadingBotMap } = useBotMap(scheduleData.company_id);
@@ -154,20 +97,34 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       name === "interval_minutes" ||
       name === "send_after_minutes"
     ) {
-      const numValue = parseInt(value);
-      if (numValue < 0) {
-        setErrors((prev) => ({
-          ...prev,
-          [name]: "Значение не может быть отрицательным",
-        }));
+      // Разрешаем пустую строку или только цифры
+      if (value !== "" && !/^\d+$/.test(value)) {
+        setError(name, "Только целые положительные числа");
         return;
-      } else {
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors[name];
-          return newErrors;
-        });
       }
+
+      // Дополнительная проверка для минут (0-59)
+      if (name === "interval_minutes" && value !== "") {
+        const numValue = Number.parseInt(value);
+        if (numValue < 0 || numValue > 59) {
+          setError(name, "Минуты должны быть от 0 до 59");
+          return;
+        }
+      }
+
+      // Проверка на отрицательные числа для других полей
+      if (
+        (name === "interval_hours" || name === "send_after_minutes") &&
+        value !== ""
+      ) {
+        const numValue = Number.parseInt(value);
+        if (numValue < 0) {
+          setError(name, "Значение не может быть отрицательным");
+          return;
+        }
+      }
+
+      clearError(name);
     }
 
     setScheduleData((prev) => ({ ...prev, [name]: value }));
@@ -223,132 +180,100 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     );
   };
 
-  const validateFields = () => {
-    const newErrors: Record<string, string> = {};
-    const now = new Date();
-
-    if (!scheduleData.bot_id) newErrors.bot_id = "Бот обязателен";
-    if (!scheduleData.chat_id) newErrors.chat_id = "Чат обязателен";
-    if (!scheduleData.prompt_id) newErrors.prompt_id = "Промпт обязателен";
-    if (!scheduleData.company_id) newErrors.company_id = "Компания обязательна";
-    if (scheduleData.target_chats.length === 0)
-      newErrors.target_chats = "Необходимо выбрать хотя бы один чат";
-
-    if (scheduleData.schedule_type === "interval") {
-      if (!scheduleData.interval_hours && !scheduleData.interval_minutes) {
-        newErrors.interval = "Укажите интервал (часы или минуты)";
-      } else {
-        if (scheduleData.interval_hours && scheduleData.interval_hours < 0) {
-          newErrors.interval_hours = "Часы не могут быть отрицательными";
-        }
-        if (
-          scheduleData.interval_minutes &&
-          scheduleData.interval_minutes < 0
-        ) {
-          newErrors.interval_minutes = "Минуты не могут быть отрицательными";
-        }
-      }
-    } else if (scheduleData.schedule_type === "cron") {
-      if (selectedDays.length === 0 || !cronTime) {
-        newErrors.cron_expression = "Выберите дни и время";
-      }
-    } else if (scheduleData.schedule_type === "once") {
-      if (!scheduleData.run_at) {
-        newErrors.run_at = "Время выполнения обязательно";
-      } else {
-        const selectedDateTime = new Date(scheduleData.run_at);
-        if (isBefore(selectedDateTime, now)) {
-          newErrors.run_at = "Нельзя выбрать прошедшую дату/время";
-        }
-      }
-    } else if (scheduleData.schedule_type === "daily_time") {
-      if (!scheduleData.time_of_day) {
-        newErrors.time_of_day = "Время выполнения обязательно";
-      }
-    }
-
-    if (scheduleData.send_strategy === "fixed" && !scheduleData.time_to_send) {
-      newErrors.time_to_send = "Время отправки обязательно";
-    } else if (
-      scheduleData.send_strategy === "relative" &&
-      !scheduleData.send_after_minutes
-    ) {
-      newErrors.send_after_minutes = "Интервал отправки обязателен";
-    } else if (
-      scheduleData.send_strategy === "relative" &&
-      scheduleData.send_after_minutes !== undefined &&
-      scheduleData.send_after_minutes < 0
-    ) {
-      newErrors.send_after_minutes = "Интервал не может быть отрицательным";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async () => {
-    if (!validateFields()) return;
+    // Создаем объект для валидации с правильными типами
+    const dataForValidation = {
+      chat_id: scheduleData.chat_id,
+      prompt_id: scheduleData.prompt_id,
+      company_id: scheduleData.company_id,
+      schedule_type: scheduleData.schedule_type,
+      target_chats: scheduleData.target_chats,
+      bot_id: scheduleData.bot_id,
+      send_strategy: scheduleData.send_strategy,
+      interval_hours: scheduleData.interval_hours
+        ? Number(scheduleData.interval_hours)
+        : undefined,
+      interval_minutes: scheduleData.interval_minutes
+        ? Number(scheduleData.interval_minutes)
+        : undefined,
+      time_of_day: scheduleData.time_of_day,
+      run_at: scheduleData.run_at,
+      time_to_send: scheduleData.time_to_send,
+      send_after_minutes: scheduleData.send_after_minutes
+        ? Number(scheduleData.send_after_minutes)
+        : undefined,
+    };
+
+    if (!validateFields(dataForValidation, selectedDays, cronTime)) return;
 
     try {
       const utcTimeOfDay = scheduleData.time_of_day
         ? convertLocalTimeToUTC(scheduleData.time_of_day)
-        : undefined;
-      const utcRunAt = scheduleData.run_at
-        ? convertLocalTimeToUTC(scheduleData.run_at)
         : undefined;
       const utcTimeToSend = scheduleData.time_to_send
         ? convertLocalTimeToUTC(scheduleData.time_to_send)
         : undefined;
 
       await createSchedule.mutateAsync({
-        chat_id: parseInt(scheduleData.chat_id),
+        chat_id: Number.parseInt(scheduleData.chat_id),
         prompt_id: scheduleData.prompt_id,
         company_id: scheduleData.company_id,
         schedule_type: scheduleData.schedule_type,
         interval_hours:
-          scheduleData.schedule_type === "interval"
+          scheduleData.schedule_type === "interval" &&
+          scheduleData.interval_hours
             ? Number(scheduleData.interval_hours)
             : undefined,
         interval_minutes:
-          scheduleData.schedule_type === "interval"
+          scheduleData.schedule_type === "interval" &&
+          scheduleData.interval_minutes
             ? Number(scheduleData.interval_minutes)
             : undefined,
         time_of_day:
-          scheduleData.schedule_type === "daily_time"
-            ? `${new Date().toISOString().split("T")[0]}T${utcTimeOfDay}:00Z`
+          scheduleData.schedule_type === "daily_time" && utcTimeOfDay
+            ? `${utcTimeOfDay}:00`
             : undefined,
         cron_expression:
           scheduleData.schedule_type === "cron"
             ? generateCronExpression(cronTime, selectedDays)
             : undefined,
         run_at:
-          scheduleData.schedule_type === "once"
-            ? `${new Date().toISOString().split("T")[0]}T${utcRunAt}:00Z`
+          scheduleData.schedule_type === "once" && scheduleData.run_at
+            ? new Date(scheduleData.run_at).toISOString()
             : undefined,
         enabled: scheduleData.enabled,
-        bot_id: parseInt(scheduleData.bot_id),
+        bot_id: Number.parseInt(scheduleData.bot_id),
         target_chats: scheduleData.target_chats,
         send_strategy: scheduleData.send_strategy,
         time_to_send:
-          scheduleData.send_strategy === "fixed"
-            ? `${new Date().toISOString().split("T")[0]}T${utcTimeToSend}:00Z`
+          scheduleData.send_strategy === "fixed" && utcTimeToSend
+            ? `${utcTimeToSend}:00`
             : undefined,
         send_after_minutes:
-          scheduleData.send_strategy === "relative"
+          scheduleData.send_strategy === "relative" &&
+          scheduleData.send_after_minutes
             ? Number(scheduleData.send_after_minutes)
             : undefined,
       });
 
       onClose();
+      // Сброс формы
       setScheduleData({
         chat_id: "",
         prompt_id: "",
         company_id: "",
         schedule_type: "interval",
+        interval_hours: "",
+        interval_minutes: "",
+        time_of_day: "",
+        cron_expression: "",
+        run_at: "",
         enabled: true,
         bot_id: "",
         target_chats: [],
         send_strategy: "fixed",
+        time_to_send: "",
+        send_after_minutes: "",
       });
       setCronTime("09:00");
       setSelectedDays([1, 2, 3, 4, 5]);
@@ -359,7 +284,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
 
   if (!open) return null;
 
-  // Полный скелетон при загрузке компаний
   if (isLoadingCompanyMap) {
     return <ModalSkeleton fieldCount={8} hasActions />;
   }
@@ -483,51 +407,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
           {isLoadingChatsMap ? (
             <SelectSkeleton />
           ) : (
-            renderWithTooltip(
-              <FormControl fullWidth required error={!!errors.target_chats}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Выберите целевые чаты:
-                </Typography>
-                <Box
-                  sx={{
-                    maxHeight: 200,
-                    overflow: "auto",
-                    border: "1px solid rgba(0, 0, 0, 0.23)",
-                    borderRadius: 1,
-                    p: 1,
-                  }}
-                >
-                  <List dense>
-                    {Array.from(chatMap.entries()).map(([id, name]) => (
-                      <ListItem key={id}>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={scheduleData.target_chats.includes(id)}
-                              onChange={handleChatToggle(id)}
-                              disabled={!isBotSelected}
-                            />
-                          }
-                          label={
-                            <ListItemText
-                              primary={name}
-                              secondary={`ID: ${id}`}
-                            />
-                          }
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Box>
-                {errors.target_chats && (
-                  <Typography variant="caption" color="error">
-                    {errors.target_chats}
-                  </Typography>
-                )}
-              </FormControl>,
-              !isCompanySelected || !isBotSelected,
-              !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
-            )
+            <TargetChatSelector
+              chatMap={chatMap}
+              selectedChats={scheduleData.target_chats}
+              onChatToggle={handleChatToggle}
+              disabled={!isCompanySelected || !isBotSelected}
+              error={errors.target_chats}
+              tooltipMessage={
+                !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
+              }
+            />
           )}
 
           {renderWithTooltip(
@@ -550,131 +439,21 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             tooltipMessageCompany
           )}
 
-          {scheduleData.schedule_type === "interval" &&
-            renderWithTooltip(
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Интервал (часы)"
-                  name="interval_hours"
-                  type="number"
-                  value={scheduleData.interval_hours || ""}
-                  onChange={handleChange}
-                  error={!!errors.interval || !!errors.interval_hours}
-                  helperText={errors.interval || errors.interval_hours}
-                  inputProps={{ min: 0 }}
-                  disabled={!isCompanySelected}
-                />
-                <TextField
-                  fullWidth
-                  label="Интервал (минуты)"
-                  name="interval_minutes"
-                  type="number"
-                  value={scheduleData.interval_minutes || ""}
-                  onChange={handleChange}
-                  error={!!errors.interval_minutes}
-                  helperText={errors.interval_minutes}
-                  inputProps={{ min: 0 }}
-                  disabled={!isCompanySelected}
-                />
-              </Box>,
-              !isCompanySelected,
-              tooltipMessageCompany
-            )}
-
-          {scheduleData.schedule_type === "cron" &&
-            renderWithTooltip(
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Время выполнения (HH:MM)"
-                  type="time"
-                  value={cronTime}
-                  onChange={(e) => setCronTime(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  disabled={!isCompanySelected}
-                />
-
-                <Typography variant="subtitle2">Дни недели:</Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-                  {daysOfWeek.map((day) => (
-                    <Tooltip
-                      key={day.id}
-                      title={!isCompanySelected ? tooltipMessageCompany : ""}
-                    >
-                      <span>
-                        <Chip
-                          label={day.name}
-                          color={
-                            selectedDays.includes(day.id)
-                              ? "primary"
-                              : "default"
-                          }
-                          onClick={() =>
-                            isCompanySelected && toggleDaySelection(day.id)
-                          }
-                          variant={
-                            selectedDays.includes(day.id)
-                              ? "filled"
-                              : "outlined"
-                          }
-                          disabled={!isCompanySelected}
-                        />
-                      </span>
-                    </Tooltip>
-                  ))}
-                </Stack>
-
-                {errors.cron_expression && (
-                  <Typography variant="caption" color="error">
-                    {errors.cron_expression}
-                  </Typography>
-                )}
-              </Box>,
-              !isCompanySelected,
-              tooltipMessageCompany
-            )}
-
-          {scheduleData.schedule_type === "once" &&
-            renderWithTooltip(
-              <TextField
-                fullWidth
-                label="Время выполнения"
-                name="run_at"
-                type="datetime-local"
-                value={scheduleData.run_at || ""}
-                onChange={handleChange}
-                error={!!errors.run_at}
-                helperText={errors.run_at}
-                required
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: new Date().toISOString().slice(0, 16),
-                }}
-                disabled={!isCompanySelected}
-              />,
-              !isCompanySelected,
-              tooltipMessageCompany
-            )}
-
-          {scheduleData.schedule_type === "daily_time" &&
-            renderWithTooltip(
-              <TextField
-                fullWidth
-                label="Время выполнения (HH:MM)"
-                name="time_of_day"
-                type="time"
-                value={scheduleData.time_of_day || ""}
-                onChange={handleChange}
-                error={!!errors.time_of_day}
-                helperText={errors.time_of_day}
-                required
-                InputLabelProps={{ shrink: true }}
-                disabled={!isCompanySelected}
-              />,
-              !isCompanySelected,
-              tooltipMessageCompany
-            )}
+          <ScheduleTypeFields
+            scheduleType={scheduleData.schedule_type}
+            intervalHours={scheduleData.interval_hours}
+            intervalMinutes={scheduleData.interval_minutes}
+            timeOfDay={scheduleData.time_of_day}
+            runAt={scheduleData.run_at}
+            cronTime={cronTime}
+            selectedDays={selectedDays}
+            errors={errors}
+            disabled={!isCompanySelected}
+            tooltipMessage={tooltipMessageCompany}
+            onFieldChange={handleChange}
+            onCronTimeChange={setCronTime}
+            onToggleDay={toggleDaySelection}
+          />
 
           {renderWithTooltip(
             <FormControl fullWidth required>
@@ -696,43 +475,15 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             tooltipMessageCompany
           )}
 
-          {scheduleData.send_strategy === "fixed" &&
-            renderWithTooltip(
-              <TextField
-                fullWidth
-                label="Время отправки (HH:MM)"
-                name="time_to_send"
-                type="time"
-                value={scheduleData.time_to_send || ""}
-                onChange={handleChange}
-                error={!!errors.time_to_send}
-                helperText={errors.time_to_send}
-                required
-                InputLabelProps={{ shrink: true }}
-                disabled={!isCompanySelected}
-              />,
-              !isCompanySelected,
-              tooltipMessageCompany
-            )}
-
-          {scheduleData.send_strategy === "relative" &&
-            renderWithTooltip(
-              <TextField
-                fullWidth
-                label="Отправить через (минуты)"
-                name="send_after_minutes"
-                type="number"
-                value={scheduleData.send_after_minutes || ""}
-                onChange={handleChange}
-                error={!!errors.send_after_minutes}
-                helperText={errors.send_after_minutes}
-                required
-                inputProps={{ min: 0 }}
-                disabled={!isCompanySelected}
-              />,
-              !isCompanySelected,
-              tooltipMessageCompany
-            )}
+          <SendStrategyFields
+            sendStrategy={scheduleData.send_strategy}
+            timeToSend={scheduleData.time_to_send}
+            sendAfterMinutes={scheduleData.send_after_minutes}
+            errors={errors}
+            disabled={!isCompanySelected}
+            tooltipMessage={tooltipMessageCompany}
+            onFieldChange={handleChange}
+          />
 
           {renderWithTooltip(
             <FormControl fullWidth>

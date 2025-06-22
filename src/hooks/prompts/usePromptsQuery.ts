@@ -18,17 +18,18 @@ export const usePromptsQuery = (company_id?: string) => {
     queryKey: ["prompts", company_id || selectedCompanyId],
     queryFn: () => fetchPrompts(company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Отключает повторные попытки
+    retry: false,
   });
 };
 
 export const usePromptDetailsQuery = (prompt_id: string) => {
-  const { selectedCompanyId } = useAuth();
+  const { selectedCompanyId, isSuperadmin } = useAuth();
 
   return useQuery({
     queryKey: ["promptDetails", prompt_id, selectedCompanyId],
-    queryFn: () => fetchPromptDetails(prompt_id, selectedCompanyId),
+    queryFn: () =>
+      fetchPromptDetails(prompt_id, selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Отключает повторные попытки
+    retry: false,
   });
 };

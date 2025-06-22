@@ -15,11 +15,12 @@ export interface IAnalys {
   send_time?: number;
 }
 
-export const fetchAnalysis = async (selectedCompanyId?: string | null) => {
+export const fetchAnalysis = async (
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
+) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-
-  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = { page: 1, page_size: 100 };
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
@@ -34,21 +35,29 @@ export const fetchAnalysis = async (selectedCompanyId?: string | null) => {
   return response.data;
 };
 
-export const createAnalysis = async (newAnalysis: {
-  prompt_id: string;
-  chat_id: number;
-  date_from: number;
-  date_to: number;
-  company_id: string;
-}): Promise<IAnalys> => {
+export const createAnalysis = async (
+  newAnalysis: {
+    prompt_id: string;
+    chat_id: number;
+    date_from: number;
+    date_to: number;
+    company_id: string;
+  },
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+): Promise<IAnalys> => {
   try {
     const url = process.env.REACT_APP_API_URL;
     const accessToken = localStorage.getItem("access_token");
-
+    const params: any = {};
+    if (!isSuperadmin && selectedCompanyId) {
+      params.company_id = selectedCompanyId;
+    }
     const response = await axiosInstance.post(
       `${url}/api/analysis/create`,
       newAnalysis,
       {
+        params,
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
@@ -63,11 +72,11 @@ export const createAnalysis = async (newAnalysis: {
 
 export const fetchAnalysDetails = async (
   analysis_id: string,
-  selectedCompanyId?: string | null
+  selectedCompanyId?: string | null,
+  isSuperadmin?: boolean
 ) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = {};
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
