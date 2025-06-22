@@ -11,10 +11,10 @@ export const useRegisterMutation = () => {
   return useMutation({
     mutationFn: registrationUser,
     onSuccess: () => {
-      enqueueSnackbar(
-        "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения email.",
-        { variant: "success" }
-      );
+      // enqueueSnackbar(
+      //   "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения email.",
+      //   { variant: "success" }
+      // );
     },
     onError: (error: any) => {
       if (error.response?.status === 400) {
