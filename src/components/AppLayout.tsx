@@ -72,7 +72,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     setSelectedCompanyId,
     checkAuth,
   } = useAuth();
-  const { companyMap, isLoading } = useCompanyMap();
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
   const isHomePage = location.pathname === "/home";
 
@@ -194,7 +194,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             {!isSuperadmin && (
               <>
                 {availableCompanies.length > 0 ? (
-                  isLoading ? (
+                  isLoadingCompanyMap ? (
                     <Skeleton variant="rectangular" width={120} height={40} />
                   ) : (
                     <FormControl size="small" sx={{ minWidth: 120 }}>

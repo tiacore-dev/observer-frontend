@@ -46,7 +46,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
   const isLoading = botsLoading || companiesLoading || isLoadingCompanyMap;
   const error = botsError || companiesError;

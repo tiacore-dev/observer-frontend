@@ -55,6 +55,7 @@ export interface IscheduleEdit {
   enabled?: boolean; //
   time_to_send?: string; //send_strategy fixed конкретное время дня
   send_after_minutes?: number; // send_strategy relative это то, через сколько минут после создания нужно отправить
+  company_id: string; // компания, выбираем из списка
 }
 
 // Функция для получения списка услуг с параметрами

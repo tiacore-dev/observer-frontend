@@ -2,8 +2,10 @@
 import { useChatsSelectQuery } from "../chats/useChatsQuery";
 import { useMemo } from "react";
 
-export const useChatMap = () => {
-  const { data: chatsData } = useChatsSelectQuery();
+export const useChatMap = (company_id?: string) => {
+  const { data: chatsData, isLoading: isLoadingChatsMap } = useChatsSelectQuery(
+    company_id !== undefined ? company_id : undefined
+  );
 
   const chatMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -12,6 +14,5 @@ export const useChatMap = () => {
     });
     return map;
   }, [chatsData]);
-
-  return chatMap;
+  return { chatMap, isLoadingChatsMap };
 };

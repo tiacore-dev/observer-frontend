@@ -31,7 +31,7 @@ export const fetchBots = async (selectedCompanyId?: string | null) => {
   const accessToken = localStorage.getItem("access_token");
   const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
   const params: any = { page: 1, page_size: 100 };
-  if (!isSuperadmin && selectedCompanyId) {
+  if (selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
   const response = await axiosInstance.get(`${url}/api/bots/all`, {

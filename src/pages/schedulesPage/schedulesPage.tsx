@@ -54,10 +54,10 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const rowsPerPage = 10;
 
   // Используем хуки для маппингов
-  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
-  const chatMap = useChatMap();
-  const promptMap = usePromptMap();
-  const botMap = useBotMap();
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
+  const { chatMap, isLoadingChatsMap } = useChatMap();
+  const { promptMap, isLoadingPromptMap } = usePromptMap();
+  const { botMap, isLoadingBotMap } = useBotMap();
 
   const isLoadingAll = isLoading || isLoadingCompanyMap;
 

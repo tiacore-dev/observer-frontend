@@ -2,8 +2,10 @@
 import { useBotsQuery } from "../bots/useBotsQuery";
 import { useMemo } from "react";
 
-export const useBotMap = () => {
-  const { data: botsData } = useBotsQuery();
+export const useBotMap = (company_id?: string) => {
+  const { data: botsData, isLoading: isLoadingBotMap } = useBotsQuery(
+    company_id !== undefined ? company_id : undefined
+  );
 
   const botMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -12,6 +14,5 @@ export const useBotMap = () => {
     });
     return map;
   }, [botsData]);
-
-  return botMap;
+  return { botMap, isLoadingBotMap };
 };

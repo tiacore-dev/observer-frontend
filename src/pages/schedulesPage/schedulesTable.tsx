@@ -50,9 +50,9 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
 
   // Используем хуки для маппингов
   const companyMap = useCompanyMap().companyMap;
-  const chatMap = useChatMap();
-  const promptMap = usePromptMap();
-  const botMap = useBotMap();
+  const chatMap = useChatMap().chatMap;
+  const promptMap = usePromptMap().promptMap;
+  const botMap = useBotMap().botMap;
 
   // Функция для преобразования типа расписания в читаемый формат
   const getScheduleTypeLabel = (type: string) => {

@@ -1,3 +1,4 @@
+// src/components/addScheduleModal.tsx
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -23,14 +24,14 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
-import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
-import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
-import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
-import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
-// import { enqueueSnackbar } from "notistack";
+import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
+import { useBotMap } from "../../hooks/maps/useBotMap";
+import { usePromptMap } from "../../hooks/maps/usePromptMap";
+import { useChatMap } from "../../hooks/maps/useChatMap";
 import { format, parse, isBefore } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
+import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
 
 interface AddScheduleModalProps {
   open: boolean;
@@ -123,34 +124,25 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createSchedule = useCreateSchedule();
 
-  const {
-    data: companiesData,
-    isLoading: companiesLoading,
-    error: companiesError,
-  } = useCompaniesQuery();
-  const {
-    data: promptsData,
-    isLoading: promptsLoading,
-    error: promptsError,
-  } = usePromptsQuery();
-  const {
-    data: botsData,
-    isLoading: botsLoading,
-    error: botsError,
-  } = useBotsQuery();
-
-  const {
-    data: chatsData,
-    isLoading: chatsLoading,
-    error: chatsError,
-    refetch: refetchChats,
-  } = useChatsQuery(
-    scheduleData.bot_id ? parseInt(scheduleData.bot_id) : undefined
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
+  const { botMap, isLoadingBotMap } = useBotMap(scheduleData.company_id);
+  const { promptMap, isLoadingPromptMap } = usePromptMap(
+    scheduleData.company_id
   );
+  const { chatMap, isLoadingChatsMap } = useChatMap(scheduleData.company_id);
 
-  const isLoadingAll = companiesLoading || promptsLoading || botsLoading;
   const isCompanySelected = !!scheduleData.company_id;
-  const tooltipMessage = "Сначала выберите компанию";
+  const isBotSelected = !!scheduleData.bot_id;
+  const tooltipMessageCompany = "Сначала выберите компанию";
+  const tooltipMessageBot = "Сначала выберите бота";
+
+  const renderWithTooltip = (
+    element: React.ReactElement,
+    condition: boolean,
+    message: string
+  ) => {
+    return condition ? <Tooltip title={message}>{element}</Tooltip> : element;
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -191,16 +183,19 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         chat_id: "",
         target_chats: [],
       }));
+    } else if (name === "company_id") {
+      setScheduleData((prev) => ({
+        ...prev,
+        [name]: value,
+        bot_id: "",
+        chat_id: "",
+        prompt_id: "",
+        target_chats: [],
+      }));
     } else {
       setScheduleData((prev) => ({ ...prev, [name]: value }));
     }
   };
-
-  useEffect(() => {
-    if (scheduleData.bot_id && open) {
-      refetchChats();
-    }
-  }, [scheduleData.bot_id, open, refetchChats]);
 
   const handleChatToggle = (chatId: number) => () => {
     setScheduleData((prev) => {
@@ -344,7 +339,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
       });
 
-      // enqueueSnackbar("Расписание успешно создано", { variant: "success" });
       onClose();
       setScheduleData({
         chat_id: "",
@@ -359,38 +353,15 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       setCronTime("09:00");
       setSelectedDays([1, 2, 3, 4, 5]);
     } catch (error) {
-      // enqueueSnackbar("Ошибка при создании расписания", { variant: "error" });
       console.error("Error creating schedule:", error);
     }
   };
 
-  const renderWithTooltip = (element: React.ReactElement) => {
-    return !isCompanySelected ? (
-      <Tooltip title={tooltipMessage}>{element}</Tooltip>
-    ) : (
-      element
-    );
-  };
+  if (!open) return null;
 
-  if (isLoadingAll) {
+  // Полный скелетон при загрузке компаний
+  if (isLoadingCompanyMap) {
     return <ModalSkeleton fieldCount={8} hasActions />;
-  }
-
-  if (companiesError || promptsError || botsError) {
-    return (
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Добавить новое расписание</DialogTitle>
-        <DialogContent>
-          <Typography color="error">
-            Ошибка при загрузке данных:{" "}
-            {(companiesError || promptsError || botsError)?.message}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Закрыть</Button>
-        </DialogActions>
-      </Dialog>
-    );
   }
 
   return (
@@ -406,9 +377,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               label="Компания"
               onChange={handleSelectChange}
             >
-              {companiesData?.companies.map((company) => (
-                <MenuItem key={company.company_id} value={company.company_id}>
-                  {company.company_name}
+              {Array.from(companyMap.entries()).map(([id, name]) => (
+                <MenuItem key={id} value={id}>
+                  {name}
                 </MenuItem>
               ))}
             </Select>
@@ -419,135 +390,144 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             )}
           </FormControl>
 
-          {renderWithTooltip(
-            <FormControl fullWidth required error={!!errors.bot_id}>
-              <InputLabel>Бот</InputLabel>
-              <Select
-                name="bot_id"
-                value={scheduleData.bot_id}
-                label="Бот"
-                onChange={handleSelectChange}
-                disabled={!isCompanySelected}
-              >
-                {botsData?.bots.map((bot) => (
-                  <MenuItem key={bot.bot_id} value={bot.bot_id}>
-                    {bot.bot_username} (ID: {bot.bot_id})
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.bot_id && (
-                <Typography variant="caption" color="error">
-                  {errors.bot_id}
-                </Typography>
-              )}
-            </FormControl>
+          {isLoadingBotMap ? (
+            <SelectSkeleton />
+          ) : (
+            renderWithTooltip(
+              <FormControl fullWidth required error={!!errors.bot_id}>
+                <InputLabel>Бот</InputLabel>
+                <Select
+                  name="bot_id"
+                  value={scheduleData.bot_id}
+                  label="Бот"
+                  onChange={handleSelectChange}
+                  disabled={!isCompanySelected}
+                >
+                  {Array.from(botMap.entries()).map(([id, name]) => (
+                    <MenuItem key={id} value={id}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.bot_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.bot_id}
+                  </Typography>
+                )}
+              </FormControl>,
+              !isCompanySelected,
+              tooltipMessageCompany
+            )
           )}
 
-          {scheduleData.bot_id && (
-            <>
-              {renderWithTooltip(
-                <FormControl fullWidth required error={!!errors.chat_id}>
-                  <InputLabel>Анализируемый чат</InputLabel>
-                  <Select
-                    name="chat_id"
-                    value={scheduleData.chat_id}
-                    label="Анализируемый чат"
-                    onChange={handleSelectChange}
-                    disabled={chatsLoading || !isCompanySelected}
-                  >
-                    {chatsData?.chats.map((chat) => (
-                      <MenuItem
-                        key={chat.chat_id}
-                        value={chat.chat_id.toString()}
-                      >
-                        {chat.chat_name} (ID: {chat.chat_id})
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.chat_id && (
-                    <Typography variant="caption" color="error">
-                      {errors.chat_id}
-                    </Typography>
-                  )}
-                </FormControl>
-              )}
-
-              {renderWithTooltip(
-                <FormControl fullWidth required error={!!errors.prompt_id}>
-                  <InputLabel>Промпт</InputLabel>
-                  <Select
-                    name="prompt_id"
-                    value={scheduleData.prompt_id}
-                    label="Промпт"
-                    onChange={handleSelectChange}
-                    disabled={!isCompanySelected}
-                  >
-                    {promptsData?.prompts.map((prompt) => (
-                      <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
-                        {prompt.prompt_name || prompt.prompt_id}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.prompt_id && (
-                    <Typography variant="caption" color="error">
-                      {errors.prompt_id}
-                    </Typography>
-                  )}
-                </FormControl>
-              )}
-
-              {renderWithTooltip(
-                <FormControl fullWidth required error={!!errors.target_chats}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Выберите целевые чаты:
+          {isLoadingChatsMap ? (
+            <SelectSkeleton />
+          ) : (
+            renderWithTooltip(
+              <FormControl fullWidth required error={!!errors.chat_id}>
+                <InputLabel>Анализируемый чат</InputLabel>
+                <Select
+                  name="chat_id"
+                  value={scheduleData.chat_id}
+                  label="Анализируемый чат"
+                  onChange={handleSelectChange}
+                  disabled={!isBotSelected}
+                >
+                  {Array.from(chatMap.entries()).map(([id, name]) => (
+                    <MenuItem key={id} value={id.toString()}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.chat_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.chat_id}
                   </Typography>
-                  <Box
-                    sx={{
-                      maxHeight: 200,
-                      overflow: "auto",
-                      border: "1px solid rgba(0, 0, 0, 0.23)",
-                      borderRadius: 1,
-                      p: 1,
-                    }}
-                  >
-                    {chatsLoading ? (
-                      <Box display="flex" justifyContent="center" py={2}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : (
-                      <List dense>
-                        {chatsData?.chats.map((chat) => (
-                          <ListItem key={chat.chat_id}>
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={scheduleData.target_chats.includes(
-                                    chat.chat_id
-                                  )}
-                                  onChange={handleChatToggle(chat.chat_id)}
-                                  disabled={!isCompanySelected}
-                                />
-                              }
-                              label={
-                                <ListItemText
-                                  primary={chat.chat_name}
-                                  secondary={`ID: ${chat.chat_id}`}
-                                />
-                              }
+                )}
+              </FormControl>,
+              !isCompanySelected || !isBotSelected,
+              !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
+            )
+          )}
+
+          {isLoadingPromptMap ? (
+            <SelectSkeleton />
+          ) : (
+            renderWithTooltip(
+              <FormControl fullWidth required error={!!errors.prompt_id}>
+                <InputLabel>Промпт</InputLabel>
+                <Select
+                  name="prompt_id"
+                  value={scheduleData.prompt_id}
+                  label="Промпт"
+                  onChange={handleSelectChange}
+                  disabled={!isCompanySelected}
+                >
+                  {Array.from(promptMap.entries()).map(([id, name]) => (
+                    <MenuItem key={id} value={id}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.prompt_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.prompt_id}
+                  </Typography>
+                )}
+              </FormControl>,
+              !isCompanySelected,
+              tooltipMessageCompany
+            )
+          )}
+
+          {isLoadingChatsMap ? (
+            <SelectSkeleton />
+          ) : (
+            renderWithTooltip(
+              <FormControl fullWidth required error={!!errors.target_chats}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Выберите целевые чаты:
+                </Typography>
+                <Box
+                  sx={{
+                    maxHeight: 200,
+                    overflow: "auto",
+                    border: "1px solid rgba(0, 0, 0, 0.23)",
+                    borderRadius: 1,
+                    p: 1,
+                  }}
+                >
+                  <List dense>
+                    {Array.from(chatMap.entries()).map(([id, name]) => (
+                      <ListItem key={id}>
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={scheduleData.target_chats.includes(id)}
+                              onChange={handleChatToggle(id)}
+                              disabled={!isBotSelected}
                             />
-                          </ListItem>
-                        ))}
-                      </List>
-                    )}
-                  </Box>
-                  {errors.target_chats && (
-                    <Typography variant="caption" color="error">
-                      {errors.target_chats}
-                    </Typography>
-                  )}
-                </FormControl>
-              )}
-            </>
+                          }
+                          label={
+                            <ListItemText
+                              primary={name}
+                              secondary={`ID: ${id}`}
+                            />
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+                {errors.target_chats && (
+                  <Typography variant="caption" color="error">
+                    {errors.target_chats}
+                  </Typography>
+                )}
+              </FormControl>,
+              !isCompanySelected || !isBotSelected,
+              !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
+            )
           )}
 
           {renderWithTooltip(
@@ -565,7 +545,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 <MenuItem value="once">Одноразово</MenuItem>
                 <MenuItem value="daily_time">Ежедневно</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl>,
+            !isCompanySelected,
+            tooltipMessageCompany
           )}
 
           {scheduleData.schedule_type === "interval" &&
@@ -595,7 +577,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   inputProps={{ min: 0 }}
                   disabled={!isCompanySelected}
                 />
-              </Box>
+              </Box>,
+              !isCompanySelected,
+              tooltipMessageCompany
             )}
 
           {scheduleData.schedule_type === "cron" &&
@@ -616,7 +600,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   {daysOfWeek.map((day) => (
                     <Tooltip
                       key={day.id}
-                      title={!isCompanySelected ? tooltipMessage : ""}
+                      title={!isCompanySelected ? tooltipMessageCompany : ""}
                     >
                       <span>
                         <Chip
@@ -646,7 +630,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                     {errors.cron_expression}
                   </Typography>
                 )}
-              </Box>
+              </Box>,
+              !isCompanySelected,
+              tooltipMessageCompany
             )}
 
           {scheduleData.schedule_type === "once" &&
@@ -666,7 +652,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   min: new Date().toISOString().slice(0, 16),
                 }}
                 disabled={!isCompanySelected}
-              />
+              />,
+              !isCompanySelected,
+              tooltipMessageCompany
             )}
 
           {scheduleData.schedule_type === "daily_time" &&
@@ -683,7 +671,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 required
                 InputLabelProps={{ shrink: true }}
                 disabled={!isCompanySelected}
-              />
+              />,
+              !isCompanySelected,
+              tooltipMessageCompany
             )}
 
           {renderWithTooltip(
@@ -701,7 +691,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   Относительно времени выполнения
                 </MenuItem>
               </Select>
-            </FormControl>
+            </FormControl>,
+            !isCompanySelected,
+            tooltipMessageCompany
           )}
 
           {scheduleData.send_strategy === "fixed" &&
@@ -718,7 +710,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 required
                 InputLabelProps={{ shrink: true }}
                 disabled={!isCompanySelected}
-              />
+              />,
+              !isCompanySelected,
+              tooltipMessageCompany
             )}
 
           {scheduleData.send_strategy === "relative" &&
@@ -735,7 +729,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 required
                 inputProps={{ min: 0 }}
                 disabled={!isCompanySelected}
-              />
+              />,
+              !isCompanySelected,
+              tooltipMessageCompany
             )}
 
           {renderWithTooltip(
@@ -756,13 +752,15 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 <MenuItem value="true">Включено</MenuItem>
                 <MenuItem value="false">Выключено</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl>,
+            !isCompanySelected,
+            tooltipMessageCompany
           )}
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Отмена</Button>
-        <Tooltip title={!isCompanySelected ? tooltipMessage : ""}>
+        <Tooltip title={!isCompanySelected ? tooltipMessageCompany : ""}>
           <span>
             <Button
               onClick={handleSubmit}

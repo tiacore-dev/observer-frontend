@@ -7,11 +7,11 @@ interface IBotsResponse {
   bots: IBot[];
 }
 
-export const useBotsQuery = () => {
+export const useBotsQuery = (company_id?: string) => {
   const { selectedCompanyId } = useAuth();
   return useQuery<IBotsResponse>({
-    queryKey: ["bots", selectedCompanyId],
-    queryFn: () => fetchBots(selectedCompanyId),
+    queryKey: ["bots", company_id || selectedCompanyId],
+    queryFn: () => fetchBots(company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     retry: false, // Отключает повторные попытки
   });

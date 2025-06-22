@@ -48,9 +48,9 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   } = usePromptsQuery();
   const navigate = useNavigate();
 
-  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
-  const chatMap = useChatMap();
-  const promptMap = usePromptMap();
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
+  const { chatMap, isLoadingChatsMap } = useChatMap();
+  const { promptMap, isLoadingPromptMap } = usePromptMap();
 
   const isLoading =
     analysisLoading ||

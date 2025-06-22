@@ -29,7 +29,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   } = usePromptsQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
   const isLoading = promptsLoading || isLoadingCompanyMap;
   const error = promptsError;

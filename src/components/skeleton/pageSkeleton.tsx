@@ -32,28 +32,49 @@ export const PageSkeleton: React.FC<PageSkeletonProps> = ({
             variant="rectangular"
             width={200}
             height={40}
+            sx={{ borderRadius: 1 }}
           />
         ))}
 
         {/* Кнопка сброса фильтров */}
-        <Skeleton variant="rectangular" width={120} height={40} />
+        <Skeleton
+          variant="rectangular"
+          width={120}
+          height={40}
+          sx={{ borderRadius: 1 }}
+        />
 
         {/* Гибкий промежуток */}
         <Box sx={{ flexGrow: 1 }} />
 
         {/* Кнопка добавления (если нужна) */}
         {hasAddButton && (
-          <Skeleton variant="rectangular" width={150} height={40} />
+          <Skeleton
+            variant="rectangular"
+            width={150}
+            height={40}
+            sx={{ borderRadius: 1 }}
+          />
         )}
       </Box>
 
       {/* Скелетон для таблицы */}
-      <Skeleton variant="rectangular" width="100%" height={200} />
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={200}
+        sx={{ borderRadius: 1 }}
+      />
 
       {/* Скелетон для пагинации */}
       {pagination && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-          <Skeleton variant="rectangular" width={200} height={32} />
+          <Skeleton
+            variant="rectangular"
+            width={200}
+            height={32}
+            sx={{ borderRadius: 1 }}
+          />
         </Box>
       )}
     </Box>

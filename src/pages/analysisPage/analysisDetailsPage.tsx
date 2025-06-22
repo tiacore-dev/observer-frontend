@@ -26,7 +26,7 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
     useCompaniesQuery();
   const { isLoading: chatsLoading, error: chatsError } = useChatsSelectQuery();
   const { isLoading: promptsLoading, error: promptsError } = usePromptsQuery();
-  const { isLoading: isLoadingCompanyMap } = useCompanyMap();
+  const { isLoadingCompanyMap } = useCompanyMap();
 
   const isLoading =
     analysisLoading ||
@@ -36,8 +36,8 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
     isLoadingCompanyMap;
   const error = analysisError || companiesError || chatsError || promptsError;
 
-  const chatMap = useChatMap();
-  const promptMap = usePromptMap();
+  const { chatMap } = useChatMap();
+  const { promptMap } = usePromptMap();
   const { companyMap } = useCompanyMap();
 
   if (isLoading) {

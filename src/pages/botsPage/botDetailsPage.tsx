@@ -15,7 +15,7 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
   developerMode,
 }) => {
   const { data: bot, isLoading, error } = useBotDetailsQuery(botId);
-  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
   if (isLoading || isLoadingCompanyMap) {
     return <DetailsPageSkeleton developerMode={developerMode} />;

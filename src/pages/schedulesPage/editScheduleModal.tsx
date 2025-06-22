@@ -27,6 +27,7 @@ import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
+import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
 
 const daysOfWeek = [
   { id: 1, name: "Понедельник" },
@@ -72,6 +73,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     enabled: schedule.enabled,
     time_to_send: schedule.time_to_send,
     send_after_minutes: schedule.send_after_minutes,
+    company_id: schedule.company_id,
   });
 
   const [selectedDays, setSelectedDays] = React.useState<number[]>([]);
@@ -86,14 +88,13 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   const { data: companiesData, isLoading: companiesLoading } =
     useCompaniesQuery();
 
-  const isLoadingAll =
-    botsLoading || chatsLoading || promptsLoading || companiesLoading;
-
   React.useEffect(() => {
     if (schedule.schedule_type === "cron" && schedule.cron_expression) {
       const parts = schedule.cron_expression.split(" ");
       if (parts.length >= 5) {
-        setCronTime(`${parts[1]}:${parts[0]}`);
+        setCronTime(
+          `${parts[1].padStart(2, "0")}:${parts[0].padStart(2, "0")}`
+        );
         setSelectedDays(parts[4].split(",").map(Number));
       }
     }
@@ -137,7 +138,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
         [name]: value,
         chat_id: 0,
         target_chats: [],
-        removed_chats: [],
+        removed_chats: [...prev.target_chats],
       }));
     } else {
       setUpdatedData((prev) => ({ ...prev, [name]: value }));
@@ -189,6 +190,22 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     return `${minutes} ${hours} * * ${days.join(",")}`;
   };
 
+  const formatTimeFromUTC = (utcTime: string | undefined) => {
+    if (!utcTime) return "";
+    try {
+      const date = new Date(utcTime);
+      return `${date.getHours().toString().padStart(2, "0")}:${date
+        .getMinutes()
+        .toString()
+        .padStart(2, "0")}`;
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return utcTime.includes("T")
+        ? utcTime.split("T")[1].substring(0, 5)
+        : utcTime;
+    }
+  };
+
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
     const now = new Date();
@@ -200,8 +217,11 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       newErrors.target_chats = "Необходимо выбрать хотя бы один чат";
 
     if (updatedData.schedule_type === "interval") {
-      if (!updatedData.interval_hours && !updatedData.interval_minutes) {
-        newErrors.interval = "Укажите интервал (часы или минуты)";
+      if (
+        (!updatedData.interval_hours || updatedData.interval_hours <= 0) &&
+        (!updatedData.interval_minutes || updatedData.interval_minutes <= 0)
+      ) {
+        newErrors.interval = "Укажите интервал (часы или минуты больше 0)";
       } else {
         if (updatedData.interval_hours && updatedData.interval_hours < 0) {
           newErrors.interval_hours = "Часы не могут быть отрицательными";
@@ -218,9 +238,13 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       if (!updatedData.run_at) {
         newErrors.run_at = "Время выполнения обязательно";
       } else {
-        const selectedDateTime = new Date(updatedData.run_at);
-        if (selectedDateTime < now) {
-          newErrors.run_at = "Нельзя выбрать прошедшую дату/время";
+        try {
+          const selectedDateTime = new Date(updatedData.run_at);
+          if (selectedDateTime < now) {
+            newErrors.run_at = "Нельзя выбрать прошедшую дату/время";
+          }
+        } catch (error) {
+          newErrors.run_at = "Неверный формат даты/времени";
         }
       }
     } else if (updatedData.schedule_type === "daily_time") {
@@ -270,78 +294,93 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     }
   };
 
-  if (isLoadingAll) {
+  // Показываем полный скелетон только при загрузке компаний
+  if (companiesLoading) {
     return <ModalSkeleton fieldCount={8} hasActions />;
   }
+
+  // Функция для рендеринга скелетона или компонента
+  const renderWithSkeleton = (element: React.ReactNode, isLoading: boolean) => {
+    return isLoading ? <SelectSkeleton /> : element;
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Редактировать расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          <FormControl fullWidth required error={!!errors.bot_id}>
-            <InputLabel>Бот</InputLabel>
-            <Select
-              name="bot_id"
-              value={updatedData.bot_id || ""}
-              label="Бот"
-              onChange={handleSelectChange}
-            >
-              {botsData?.bots.map((bot) => (
-                <MenuItem key={bot.bot_id} value={bot.bot_id}>
-                  {bot.bot_username} (ID: {bot.bot_id})
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.bot_id && (
-              <Typography variant="caption" color="error">
-                {errors.bot_id}
-              </Typography>
-            )}
-          </FormControl>
+          {renderWithSkeleton(
+            <FormControl fullWidth required error={!!errors.bot_id}>
+              <InputLabel>Бот</InputLabel>
+              <Select
+                name="bot_id"
+                value={updatedData.bot_id || ""}
+                label="Бот"
+                onChange={handleSelectChange}
+              >
+                {botsData?.bots.map((bot) => (
+                  <MenuItem key={bot.bot_id} value={bot.bot_id}>
+                    {bot.bot_username} (ID: {bot.bot_id})
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.bot_id && (
+                <Typography variant="caption" color="error">
+                  {errors.bot_id}
+                </Typography>
+              )}
+            </FormControl>,
+            botsLoading
+          )}
 
-          <FormControl fullWidth required error={!!errors.chat_id}>
-            <InputLabel>Анализируемый чат</InputLabel>
-            <Select
-              name="chat_id"
-              value={updatedData.chat_id || ""}
-              label="Анализируемый чат"
-              onChange={handleSelectChange}
-              disabled={chatsLoading}
-            >
-              {chatsData?.chats.map((chat) => (
-                <MenuItem key={chat.chat_id} value={chat.chat_id}>
-                  {chat.chat_name} (ID: {chat.chat_id})
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.chat_id && (
-              <Typography variant="caption" color="error">
-                {errors.chat_id}
-              </Typography>
-            )}
-          </FormControl>
+          {renderWithSkeleton(
+            <FormControl fullWidth required error={!!errors.chat_id}>
+              <InputLabel>Анализируемый чат</InputLabel>
+              <Select
+                name="chat_id"
+                value={updatedData.chat_id || ""}
+                label="Анализируемый чат"
+                onChange={handleSelectChange}
+                disabled={chatsLoading}
+              >
+                {chatsData?.chats.map((chat) => (
+                  <MenuItem key={chat.chat_id} value={chat.chat_id}>
+                    {chat.chat_name} (ID: {chat.chat_id})
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.chat_id && (
+                <Typography variant="caption" color="error">
+                  {errors.chat_id}
+                </Typography>
+              )}
+            </FormControl>,
+            chatsLoading
+          )}
 
-          <FormControl fullWidth required error={!!errors.prompt_id}>
-            <InputLabel>Промпт</InputLabel>
-            <Select
-              name="prompt_id"
-              value={updatedData.prompt_id || ""}
-              label="Промпт"
-              onChange={handleSelectChange}
-            >
-              {promptsData?.prompts.map((prompt) => (
-                <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
-                  {prompt.prompt_name || prompt.prompt_id}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.prompt_id && (
-              <Typography variant="caption" color="error">
-                {errors.prompt_id}
-              </Typography>
-            )}
-          </FormControl>
+          {renderWithSkeleton(
+            <FormControl fullWidth required error={!!errors.prompt_id}>
+              <InputLabel>Промпт</InputLabel>
+              <Select
+                name="prompt_id"
+                value={updatedData.prompt_id || ""}
+                label="Промпт"
+                onChange={handleSelectChange}
+              >
+                {promptsData?.prompts.map((prompt) => (
+                  <MenuItem key={prompt.prompt_id} value={prompt.prompt_id}>
+                    {prompt.prompt_name || prompt.prompt_id}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.prompt_id && (
+                <Typography variant="caption" color="error">
+                  {errors.prompt_id}
+                </Typography>
+              )}
+            </FormControl>,
+            promptsLoading
+          )}
 
           <FormControl fullWidth required error={!!errors.target_chats}>
             <Typography variant="subtitle1" gutterBottom>
@@ -498,11 +537,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
               label="Время выполнения (HH:MM)"
               name="time_of_day"
               type="time"
-              value={
-                updatedData.time_of_day
-                  ? updatedData.time_of_day.substring(11, 16)
-                  : ""
-              }
+              value={formatTimeFromUTC(updatedData.time_of_day)}
               onChange={handleChange}
               error={!!errors.time_of_day}
               helperText={errors.time_of_day}
@@ -532,11 +567,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
               label="Время отправки (HH:MM)"
               name="time_to_send"
               type="time"
-              value={
-                updatedData.time_to_send
-                  ? updatedData.time_to_send.substring(11, 16)
-                  : ""
-              }
+              value={formatTimeFromUTC(updatedData.time_to_send)}
               onChange={handleChange}
               error={!!errors.time_to_send}
               helperText={errors.time_to_send}
@@ -587,7 +618,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
           color="primary"
           disabled={isSubmitting}
         >
-          Сохранить
+          {isSubmitting ? <CircularProgress size={24} /> : "Сохранить"}
         </Button>
       </DialogActions>
     </Dialog>

@@ -21,7 +21,7 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({
   return (
     <Dialog open maxWidth="sm" fullWidth>
       <DialogTitle>
-        <Skeleton variant="text" width="60%" />
+        <Skeleton variant="text" width="60%" sx={{ borderRadius: 1 }} />
       </DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
@@ -30,14 +30,25 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({
               key={`modal-skeleton-field-${index}`}
               variant="rectangular"
               height={56}
+              sx={{ borderRadius: 1 }}
             />
           ))}
         </Box>
       </DialogContent>
       {hasActions && (
         <DialogActions>
-          <Skeleton variant="rectangular" width={64} height={36} />
-          <Skeleton variant="rectangular" width={96} height={36} />
+          <Skeleton
+            variant="rectangular"
+            width={64}
+            height={36}
+            sx={{ borderRadius: 1 }}
+          />
+          <Skeleton
+            variant="rectangular"
+            width={96}
+            height={36}
+            sx={{ borderRadius: 1 }}
+          />
         </DialogActions>
       )}
     </Dialog>

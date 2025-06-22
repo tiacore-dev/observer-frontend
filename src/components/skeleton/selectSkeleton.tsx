@@ -2,17 +2,12 @@
 import React from "react";
 import { Skeleton } from "@mui/material";
 
-export const SelectSkeleton = ({ count = 5 }: { count?: number }) => {
+export const SelectSkeleton = () => {
   return (
-    <>
-      {Array.from({ length: count }).map((_, index) => (
-        <Skeleton
-          key={index}
-          variant="rectangular"
-          height={56}
-          sx={{ mb: 1, borderRadius: 1 }}
-        />
-      ))}
-    </>
+    <Skeleton
+      variant="rectangular"
+      height={56}
+      sx={{ width: "100%", borderRadius: 1 }}
+    />
   );
 };

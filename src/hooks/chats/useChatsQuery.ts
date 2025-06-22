@@ -7,25 +7,28 @@ export interface IChatsResponse {
   chats: IChat[];
 }
 
-export const useChatsQuery = (bot_id?: number | undefined) => {
+export const useChatsQuery = (
+  bot_id?: number | undefined,
+  company_id?: string
+) => {
   const { selectedCompanyId } = useAuth();
 
   return useQuery<IChatsResponse>({
-    queryKey: ["chats", selectedCompanyId, bot_id],
-    queryFn: () => fetchChats(bot_id, selectedCompanyId),
+    queryKey: ["chats", company_id || selectedCompanyId, bot_id],
+    queryFn: () => fetchChats(bot_id, company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     retry: false,
     enabled: bot_id !== undefined, // Добавляем условие enabled
   });
 };
 
-export const useChatsSelectQuery = () => {
+export const useChatsSelectQuery = (company_id?: string) => {
   const { selectedCompanyId } = useAuth();
 
   return useQuery<IChatsResponse>({
-    queryKey: ["chats", selectedCompanyId],
-    queryFn: () => fetchChats(undefined, selectedCompanyId),
+    queryKey: ["chats", company_id || selectedCompanyId],
+    queryFn: () => fetchChats(undefined, company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
-    retry: false, // Отключает повторные попытки
+    retry: false,
   });
 };

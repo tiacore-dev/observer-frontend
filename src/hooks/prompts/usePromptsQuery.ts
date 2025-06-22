@@ -11,12 +11,12 @@ interface IPromptsResponse {
   prompts: IPrompt[];
 }
 
-export const usePromptsQuery = () => {
+export const usePromptsQuery = (company_id?: string) => {
   const { selectedCompanyId } = useAuth();
 
   return useQuery<IPromptsResponse>({
-    queryKey: ["prompts", selectedCompanyId],
-    queryFn: () => fetchPrompts(selectedCompanyId),
+    queryKey: ["prompts", company_id || selectedCompanyId],
+    queryFn: () => fetchPrompts(company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     retry: false, // Отключает повторные попытки
   });

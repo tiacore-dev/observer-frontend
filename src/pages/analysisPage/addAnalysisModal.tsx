@@ -20,6 +20,7 @@ import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useChatMap } from "../../hooks/maps/useChatMap";
 import { usePromptMap } from "../../hooks/maps/usePromptMap";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
+import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
 
 interface AddAnalysisModalProps {
   open: boolean;
@@ -40,18 +41,17 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 
   const createAnalysis = useCreateAnalys();
 
-  const { companyMap, isLoading: isLoadingCompanyMap } = useCompanyMap();
-  const chatMap = useChatMap();
-  const promptMap = usePromptMap();
+  const { companyMap, isLoadingCompanyMap } = useCompanyMap();
+  const { chatMap, isLoadingChatsMap } = useChatMap(analysisData.company_id);
+  const { promptMap, isLoadingPromptMap } = usePromptMap(
+    analysisData.company_id
+  );
 
   const [errors, setErrors] = useState({
     prompt_id: "",
     chat_id: "",
     company_id: "",
   });
-
-  const isLoading =
-    isLoadingCompanyMap || !chatMap.size || !promptMap.size || !companyMap.size;
 
   const isCompanySelected = !!analysisData.company_id;
   const tooltipMessage = "Сначала выберите компанию";
@@ -102,7 +102,8 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 
   if (!open) return null;
 
-  if (isLoading) {
+  // Полный скелетон при загрузке компаний
+  if (isLoadingCompanyMap) {
     return <ModalSkeleton fieldCount={5} hasActions />;
   }
 
@@ -137,62 +138,70 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
             )}
           </FormControl>
 
-          {renderWithTooltip(
-            <FormControl fullWidth required error={!!errors.prompt_id}>
-              <InputLabel>Промпт</InputLabel>
-              <Select
-                name="prompt_id"
-                value={analysisData.prompt_id}
-                label="Промпт"
-                onChange={(e) =>
-                  setAnalysisData((prev) => ({
-                    ...prev,
-                    prompt_id: e.target.value,
-                  }))
-                }
-                disabled={!isCompanySelected}
-              >
-                {Array.from(promptMap.entries()).map(([id, name]) => (
-                  <MenuItem key={id} value={id}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.prompt_id && (
-                <Typography variant="caption" color="error">
-                  {errors.prompt_id}
-                </Typography>
-              )}
-            </FormControl>
+          {isLoadingPromptMap ? (
+            <SelectSkeleton />
+          ) : (
+            renderWithTooltip(
+              <FormControl fullWidth required error={!!errors.prompt_id}>
+                <InputLabel>Промпт</InputLabel>
+                <Select
+                  name="prompt_id"
+                  value={analysisData.prompt_id}
+                  label="Промпт"
+                  onChange={(e) =>
+                    setAnalysisData((prev) => ({
+                      ...prev,
+                      prompt_id: e.target.value,
+                    }))
+                  }
+                  disabled={!isCompanySelected}
+                >
+                  {Array.from(promptMap.entries()).map(([id, name]) => (
+                    <MenuItem key={id} value={id}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.prompt_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.prompt_id}
+                  </Typography>
+                )}
+              </FormControl>
+            )
           )}
 
-          {renderWithTooltip(
-            <FormControl fullWidth required error={!!errors.chat_id}>
-              <InputLabel>Чат</InputLabel>
-              <Select
-                name="chat_id"
-                value={analysisData.chat_id}
-                label="Чат"
-                onChange={(e) =>
-                  setAnalysisData((prev) => ({
-                    ...prev,
-                    chat_id: e.target.value,
-                  }))
-                }
-                disabled={!isCompanySelected}
-              >
-                {Array.from(chatMap.entries()).map(([id, name]) => (
-                  <MenuItem key={id} value={id.toString()}>
-                    {name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.chat_id && (
-                <Typography variant="caption" color="error">
-                  {errors.chat_id}
-                </Typography>
-              )}
-            </FormControl>
+          {isLoadingChatsMap ? (
+            <SelectSkeleton />
+          ) : (
+            renderWithTooltip(
+              <FormControl fullWidth required error={!!errors.chat_id}>
+                <InputLabel>Чат</InputLabel>
+                <Select
+                  name="chat_id"
+                  value={analysisData.chat_id}
+                  label="Чат"
+                  onChange={(e) =>
+                    setAnalysisData((prev) => ({
+                      ...prev,
+                      chat_id: e.target.value,
+                    }))
+                  }
+                  disabled={!isCompanySelected}
+                >
+                  {Array.from(chatMap.entries()).map(([id, name]) => (
+                    <MenuItem key={id} value={id.toString()}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {errors.chat_id && (
+                  <Typography variant="caption" color="error">
+                    {errors.chat_id}
+                  </Typography>
+                )}
+              </FormControl>
+            )
           )}
 
           {renderWithTooltip(

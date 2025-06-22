@@ -35,18 +35,18 @@ export const TableSkeleton: React.FC<TableSkeletonProps> = ({
             <TableRow>
               {developerMode && (
                 <TableCell>
-                  <Skeleton variant="text" />
+                  <Skeleton variant="text" sx={{ borderRadius: 1 }} />
                 </TableCell>
               )}
               {Array.from({ length: columns }).map((_, index) => (
                 <TableCell key={`header-${index}`}>
-                  <Skeleton variant="text" />
+                  <Skeleton variant="text" sx={{ borderRadius: 1 }} />
                 </TableCell>
               ))}
               {additionalColumns > 0 &&
                 Array.from({ length: additionalColumns }).map((_, index) => (
                   <TableCell key={`additional-header-${index}`}>
-                    <Skeleton variant="text" />
+                    <Skeleton variant="text" sx={{ borderRadius: 1 }} />
                   </TableCell>
                 ))}
             </TableRow>
@@ -57,18 +57,18 @@ export const TableSkeleton: React.FC<TableSkeletonProps> = ({
             <TableRow key={`row-${rowIndex}`}>
               {developerMode && (
                 <TableCell>
-                  <Skeleton variant="text" />
+                  <Skeleton variant="text" sx={{ borderRadius: 1 }} />
                 </TableCell>
               )}
               {Array.from({ length: columns }).map((_, colIndex) => (
                 <TableCell key={`cell-${rowIndex}-${colIndex}`}>
-                  <Skeleton variant="text" />
+                  <Skeleton variant="text" sx={{ borderRadius: 1 }} />
                 </TableCell>
               ))}
               {additionalColumns > 0 &&
                 Array.from({ length: additionalColumns }).map((_, colIndex) => (
                   <TableCell key={`additional-cell-${rowIndex}-${colIndex}`}>
-                    <Skeleton variant="text" />
+                    <Skeleton variant="text" sx={{ borderRadius: 1 }} />
                   </TableCell>
                 ))}
             </TableRow>

@@ -2,8 +2,10 @@
 import { usePromptsQuery } from "../prompts/usePromptsQuery";
 import { useMemo } from "react";
 
-export const usePromptMap = () => {
-  const { data: promptsData } = usePromptsQuery();
+export const usePromptMap = (company_id?: string) => {
+  const { data: promptsData, isLoading: isLoadingPromptMap } = usePromptsQuery(
+    company_id !== undefined ? company_id : undefined
+  );
 
   const promptMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -12,6 +14,5 @@ export const usePromptMap = () => {
     });
     return map;
   }, [promptsData]);
-
-  return promptMap;
+  return { promptMap, isLoadingPromptMap };
 };
