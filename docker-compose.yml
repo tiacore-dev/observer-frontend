@@ -1,5 +1,6 @@
 services:
   frontend:
+    container_name: observer-frontend=${CONFIG_NAME}
     image: ${DOCKERHUB_USERNAME}/observer-frontend:${TAG}
     ports:
       - "${PORT}:80"  # Вы можете оставить это, чтобы тестировать приложение отдельно, но Nginx будет использовать внутреннюю связь
