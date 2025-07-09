@@ -41,6 +41,7 @@ export const logoutUser = async (): Promise<void> => {
     console.error("Logout error:", error);
     // Даже если запрос не удался, продолжаем процесс выхода
   }
+  localStorage.clear();
 };
 
 export const refreshToken = async (): Promise<string | null> => {
