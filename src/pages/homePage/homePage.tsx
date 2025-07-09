@@ -7,6 +7,7 @@ import {
   CardActions,
   Button,
   Container,
+  // WarningIcon,
 } from "@mui/material";
 import {
   SmartToy,
@@ -21,7 +22,10 @@ import { useAuth } from "../../context/authContext";
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { isSuperadmin } = useAuth();
+  const { isSuperadmin, availableCompanies } = useAuth();
+
+  // Проверка на отсутствие компаний у обычного пользователя
+  const hasNoCompanies = !isSuperadmin && availableCompanies.length === 0;
 
   const dashboardCards = [
     {
@@ -29,47 +33,36 @@ export const HomePage: React.FC = () => {
       description: "Управление Telegram ботами",
       icon: <SmartToy sx={{ fontSize: 40 }} />,
       path: "/bots",
-      // color: "#1976d2",
     },
     {
       title: "Промпты",
       description: "Создание и редактирование промптов",
       icon: <Psychology sx={{ fontSize: 40 }} />,
       path: "/prompts",
-      // color: "#388e3c",
     },
     {
       title: "Расписания",
       description: "Настройка автоматических задач",
       icon: <Schedule sx={{ fontSize: 40 }} />,
       path: "/schedules",
-      // color: "#f57c00",
     },
     {
       title: "Анализы",
       description: "Просмотр результатов анализа чатов",
       icon: <Analytics sx={{ fontSize: 40 }} />,
       path: "/analysis",
-      // color: "#7b1fa2",
     },
-    // ...(isSuperadmin
-    //   ?
-    // [
     {
       title: "Компании",
       description: "Управление компаниями",
       icon: <Business sx={{ fontSize: 40 }} />,
       path: "/companies",
-      // color: "#d32f2f",
     },
-    // ]
-    // : []),
     {
-      title: "Аккаунты",
-      description: "Список Telegram аккаунтов",
+      title: "Аккаунты и чаты",
+      description: "Список Telegram аккаунтов и чатов",
       icon: <Group sx={{ fontSize: 40 }} />,
       path: "/accounts",
-      // color: "#1976d2",
     },
   ];
 
@@ -79,10 +72,42 @@ export const HomePage: React.FC = () => {
         variant="h4"
         component="h1"
         gutterBottom
-        sx={{ mb: 4, textAlign: "center" }}
+        sx={{ textAlign: "center" }}
       >
         Добро пожаловать в систему управления Observer
       </Typography>
+
+      {hasNoCompanies && (
+        <Box
+          sx={{
+            backgroundColor: "#e0eefb",
+            p: 2,
+            borderRadius: 2,
+            mb: 2,
+            textAlign: "center",
+            // boxShadow: 1,
+          }}
+        >
+          <Typography variant="body1">
+            Для доступа ко всем функциям необходимо
+          </Typography>
+          <Typography variant="body1">
+            создать новую компанию или получить доступ к существующей
+          </Typography>
+          {/* <Typography
+            variant="body2"
+            component="ul"
+            // sx={{
+            //   textAlign: "left",
+            //   pl: 3,
+            //   mb: 3,
+            //   "& li": { mb: 1 },
+            // }}
+          >
+            Создать новую компанию или получить доступ к существующей компании
+          </Typography> */}
+        </Box>
+      )}
 
       <Box
         sx={{
@@ -105,10 +130,15 @@ export const HomePage: React.FC = () => {
               height: "100%",
               display: "flex",
               flexDirection: "column",
+              transition: "transform 0.2s",
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: 3,
+              },
             }}
           >
             <CardContent sx={{ flexGrow: 1, textAlign: "center" }}>
-              <Box sx={{ mb: 2 }}>{card.icon}</Box>
+              <Box sx={{ mb: 2, color: "primary.main" }}>{card.icon}</Box>
               <Typography variant="h6" component="h2" gutterBottom>
                 {card.title}
               </Typography>
@@ -120,10 +150,10 @@ export const HomePage: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={() => navigate(card.path)}
-                // sx={{
-                //   backgroundColor: card.color,
-                //   "&:hover": { backgroundColor: card.color },
-                // }}
+                disabled={hasNoCompanies && card.path !== "/companies"}
+                sx={{
+                  fontWeight: "bold",
+                }}
               >
                 Перейти
               </Button>

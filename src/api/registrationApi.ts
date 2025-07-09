@@ -34,7 +34,11 @@ export const verifyEmail = async (token: string) => {
 
 export const resendVerification = async (email: string) => {
   const url = process.env.REACT_APP_API_URL;
+  const application_id = process.env.REACT_APP_ID || "observer_app";
   if (!url) throw new Error("REACT_APP_API_URL is not defined");
 
-  await axiosInstance.post(`${url}/api/resend-verification`, { email });
+  await axiosInstance.post(`${url}/api/resend-verification`, {
+    email,
+    application_id,
+  });
 };

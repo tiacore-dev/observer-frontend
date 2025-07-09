@@ -1,33 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import {
-  Paper,
-  CircularProgress,
   Typography,
   Box,
   TextField,
   Pagination,
+  Button,
+  Tooltip,
 } from "@mui/material";
-import { ChatsTable } from "./chatsTable";
 import { PageProps } from "../../App";
+import { ChatsTable } from "./chatsTable";
+import ClearIcon from "@mui/icons-material/Clear";
+import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
+import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
+import { PaginationControls } from "../../components/table/paginationControls";
+import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
 
 export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
   const {
     data: chatsData,
     isLoading: chatsLoading,
     error: chatsError,
-  } = useChatsQuery();
+  } = useChatsSelectQuery();
 
   const isLoading = chatsLoading;
   const error = chatsError;
 
   const [nameFilter, setNameFilter] = useState("");
-  const [sortField, setSortField] = useState<"chat_name" | "created_at">(
-    "created_at"
-  );
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<
+    "chat_name" | "chat_id" | "created_at"
+  >("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
+
+  const resetAllFilters = () => {
+    setNameFilter("");
+    setSortField("created_at");
+    setSortDirection("desc");
+    setPage(1);
+  };
 
   const getFilteredAndSortedChats = () => {
     if (!chatsData?.chats) return [];
@@ -41,8 +52,10 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
 
     filteredChats.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      // Используем нулевой coalescing оператор для безопасной сортировки
+      const aValue = a[sortField] ?? "";
+      const bValue = b[sortField] ?? "";
+
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
@@ -51,7 +64,7 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
     return filteredChats;
   };
 
-  const handleSort = (field: "chat_name" | "created_at") => {
+  const handleSort = (field: "chat_name" | "chat_id" | "created_at") => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -71,14 +84,6 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
     setPage(1);
   }, [nameFilter]);
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   if (error) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -91,34 +96,47 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
-        <TextField
-          label="Поиск по имени"
-          variant="outlined"
-          size="small"
-          value={nameFilter}
-          onChange={(e) => setNameFilter(e.target.value)}
-        />
-      </Box>
+      {isLoading ? (
+        <PageSkeleton filterCount={2} pagination={true} hasAddButton={false} />
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              mb: 3,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <TextField
+              label="Поиск по имени"
+              variant="outlined"
+              size="small"
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+            />
 
-      <ChatsTable
-        chats={paginatedChats}
-        developerMode={developerMode}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-      />
+            <ResetFiltersButton onClick={resetAllFilters} />
+          </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_, value) => setPage(value)}
-          color="primary"
-          showFirstButton
-          showLastButton
-        />
-      </Box>
+          <ChatsTable
+            chats={paginatedChats}
+            developerMode={developerMode}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+          />
+
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+            <PaginationControls
+              count={totalPages}
+              page={page}
+              onPageChange={setPage}
+            />
+          </Box>
+        </>
+      )}
     </Box>
   );
 };

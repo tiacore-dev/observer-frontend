@@ -44,6 +44,7 @@ export const createCompany = async (newCompany: {
       },
     }
   );
+
   return response.data;
 
   //   const payload = {

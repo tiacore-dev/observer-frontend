@@ -7,16 +7,20 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TableSortLabel,
 } from "@mui/material";
 import { IChat } from "../../api/chatsApi";
+import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
+import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+
+type SortField = "chat_id" | "chat_name" | "created_at";
 
 interface ChatsTableProps {
   chats: IChat[];
   developerMode: boolean;
-  sortField: "chat_name" | "created_at";
+  sortField: SortField;
   sortDirection: "asc" | "desc";
-  onSort: (field: "chat_name" | "created_at") => void;
+  onSort: (field: SortField) => void;
+  isLoading?: boolean;
 }
 
 export const ChatsTable: React.FC<ChatsTableProps> = ({
@@ -25,38 +29,47 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
   sortField,
   sortDirection,
   onSort,
+  isLoading = false,
 }) => {
+  if (isLoading) {
+    return (
+      <TableSkeleton
+        columns={2}
+        developerMode={developerMode}
+        additionalColumns={1}
+        rows={5}
+      />
+    );
+  }
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }} aria-label="chats table">
         <TableHead>
           <TableRow>
-            {developerMode && <TableCell>ID</TableCell>}
-            <TableCell
-              sortDirection={sortField === "chat_name" ? sortDirection : false}
-            >
-              <TableSortLabel
-                active={sortField === "chat_name"}
-                direction={sortField === "chat_name" ? sortDirection : "asc"}
-                onClick={() => onSort("chat_name")}
-              >
-                Название чата
-              </TableSortLabel>
-            </TableCell>
+            <SortableTableHeader<SortField>
+              field="chat_name"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Название чата"
+            />
+            <SortableTableHeader<SortField>
+              field="chat_id"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="ID чата"
+            />
             {developerMode && (
-              <TableCell
-                sortDirection={
-                  sortField === "created_at" ? sortDirection : false
-                }
-              >
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortField === "created_at" ? sortDirection : "asc"}
-                  onClick={() => onSort("created_at")}
-                >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
+              <SortableTableHeader<SortField>
+                field="created_at"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Дата создания"
+                defaultDirection="desc"
+              />
             )}
           </TableRow>
         </TableHead>
@@ -67,12 +80,8 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
               key={chat.chat_id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
-              {developerMode && (
-                <TableCell component="th" scope="row">
-                  {chat.chat_id}
-                </TableCell>
-              )}
               <TableCell>{chat.chat_name}</TableCell>
+              <TableCell>{chat.chat_id}</TableCell>
               {developerMode && (
                 <TableCell>
                   {new Date(chat.created_at).toLocaleString()}

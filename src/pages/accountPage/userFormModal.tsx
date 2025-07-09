@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { IUserEdit } from "../../hooks/users/useUserMutations";
+import { useAuth } from "../../context/authContext";
 
 interface EditUserModalProps {
   open: boolean;
@@ -57,6 +58,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
       confirmPassword: "",
     },
   });
+  const { isSuperadmin } = useAuth();
 
   React.useEffect(() => {
     if (userData) {
@@ -108,24 +110,25 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
               <Skeleton variant="rectangular" width="100%" height={56} />
               <Skeleton variant="rectangular" width="100%" height={56} />
               <Skeleton variant="rectangular" width="100%" height={56} />
-              <Skeleton variant="rectangular" width="100%" height={56} />
               <Skeleton variant="rectangular" width={120} height={40} />
             </>
           ) : (
             <>
-              <TextField
-                fullWidth
-                label="Email"
-                error={!!errors.email}
-                helperText={errors.email?.message}
-                {...register("email", {
-                  required: "Email обязателен",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$|^admin$/,
-                    message: "Введите корректный email",
-                  },
-                })}
-              />
+              {isSuperadmin && (
+                <TextField
+                  fullWidth
+                  label="Email"
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                  {...register("email", {
+                    required: "Email обязателен",
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$|^admin$/,
+                      message: "Введите корректный email",
+                    },
+                  })}
+                />
+              )}
 
               <TextField
                 fullWidth
@@ -135,12 +138,6 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 {...register("full_name", {
                   required: "Полное имя обязательно",
                 })}
-              />
-
-              <TextField
-                fullWidth
-                label="Должность"
-                {...register("position")}
               />
 
               <TextField
@@ -169,15 +166,19 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 helperText={errors.confirmPassword?.message}
               />
 
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={watch("is_verified")}
-                    onChange={(e) => setValue("is_verified", e.target.checked)}
-                  />
-                }
-                label="Статус верификации"
-              />
+              {isSuperadmin && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={watch("is_verified")}
+                      onChange={(e) =>
+                        setValue("is_verified", e.target.checked)
+                      }
+                    />
+                  }
+                  label="Статус верификации"
+                />
+              )}
             </>
           )}
         </Box>

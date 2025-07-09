@@ -44,13 +44,20 @@ import { useAuth } from "../context/authContext";
 import { AddCompanyModal } from "../pages/companiesPage/addCompanyModal";
 import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
-
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 const drawerWidth = 240;
 
 interface AppLayoutProps {
   children: React.ReactNode;
   developerMode: boolean;
   onToggleDeveloperMode: () => void;
+}
+
+interface MenuItem {
+  text: string;
+  icon?: React.ReactNode;
+  path?: string;
+  children?: MenuItem[];
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({
@@ -75,6 +82,22 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
   const isHomePage = location.pathname === "/home";
+
+  const menuItems: MenuItem[] = [
+    { text: "Боты", icon: <SmartToy />, path: "/bots" },
+    { text: "Промпты", icon: <Psychology />, path: "/prompts" },
+    { text: "Расписания", icon: <Schedule />, path: "/schedules" },
+    { text: "Анализ", icon: <Analytics />, path: "/analysis" },
+    { text: "Компании", icon: <Business />, path: "/companies" },
+    {
+      text: "Аккаунты и чаты",
+      icon: <Group />,
+      children: [
+        { text: "Аккаунты", icon: <ArrowRightIcon />, path: "/accounts" },
+        { text: "Чаты", icon: <ArrowRightIcon />, path: "/chats" },
+      ],
+    },
+  ];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -111,15 +134,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     await checkAuth();
   };
 
-  const menuItems = [
-    { text: "Боты", icon: <SmartToy />, path: "/bots" },
-    { text: "Промпты", icon: <Psychology />, path: "/prompts" },
-    { text: "Расписания", icon: <Schedule />, path: "/schedules" },
-    { text: "Анализ", icon: <Analytics />, path: "/analysis" },
-    { text: "Компании", icon: <Business />, path: "/companies" },
-    { text: "Аккаунты", icon: <Group />, path: "/accounts" },
-  ];
-
   const drawer = (
     <div>
       <Toolbar>
@@ -136,15 +150,68 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       {!isHomePage && (
         <List>
           {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                selected={location.pathname.startsWith(item.path)}
-                onClick={() => navigate(item.path)}
-              >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
+            <React.Fragment key={item.text}>
+              {item.children ? (
+                <>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      selected={item.children.some((child) =>
+                        location.pathname.startsWith(child.path || "")
+                      )}
+                      onClick={() =>
+                        item.children && navigate(item.children[0].path || "/")
+                      }
+                    >
+                      <ListItemIcon>{item.icon}</ListItemIcon>
+                      <ListItemText
+                        primary={item.text}
+                        primaryTypographyProps={{ variant: "body1" }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                  {item.children.map((child) => (
+                    <ListItem key={child.text} disablePadding sx={{ pl: 1 }}>
+                      <ListItemButton
+                        selected={location.pathname.startsWith(
+                          child.path || ""
+                        )}
+                        onClick={() => navigate(child.path || "/")}
+                        sx={{
+                          py: 0.5,
+                          "& .MuiListItemText-root": {
+                            my: 0,
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 32 }}>
+                          {child.icon}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={child.text}
+                          primaryTypographyProps={{
+                            variant: "body2",
+                            sx: { fontSize: "0.875rem" },
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </>
+              ) : (
+                <ListItem key={item.text} disablePadding>
+                  <ListItemButton
+                    selected={location.pathname.startsWith(item.path || "")}
+                    onClick={() => navigate(item.path || "/")}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText
+                      primary={item.text}
+                      primaryTypographyProps={{ variant: "body1" }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              )}
+            </React.Fragment>
           ))}
         </List>
       )}
@@ -209,6 +276,22 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                             {companyMap.get(companyId) || companyId}
                           </MenuItem>
                         ))}
+                        <Button
+                          variant="outlined"
+                          startIcon={<Add />}
+                          onClick={handleAddCompanyClick}
+                          size="small"
+                          sx={{
+                            color: "black",
+                            borderColor: "white",
+                            "&:hover": {
+                              // backgroundColor: "rgba(0, 0, 0, 0.04)",
+                              borderColor: "white",
+                            },
+                          }}
+                        >
+                          Добавить компанию
+                        </Button>
                       </Select>
                     </FormControl>
                   )

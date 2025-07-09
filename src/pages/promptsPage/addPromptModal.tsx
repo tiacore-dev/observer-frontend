@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import type React from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,7 +14,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  CircularProgress,
   Typography,
 } from "@mui/material";
 import { useCreatePrompt } from "../../hooks/prompts/usePromptMutations";
@@ -36,7 +38,6 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   });
   const createPrompt = useCreatePrompt();
 
-  // Автоматически устанавливаем company_id для обычных пользователей
   useEffect(() => {
     if (!isSuperadmin && selectedCompanyId) {
       setPromptData((prev) => ({
@@ -68,6 +69,12 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
 
     if (Object.values(newErrors).some((e) => e)) return;
 
+    // Добавляем логирование для отладки
+    console.log("Отправляемые данные:", {
+      ...promptData,
+      textLength: promptData.text.length,
+    });
+
     try {
       await createPrompt.mutateAsync(promptData);
       onClose();
@@ -98,7 +105,7 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Добавить новый промпт</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
@@ -148,8 +155,16 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
             value={promptData.text}
             onChange={handleChange}
             multiline
-            rows={6}
+            minRows={8}
+            maxRows={20}
             required
+            helperText={`Символов: ${promptData.text.length}`}
+            sx={{
+              "& .MuiInputBase-root": {
+                maxHeight: "60vh",
+                overflow: "auto",
+              },
+            }}
           />
         </Box>
       </DialogContent>

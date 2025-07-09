@@ -11,6 +11,6 @@ export const useUserDetailsQuery = (companyId?: string) => {
     queryFn: () => fetchUserDetails(selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
     enabled: !!user_id,
-    initialData: undefined,
+    // initialData: undefined,
   });
 };

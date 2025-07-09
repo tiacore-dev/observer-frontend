@@ -94,13 +94,30 @@ export const LoginPage: React.FC = () => {
         }}
       >
         {showResendLink && (
-          <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
-            <Typography color="error" sx={{ mr: 1 }}>
+          <Box
+            sx={{
+              mb: 2,
+              display: "grid",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#fff0f0",
+              borderRadius: 2,
+            }}
+          >
+            <Typography
+              color="error"
+              sx={{
+                mt: 1,
+                display: "grid",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               Email не подтвержден
             </Typography>
             <Button
               variant="text"
-              size="small"
+              // size="small"
               disabled={resendVerificationMutation.isPending}
               onClick={() => resendVerificationMutation.mutate(emailValue)}
             >

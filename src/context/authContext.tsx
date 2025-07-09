@@ -26,6 +26,8 @@ interface AuthContextType {
   checkAuth: () => Promise<boolean>;
   updateUser: (userData: Partial<IUser>) => void;
   setSelectedCompanyId: (companyId: string) => void;
+  addAvailableCompany: (companyId: string) => void;
+  removeAvailableCompany: (companyId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,7 +60,66 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     return Object.keys(appPermissions).filter((id) => isUUID(id));
   };
 
-  // В методе login authContext.tsx
+  const addAvailableCompany = useCallback((companyId: string) => {
+    if (!isUUID(companyId)) {
+      console.error("Attempt to add invalid company ID:", companyId);
+      return;
+    }
+
+    setAuthState((prev) => {
+      const newAvailableCompanies = [...prev.availableCompanies, companyId];
+      localStorage.setItem(
+        "available_companies",
+        JSON.stringify(newAvailableCompanies)
+      );
+
+      // Если нет выбранной компании, устанавливаем новую как выбранную
+      const newSelectedCompanyId = prev.selectedCompanyId || companyId;
+      if (!prev.selectedCompanyId) {
+        localStorage.setItem("selected_company_id", newSelectedCompanyId);
+      }
+
+      return {
+        ...prev,
+        availableCompanies: newAvailableCompanies,
+        selectedCompanyId: newSelectedCompanyId,
+      };
+    });
+  }, []);
+
+  const removeAvailableCompany = useCallback((companyId: string) => {
+    if (!isUUID(companyId)) {
+      console.error("Attempt to remove invalid company ID:", companyId);
+      return;
+    }
+
+    setAuthState((prev) => {
+      const newAvailableCompanies = prev.availableCompanies.filter(
+        (id: string) => id !== companyId
+      );
+      localStorage.setItem(
+        "available_companies",
+        JSON.stringify(newAvailableCompanies)
+      );
+
+      let newSelectedCompanyId = prev.selectedCompanyId;
+      if (prev.selectedCompanyId === companyId) {
+        newSelectedCompanyId = newAvailableCompanies[0] || null;
+        if (newSelectedCompanyId) {
+          localStorage.setItem("selected_company_id", newSelectedCompanyId);
+        } else {
+          localStorage.removeItem("selected_company_id");
+        }
+      }
+
+      return {
+        ...prev,
+        availableCompanies: newAvailableCompanies,
+        selectedCompanyId: newSelectedCompanyId,
+      };
+    });
+  }, []);
+
   const login = useCallback(
     async (data: { email: string; password: string }) => {
       try {
@@ -93,7 +154,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           }
         }
 
-        // Загружаем данные пользователя сразу после логина
         let userDetails: IUser | null = null;
         try {
           userDetails = await fetchUserDetails(selectedCompanyId || undefined);
@@ -124,6 +184,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     },
     [navigate]
   );
+
   const logout = useCallback(() => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -170,20 +231,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
         const selectedCompanyId = localStorage.getItem("selected_company_id");
 
-        // let userDetails: IUser | null = null;
-        // if (!isSuperadmin && selectedCompanyId && isUUID(selectedCompanyId)) {
-        //   userDetails = await fetchUserDetails(selectedCompanyId);
-        // } else {
-        //   userDetails = await fetchUserDetails();
-        // }
-
-        // localStorage.setItem("user", JSON.stringify(userDetails));
-
         setAuthState((prev) => ({
           ...prev,
           isAuthenticated: true,
           accessToken: newToken,
-          // user: userDetails,
         }));
         return true;
       }
@@ -233,6 +284,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         checkAuth,
         updateUser,
         setSelectedCompanyId,
+        addAvailableCompany,
+        removeAvailableCompany,
       }}
     >
       {children}

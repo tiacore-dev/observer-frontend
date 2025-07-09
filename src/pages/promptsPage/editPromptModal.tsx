@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import type React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -39,7 +41,7 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         {isLoading ? (
           <Skeleton variant="text" width="60%" />
@@ -52,7 +54,7 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
           {isLoading ? (
             <>
               <Skeleton variant="rectangular" height={56} />
-              <Skeleton variant="rectangular" height={200} />
+              <Skeleton variant="rectangular" height={300} />
             </>
           ) : (
             <>
@@ -74,8 +76,15 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
                 value={editData.text}
                 onChange={(e) => onEditDataChange("text", e.target.value)}
                 multiline
-                rows={6}
+                minRows={8}
+                maxRows={20}
                 required
+                sx={{
+                  "& .MuiInputBase-root": {
+                    maxHeight: "60vh",
+                    overflow: "auto",
+                  },
+                }}
               />
             </>
           )}

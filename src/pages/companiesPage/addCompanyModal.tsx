@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { useCreateCompany } from "../../hooks/companies/useCompaniesMutations";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
+import { useAuth } from "../../context/authContext";
 
 interface AddCompanyModalProps {
   open: boolean;
@@ -28,6 +29,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
     description: "",
   });
   const createCompany = useCreateCompany();
+  const { addAvailableCompany } = useAuth();
 
   const [errors, setErrors] = useState({
     company_name: "",
@@ -50,7 +52,10 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
 
     try {
       await createCompany.mutateAsync(companyData, {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          // Добавляем новую компанию в список доступных
+          addAvailableCompany(data.company_id);
+
           onClose();
           setCompanyData({ company_name: "", description: "" });
           if (onSuccess) onSuccess();

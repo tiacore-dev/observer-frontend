@@ -44,6 +44,12 @@ export const createPrompt = async (
     params.company_id = selectedCompanyId;
   }
 
+  // Добавляем логирование для отладки
+  console.log("API: Отправляемые данные на сервер:", {
+    ...newPrompt,
+    textLength: newPrompt.text.length,
+  });
+
   const response = await axiosInstance.post(
     `${url}/api/prompts/add`,
     newPrompt,
@@ -55,6 +61,8 @@ export const createPrompt = async (
       },
     }
   );
+
+  console.log("API: Ответ сервера:", response.data);
   return response.data;
 };
 
@@ -95,6 +103,12 @@ export const updatePrompt = async (
     params.company_id = selectedCompanyId;
   }
 
+  // Добавляем логирование для отладки
+  console.log("API: Обновляемые данные:", {
+    ...updatedData,
+    textLength: updatedData.text?.length || 0,
+  });
+
   const response = await axiosInstance.patch(
     `${url}/api/prompts/${prompt_id}`,
     updatedData,
@@ -106,6 +120,8 @@ export const updatePrompt = async (
       },
     }
   );
+
+  console.log("API: Ответ сервера при обновлении:", response.data);
   return response.data;
 };
 

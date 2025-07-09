@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import type React from "react";
 import {
   Table,
   TableBody,
@@ -8,7 +10,7 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import { IPrompt } from "../../api/promptsApi";
+import type { IPrompt } from "../../api/promptsApi";
 import { useNavigate } from "react-router-dom";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
@@ -115,9 +117,9 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
                 </TableCell>
               )}
               <TableCell>{prompt.prompt_name}</TableCell>
-              <TableCell>
-                {prompt.text.length > 100
-                  ? `${prompt.text.substring(0, 100)}...`
+              <TableCell sx={{ maxWidth: 400, wordBreak: "break-word" }}>
+                {prompt.text.length > 200
+                  ? `${prompt.text.substring(0, 200)}...`
                   : prompt.text}
               </TableCell>
               {developerMode && (

@@ -6,6 +6,7 @@ import {
   updateCompany,
 } from "../../api/companiesApi";
 import { enqueueSnackbar } from "notistack";
+import { useAuth } from "../../context/authContext";
 
 export const useCreateCompany = () => {
   const queryClient = useQueryClient();
@@ -45,12 +46,16 @@ export const useUpdateCompany = () => {
   });
 };
 
+// В useCompaniesMutations.tsx
 export const useDeleteCompany = () => {
   const queryClient = useQueryClient();
+  const { removeAvailableCompany } = useAuth(); // Добавляем использование контекста
+
   return useMutation({
     mutationFn: (company_id: string) => deleteCompany(company_id),
-    onSuccess: () => {
+    onSuccess: (_, company_id) => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
+      removeAvailableCompany(company_id); // Удаляем компанию из доступных
       enqueueSnackbar("Успешно удалено", { variant: "success" });
     },
     onError: () => {
