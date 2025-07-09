@@ -110,6 +110,7 @@ const App: React.FC = () => {
                     element={<CompaniesPage developerMode={developerMode} />}
                   />
                   <Route path="/home" element={<HomePage />} />
+                  <Route path="*" element={<Navigate to="/home" />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/login" />} />
               </Routes>

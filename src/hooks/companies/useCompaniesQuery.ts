@@ -13,9 +13,9 @@ export interface ICompaniesResponse {
 
 export const useCompaniesQuery = () => {
   const { selectedCompanyId } = useAuth();
-
+  const user_id = localStorage.getItem("user_id");
   return useQuery<ICompaniesResponse>({
-    queryKey: ["companies", selectedCompanyId],
+    queryKey: ["companies", selectedCompanyId, user_id],
     queryFn: () => fetchCompanies(),
     staleTime: 5 * 60 * 1000,
     retry: false, // Отключает повторные попытки

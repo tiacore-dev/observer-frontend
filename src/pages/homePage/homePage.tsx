@@ -85,7 +85,6 @@ export const HomePage: React.FC = () => {
             borderRadius: 2,
             mb: 2,
             textAlign: "center",
-            // boxShadow: 1,
           }}
         >
           <Typography variant="body1">
@@ -94,18 +93,6 @@ export const HomePage: React.FC = () => {
           <Typography variant="body1">
             создать новую компанию или получить доступ к существующей
           </Typography>
-          {/* <Typography
-            variant="body2"
-            component="ul"
-            // sx={{
-            //   textAlign: "left",
-            //   pl: 3,
-            //   mb: 3,
-            //   "& li": { mb: 1 },
-            // }}
-          >
-            Создать новую компанию или получить доступ к существующей компании
-          </Typography> */}
         </Box>
       )}
 

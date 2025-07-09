@@ -7,6 +7,7 @@ import {
 } from "../../api/companiesApi";
 import { enqueueSnackbar } from "notistack";
 import { useAuth } from "../../context/authContext";
+import { useNavigate } from "react-router-dom";
 
 export const useCreateCompany = () => {
   const queryClient = useQueryClient();
@@ -49,13 +50,17 @@ export const useUpdateCompany = () => {
 // В useCompaniesMutations.tsx
 export const useDeleteCompany = () => {
   const queryClient = useQueryClient();
-  const { removeAvailableCompany } = useAuth(); // Добавляем использование контекста
-
+  const { removeAvailableCompany, availableCompanies } = useAuth(); // Добавляем использование контекста
+  const navigate = useNavigate();
   return useMutation({
     mutationFn: (company_id: string) => deleteCompany(company_id),
     onSuccess: (_, company_id) => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       removeAvailableCompany(company_id); // Удаляем компанию из доступных
+      if (availableCompanies.length === 1) {
+        // Мы удаляем последнюю компанию
+        navigate("/home"); // Перенаправляем на /home
+      }
       enqueueSnackbar("Успешно удалено", { variant: "success" });
     },
     onError: () => {
