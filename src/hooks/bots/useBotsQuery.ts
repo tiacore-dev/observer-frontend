@@ -9,8 +9,10 @@ interface IBotsResponse {
 
 export const useBotsQuery = (company_id?: string) => {
   const { selectedCompanyId } = useAuth();
+  const user_id = localStorage.getItem("user_id");
+
   return useQuery<IBotsResponse>({
-    queryKey: ["bots", company_id || selectedCompanyId],
+    queryKey: ["bots", company_id || selectedCompanyId, user_id],
     queryFn: () => fetchBots(company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     retry: false,

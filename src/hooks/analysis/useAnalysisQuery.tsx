@@ -13,9 +13,10 @@ export interface IAnalysisResponse {
 
 export const useAnalysisQuery = () => {
   const { selectedCompanyId, isSuperadmin } = useAuth();
+  const user_id = localStorage.getItem("user_id");
 
   return useQuery<IAnalysisResponse>({
-    queryKey: ["analysis", selectedCompanyId],
+    queryKey: ["analysis", selectedCompanyId, user_id],
     queryFn: () => fetchAnalysis(selectedCompanyId, isSuperadmin),
     staleTime: 5 * 60 * 1000,
     retry: false,
