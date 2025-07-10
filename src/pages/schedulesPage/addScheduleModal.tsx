@@ -25,11 +25,12 @@ import { ScheduleTypeFields } from "./components/scheduleTypeFields";
 import { SendStrategyFields } from "./components/sendStrategyFields";
 import { TargetChatSelector } from "./components/targetChatSelector";
 import { useScheduleValidation } from "./helpers/useScheduleValidation";
-import {
-  generateCronExpression,
-  convertLocalTimeToUTC,
-} from "./helpers/scheduleUtils";
 import { useAuth } from "../../context/authContext";
+import {
+  convertToServerTime,
+  localToServerDatetime,
+  generateCronExpression,
+} from "./helpers/scheduleUtils";
 
 interface AddScheduleModalProps {
   open: boolean;
@@ -151,7 +152,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         target_chats: [],
       }));
     } else if (name === "company_id" && isSuperadmin) {
-      // Разрешаем изменение company_id только для суперадминов
       setScheduleData((prev) => ({
         ...prev,
         [name]: value,
@@ -217,11 +217,17 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     if (!validateFields(dataForValidation, selectedDays, cronTime)) return;
 
     try {
-      const utcTimeOfDay = scheduleData.time_of_day
-        ? convertLocalTimeToUTC(scheduleData.time_of_day)
+      // Конвертация времени перед отправкой на сервер
+      const serverTimeOfDay = scheduleData.time_of_day
+        ? convertToServerTime(scheduleData.time_of_day) + ":00"
         : undefined;
-      const utcTimeToSend = scheduleData.time_to_send
-        ? convertLocalTimeToUTC(scheduleData.time_to_send)
+
+      const serverTimeToSend = scheduleData.time_to_send
+        ? convertToServerTime(scheduleData.time_to_send) + ":00"
+        : undefined;
+
+      const serverRunAt = scheduleData.run_at
+        ? localToServerDatetime(scheduleData.run_at)
         : undefined;
 
       await createSchedule.mutateAsync({
@@ -240,24 +246,24 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             ? Number(scheduleData.interval_minutes)
             : undefined,
         time_of_day:
-          scheduleData.schedule_type === "daily_time" && utcTimeOfDay
-            ? `${utcTimeOfDay}:00`
+          scheduleData.schedule_type === "daily_time" && serverTimeOfDay
+            ? serverTimeOfDay
             : undefined,
         cron_expression:
           scheduleData.schedule_type === "cron"
             ? generateCronExpression(cronTime, selectedDays)
             : undefined,
         run_at:
-          scheduleData.schedule_type === "once" && scheduleData.run_at
-            ? new Date(scheduleData.run_at).toISOString()
+          scheduleData.schedule_type === "once" && serverRunAt
+            ? serverRunAt
             : undefined,
         enabled: scheduleData.enabled,
         bot_id: Number.parseInt(scheduleData.bot_id),
         target_chats: scheduleData.target_chats,
         send_strategy: scheduleData.send_strategy,
         time_to_send:
-          scheduleData.send_strategy === "fixed" && utcTimeToSend
-            ? `${utcTimeToSend}:00`
+          scheduleData.send_strategy === "fixed" && serverTimeToSend
+            ? serverTimeToSend
             : undefined,
         send_after_minutes:
           scheduleData.send_strategy === "relative" &&

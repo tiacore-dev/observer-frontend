@@ -2,17 +2,19 @@ import type React from "react";
 import { Box, TextField } from "@mui/material";
 import { DaySelector } from "./daySelector";
 import {
-  formatTimeFromUTC,
-  formatDateTimeForDisplay,
+  convertToServerTime,
+  convertToLocalTime,
+  localToServerDatetime,
+  serverToLocalDatetime,
 } from "../helpers/scheduleUtils";
 
 interface ScheduleTypeFieldsProps {
   scheduleType: "interval" | "cron" | "once" | "daily_time";
   intervalHours?: string;
   intervalMinutes?: string;
-  timeOfDay?: string;
-  runAt?: string;
-  cronTime: string;
+  timeOfDay?: string; // Локальное время (HH:MM)
+  runAt?: string; // Локальная дата-время (YYYY-MM-DDTHH:MM)
+  cronTime: string; // Локальное время (HH:MM)
   selectedDays: number[];
   errors: Record<string, string>;
   disabled?: boolean;
@@ -45,26 +47,25 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
     );
   };
 
-  // Обработчик для валидации числовых полей
+  // Обработчик для числовых полей (часы/минуты)
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Разрешаем пустую строку или только цифры
+    // Разрешаем только цифры или пустую строку
     if (value === "" || /^\d+$/.test(value)) {
       // Дополнительная проверка для минут (0-59)
       if (name === "interval_minutes") {
         const numValue = Number.parseInt(value);
         if (value !== "" && (numValue < 0 || numValue > 59)) {
-          return; // Не обновляем значение, если оно вне диапазона
+          return;
         }
       }
       onFieldChange(e);
     }
   };
 
-  // Обработчик нажатия клавиш для блокировки нецифровых символов
+  // Блокировка нечисловых символов
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Разрешаем: цифры (0-9), Backspace, Delete, Tab, Escape, Enter, стрелки
     const allowedKeys = [
       "Backspace",
       "Delete",
@@ -79,22 +80,18 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
       "End",
     ];
 
-    // Разрешаем Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
     if (e.ctrlKey && ["a", "c", "v", "x", "z"].includes(e.key.toLowerCase())) {
       return;
     }
 
-    // Если это не разрешенная клавиша и не цифра, блокируем
     if (!allowedKeys.includes(e.key) && !/^[0-9]$/.test(e.key)) {
       e.preventDefault();
     }
   };
 
-  // Обработчик вставки из буфера обмена
+  // Блокировка нечислового вставления
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData("text");
-
-    // Проверяем, содержит ли вставляемый текст только цифры
     if (!/^\d*$/.test(pastedText)) {
       e.preventDefault();
     }
@@ -174,7 +171,7 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
           label="Время выполнения"
           name="run_at"
           type="datetime-local"
-          value={formatDateTimeForDisplay(runAt)}
+          value={runAt || ""}
           onChange={onFieldChange}
           error={!!errors.run_at}
           helperText={errors.run_at}
@@ -194,7 +191,7 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
           label="Время выполнения (HH:MM)"
           name="time_of_day"
           type="time"
-          value={formatTimeFromUTC(timeOfDay)}
+          value={timeOfDay || ""}
           onChange={onFieldChange}
           error={!!errors.time_of_day}
           helperText={errors.time_of_day}

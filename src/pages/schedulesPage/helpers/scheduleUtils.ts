@@ -17,52 +17,118 @@ export const generateCronExpression = (
   return `${minutes} ${hours} * * ${selectedDays.join(",")}`;
 };
 
-export const convertLocalTimeToUTC = (timeString: string) => {
-  if (!timeString) return "";
+/**
+ * Получаем смещение часового пояса в минутах
+ * Например, для GMT+3 вернет -180
+ */
+export const getTimezoneOffset = () => new Date().getTimezoneOffset();
 
+/**
+ * Конвертирует время из формата HH:MM в UTC для сервера
+ * @param localTime Время в локальном формате (например, "14:00")
+ * @returns Время в UTC формате (например, "11:00" для GMT+3)
+ */
+export const convertToServerTime = (localTime: string) => {
+  if (!localTime) return "";
+
+  const offset = getTimezoneOffset();
+  const [hours, minutes] = localTime.split(":");
+
+  // Вычисляем общее количество минут с учетом смещения
+  const totalMinutes = parseInt(hours) * 60 + parseInt(minutes) - offset;
+
+  // Корректируем отрицательные значения и переход через полночь
+  const adjustedMinutes = (totalMinutes + 1440) % 1440; // 1440 минут в сутках
+  const utcHours = Math.floor(adjustedMinutes / 60);
+  const utcMinutes = adjustedMinutes % 60;
+
+  return `${String(utcHours).padStart(2, "0")}:${String(utcMinutes).padStart(
+    2,
+    "0"
+  )}`;
+};
+
+/**
+ * Конвертирует серверное время (UTC) в локальный формат
+ * @param serverTime Время в UTC формате (например, "11:00")
+ * @returns Время в локальном формате (например, "14:00" для GMT+3)
+ */
+export const convertToLocalTime = (serverTime: string) => {
+  if (!serverTime) return "";
+
+  const offset = getTimezoneOffset();
+  const [hours, minutes] = serverTime.split(":");
+
+  // Вычисляем общее количество минут с учетом смещения
+  const totalMinutes = parseInt(hours) * 60 + parseInt(minutes) + offset;
+
+  // Корректируем отрицательные значения и переход через полночь
+  const adjustedMinutes = (totalMinutes + 1440) % 1440;
+  const localHours = Math.floor(adjustedMinutes / 60);
+  const localMinutes = adjustedMinutes % 60;
+
+  return `${String(localHours).padStart(2, "0")}:${String(
+    localMinutes
+  ).padStart(2, "0")}`;
+};
+
+/**
+ * Конвертирует локальную дату и время в ISO строку для сервера
+ * @param localDatetime Строка в формате "YYYY-MM-DDTHH:MM"
+ * @returns ISO строка в UTC
+ */
+export const localToServerDatetime = (localDatetime: string) => {
+  if (!localDatetime) return "";
+  const date = new Date(localDatetime);
+  return date.toISOString();
+};
+
+/**
+ * Конвертирует серверную дату в локальный формат для input[type="datetime-local"]
+ * @param serverDatetime ISO строка даты/времени
+ * @returns Строка в формате "YYYY-MM-DDTHH:MM"
+ */
+export const serverToLocalDatetime = (serverDatetime: string) => {
+  if (!serverDatetime) return "";
+  const date = new Date(serverDatetime);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+};
+
+/**
+ * Форматирует время для отображения (HH:MM -> HH:MM AM/PM)
+ */
+export const formatDisplayTime = (time: string) => {
+  if (!time) return "";
   try {
-    const [hours, minutes] = timeString.split(":");
-    const localDate = new Date();
-    localDate.setHours(
-      Number.parseInt(hours, 10),
-      Number.parseInt(minutes, 10),
-      0,
-      0
-    );
-
-    const utcHours = localDate.getUTCHours().toString().padStart(2, "0");
-    const utcMinutes = localDate.getUTCMinutes().toString().padStart(2, "0");
-
-    return `${utcHours}:${utcMinutes}`;
+    const [hours, minutes] = time.split(":");
+    const date = new Date();
+    date.setHours(parseInt(hours), parseInt(minutes));
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   } catch (error) {
-    console.error("Error converting time to UTC:", error);
-    return timeString;
+    console.error("Error formatting time:", error);
+    return time;
   }
 };
 
-export const formatTimeFromUTC = (utcTime: string | undefined) => {
+/**
+ * Форматирует UTC время с сервера для отображения
+ */
+export const formatServerTimeForDisplay = (utcTime: string) => {
   if (!utcTime) return "";
-  try {
-    if (utcTime.includes("T")) {
-      const date = new Date(utcTime);
-      return date.toISOString().slice(0, 16);
-    }
-    return utcTime.split(":").slice(0, 2).join(":");
-  } catch (error) {
-    console.error("Ошибка форматирования времени:", error);
-    return "";
-  }
+  const localTime = convertToLocalTime(utcTime);
+  return formatDisplayTime(localTime);
 };
 
-export const formatDateTimeForDisplay = (dateTime: string | undefined) => {
-  if (!dateTime) return "";
+/**
+ * Форматирует дату и время для отображения
+ */
+export const formatDateTimeForDisplay = (isoString: string) => {
+  if (!isoString) return "";
   try {
-    const date = new Date(dateTime);
-    const timezoneOffset = date.getTimezoneOffset() * 60000;
-    const localDate = new Date(date.getTime() - timezoneOffset);
-    return localDate.toISOString().slice(0, 16);
+    return new Date(isoString).toLocaleString();
   } catch (error) {
-    console.error("Ошибка форматирования даты/времени:", error);
-    return "";
+    console.error("Error formatting datetime:", error);
+    return isoString;
   }
 };

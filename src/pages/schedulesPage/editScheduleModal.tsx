@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import {
   Dialog,
@@ -29,8 +27,10 @@ import { TargetChatSelector } from "./components/targetChatSelector";
 import { useScheduleValidation } from "./helpers/useScheduleValidation";
 import { useScheduleChanges } from "./helpers/useScheduleChanges";
 import {
-  generateCronExpression,
-  formatTimeFromUTC,
+  convertToServerTime,
+  convertToLocalTime,
+  localToServerDatetime,
+  serverToLocalDatetime,
 } from "./helpers/scheduleUtils";
 
 interface EditScheduleModalProps {
@@ -85,6 +85,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   const tooltipMessageBot = "Сначала выберите бота";
 
   React.useEffect(() => {
+    // Инициализация времени при загрузке расписания
     if (schedule.schedule_type === "cron" && schedule.cron_expression) {
       const parts = schedule.cron_expression.split(" ");
       if (parts.length >= 5) {
@@ -93,6 +94,17 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
         );
         setSelectedDays(parts[4].split(",").map(Number));
       }
+    }
+
+    // Конвертация времени из UTC в локальное для отображения
+    if (schedule.time_of_day) {
+      updateField("time_of_day", convertToLocalTime(schedule.time_of_day));
+    }
+    if (schedule.time_to_send) {
+      updateField("time_to_send", convertToLocalTime(schedule.time_to_send));
+    }
+    if (schedule.run_at) {
+      updateField("run_at", serverToLocalDatetime(schedule.run_at));
     }
   }, [schedule]);
 
@@ -177,7 +189,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
     try {
       const changedData = getChangedData();
-
       const dataToUpdate: Partial<IScheduleEdit> = { ...changedData };
 
       const currentScheduleType = getCurrentValue("schedule_type");
@@ -185,31 +196,26 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
         currentScheduleType === "cron" &&
         (changedData.schedule_type || selectedDays.length > 0)
       ) {
-        dataToUpdate.cron_expression = generateCronExpression(
-          cronTime,
-          selectedDays
-        );
+        dataToUpdate.cron_expression = `${cronTime.split(":")[1]} ${
+          cronTime.split(":")[0]
+        } * * ${selectedDays.join(",")}`;
       }
 
-      const currentSendStrategy = getCurrentValue("send_strategy");
-      if (
-        currentSendStrategy === "fixed" &&
-        (changedData.send_strategy || changedData.time_to_send)
-      ) {
-        const timeToSend = getCurrentStringValue("time_to_send");
-        dataToUpdate.time_to_send = timeToSend
-          ? `${formatTimeFromUTC(timeToSend)}:00`
-          : undefined;
+      // Конвертация времени перед отправкой на сервер
+      if (changedData.time_of_day) {
+        dataToUpdate.time_of_day = `${convertToServerTime(
+          changedData.time_of_day
+        )}:00`;
       }
 
-      if (
-        currentScheduleType === "daily_time" &&
-        (changedData.schedule_type || changedData.time_of_day)
-      ) {
-        const timeOfDay = getCurrentStringValue("time_of_day");
-        dataToUpdate.time_of_day = timeOfDay
-          ? `${formatTimeFromUTC(timeOfDay)}:00`
-          : undefined;
+      if (changedData.time_to_send) {
+        dataToUpdate.time_to_send = `${convertToServerTime(
+          changedData.time_to_send
+        )}:00`;
+      }
+
+      if (changedData.run_at) {
+        dataToUpdate.run_at = localToServerDatetime(changedData.run_at);
       }
 
       await onUpdate({
@@ -231,8 +237,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       <DialogTitle>Редактировать расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          {/* Поле компании полностью удалено из интерфейса */}
-
           {renderWithSkeleton(
             renderWithTooltip(
               <FormControl fullWidth required error={!!errors.bot_id}>

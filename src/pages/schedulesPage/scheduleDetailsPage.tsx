@@ -27,6 +27,7 @@ import { useBotMap } from "../../hooks/maps/useBotMap";
 import { EditScheduleModal } from "./editScheduleModal";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
+import { convertToLocalTime } from "./helpers/scheduleUtils";
 
 export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
@@ -80,6 +81,42 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     }
   };
 
+  const formatTimeDisplay = (utcTime: string | undefined) => {
+    if (!utcTime) return "";
+
+    // Удаляем секунды если они есть (формат HH:MM:SS)
+    const timeWithoutSeconds = utcTime.split(":").slice(0, 2).join(":");
+    const localTime = convertToLocalTime(timeWithoutSeconds);
+
+    try {
+      return new Date(`2000-01-01T${localTime}`).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return localTime; // Возвращаем в формате HH:MM если не удалось отформатировать
+    }
+  };
+
+  const formatDateTimeDisplay = (utcDateTime: string | undefined) => {
+    if (!utcDateTime) return "";
+
+    try {
+      const date = new Date(utcDateTime);
+      return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      console.error("Error formatting datetime:", error);
+      return utcDateTime;
+    }
+  };
+
   const handleDelete = async () => {
     if (!scheduleId) return;
 
@@ -96,7 +133,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
     try {
       await toggleScheduleMutation.mutateAsync(scheduleId);
-      refetch(); // Обновляем данные после переключения
+      refetch();
     } catch (error) {
       console.error("Error toggling schedule:", error);
     }
@@ -125,6 +162,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
       </Box>
     );
   }
+
   const showToggleButton = schedule.schedule_type !== "once";
 
   return (
@@ -252,9 +290,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">Время выполнения:</Typography>
             <Typography variant="body1">
-              {new Date(
-                `2000-01-01T${schedule.time_of_day}`
-              ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {formatTimeDisplay(schedule.time_of_day)}
             </Typography>
           </Box>
         )}
@@ -263,7 +299,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">Время выполнения:</Typography>
             <Typography variant="body1">
-              {new Date(schedule.run_at).toLocaleString()}
+              {formatDateTimeDisplay(schedule.run_at)}
             </Typography>
           </Box>
         )}
@@ -286,9 +322,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">Время отправки:</Typography>
             <Typography variant="body1">
-              {new Date(
-                `2000-01-01T${schedule.time_to_send}`
-              ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {formatTimeDisplay(schedule.time_to_send)}
             </Typography>
           </Box>
         )}
@@ -309,7 +343,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">Последний запуск:</Typography>
             <Typography variant="body1">
-              {new Date(schedule.last_run_at).toLocaleString()}
+              {formatDateTimeDisplay(schedule.last_run_at)}
             </Typography>
           </Box>
         )}
@@ -331,7 +365,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1">Дата создания:</Typography>
               <Typography variant="body1">
-                {new Date(schedule.created_at).toLocaleString()}
+                {formatDateTimeDisplay(schedule.created_at)}
               </Typography>
             </Box>
           </>

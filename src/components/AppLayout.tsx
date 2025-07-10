@@ -1,5 +1,5 @@
 // src/components/AppLayout.tsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   AppBar,
   Box,
@@ -44,7 +44,8 @@ import { useAuth } from "../context/authContext";
 import { AddCompanyModal } from "../pages/companiesPage/addCompanyModal";
 import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
-import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import RemoveIcon from "@mui/icons-material/Remove";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 const drawerWidth = 240;
 
 interface AppLayoutProps {
@@ -83,21 +84,30 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   const isHomePage = location.pathname === "/home";
 
-  const menuItems: MenuItem[] = [
-    { text: "Боты", icon: <SmartToy />, path: "/bots" },
-    { text: "Промпты", icon: <Psychology />, path: "/prompts" },
-    { text: "Расписания", icon: <Schedule />, path: "/schedules" },
-    { text: "Анализ", icon: <Analytics />, path: "/analysis" },
-    { text: "Компании", icon: <Business />, path: "/companies" },
-    {
-      text: "Аккаунты и чаты",
-      icon: <Group />,
-      children: [
-        { text: "Аккаунты", icon: <ArrowRightIcon />, path: "/accounts" },
-        { text: "Чаты", icon: <ArrowRightIcon />, path: "/chats" },
-      ],
-    },
-  ];
+  const menuItems = useMemo(() => {
+    const baseItems: MenuItem[] = [
+      { text: "Боты", icon: <SmartToy />, path: "/bots" },
+      { text: "Промпты", icon: <Psychology />, path: "/prompts" },
+      { text: "Расписания", icon: <Schedule />, path: "/schedules" },
+      { text: "Анализ", icon: <Analytics />, path: "/analysis" },
+      { text: "Компании", icon: <Business />, path: "/companies" },
+      {
+        text: "Аккаунты и чаты",
+        icon: <RemoveIcon />,
+        children: [
+          { text: "Аккаунты", icon: <Group />, path: "/accounts" },
+          { text: "Чаты", icon: <QuestionAnswerIcon />, path: "/chats" },
+        ],
+      },
+    ];
+
+    // Если пользователь не суперадмин и у него нет доступных компаний
+    if (!isSuperadmin && availableCompanies.length === 0) {
+      return baseItems.filter((item) => item.text === "Компании");
+    }
+
+    return baseItems;
+  }, [isSuperadmin, availableCompanies.length]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

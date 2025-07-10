@@ -1,10 +1,13 @@
-import type React from "react";
-import { TextField } from "@mui/material";
-import { formatTimeFromUTC } from "../helpers/scheduleUtils";
+import React from "react";
+import { TextField, Typography } from "@mui/material";
+import {
+  convertToServerTime,
+  convertToLocalTime,
+} from "../helpers/scheduleUtils";
 
 interface SendStrategyFieldsProps {
   sendStrategy: "fixed" | "relative";
-  timeToSend?: string;
+  timeToSend?: string; // В формате HH:MM (локальное время пользователя)
   sendAfterMinutes?: string;
   errors: Record<string, string>;
   disabled?: boolean;
@@ -21,27 +24,18 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
   tooltipMessage,
   onFieldChange,
 }) => {
-  const renderWithTooltip = (element: React.ReactElement) => {
-    return disabled && tooltipMessage ? (
-      <div title={tooltipMessage}>{element}</div>
-    ) : (
-      element
-    );
-  };
-
-  // Обработчик изменений с валидацией числовых значений
+  // Обработчик изменений для числовых полей
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
 
-    // Разрешаем пустую строку или только цифры (целые положительные числа)
+    // Разрешаем только цифры или пустую строку
     if (value === "" || /^\d+$/.test(value)) {
       onFieldChange(e);
     }
   };
 
-  // Обработчик нажатия клавиш для блокировки нецифровых символов
+  // Блокировка нечисловых символов
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Разрешаем: цифры (0-9), Backspace, Delete, Tab, Escape, Enter, стрелки
     const allowedKeys = [
       "Backspace",
       "Delete",
@@ -56,38 +50,34 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
       "End",
     ];
 
-    // Разрешаем Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
     if (e.ctrlKey && ["a", "c", "v", "x", "z"].includes(e.key.toLowerCase())) {
       return;
     }
 
-    // Если это не разрешенная клавиша и не цифра, блокируем
     if (!allowedKeys.includes(e.key) && !/^[0-9]$/.test(e.key)) {
       e.preventDefault();
     }
   };
 
-  // Обработчик вставки из буфера обмена
+  // Проверка вставляемого текста
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData("text");
-
-    // Проверяем, содержит ли вставляемый текст только цифры
     if (!/^\d*$/.test(pastedText)) {
       e.preventDefault();
     }
   };
 
   if (sendStrategy === "fixed") {
-    return renderWithTooltip(
+    return (
       <TextField
         fullWidth
         label="Время отправки (HH:MM)"
         name="time_to_send"
         type="time"
-        value={formatTimeFromUTC(timeToSend)}
+        value={timeToSend || ""} // Отображаем как есть (локальное время)
         onChange={onFieldChange}
         error={!!errors.time_to_send}
-        helperText={errors.time_to_send}
+        helperText={errors.time_to_send || "Локальное время пользователя"}
         required
         InputLabelProps={{ shrink: true }}
         disabled={disabled}
@@ -99,7 +89,7 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
   }
 
   if (sendStrategy === "relative") {
-    return renderWithTooltip(
+    return (
       <TextField
         fullWidth
         label="Отправить через (минуты)"
