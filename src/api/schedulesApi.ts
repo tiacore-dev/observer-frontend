@@ -5,6 +5,7 @@ export interface ISchedule {
   chat_id: number;
   prompt_id: string;
   company_id: string;
+  message_intro?: string;
   schedule_type: "interval" | "cron" | "once" | "daily_time";
   interval_hours?: number;
   interval_minutes?: number;
@@ -27,6 +28,7 @@ export interface IscheduleCreate {
   schedule_type: "interval" | "cron" | "once" | "daily_time";
   company_id: string;
   target_chats: number[];
+  message_intro?: string;
   bot_id: number;
   send_strategy: "fixed" | "relative";
   interval_hours?: number;
@@ -46,6 +48,7 @@ export interface IScheduleEdit {
   target_chats: number[];
   removed_chats: number[];
   bot_id: number;
+  message_intro?: string;
   send_strategy: "fixed" | "relative";
   interval_hours?: number;
   interval_minutes?: number;
