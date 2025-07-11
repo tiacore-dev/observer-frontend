@@ -252,7 +252,12 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             {botMap.get(schedule.bot_id.toString()) || schedule.bot_id}
           </Typography>
         </Box>
-
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle1">Шапка сообщения:</Typography>
+          <Typography variant="body1">
+            {schedule.message_intro || "-"}
+          </Typography>
+        </Box>
         {schedule.target_chats && schedule.target_chats.length > 0 && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">Целевые чаты:</Typography>

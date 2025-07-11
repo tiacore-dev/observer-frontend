@@ -13,6 +13,7 @@ import {
   Typography,
   CircularProgress,
   Tooltip,
+  TextField,
 } from "@mui/material";
 import type { ISchedule, IScheduleEdit } from "../../api/schedulesApi";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
@@ -178,6 +179,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       time_to_send: getCurrentStringValue("time_to_send"),
       send_after_minutes: getCurrentNumberValue("send_after_minutes"),
       company_id: getCurrentStringValue("company_id"),
+      message_intro: getCurrentStringValue("message_intro") || undefined,
     };
 
     if (!validateFields(dataForValidation, selectedDays, cronTime)) return;
@@ -322,6 +324,24 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
               tooltipMessageCompany
             ),
             isLoadingPromptMap
+          )}
+
+          {renderWithSkeleton(
+            <TextField
+              name="message_intro"
+              label="Шапка сообщения"
+              value={getCurrentStringValue("message_intro") || ""}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={3}
+              inputProps={{ maxLength: 255 }}
+              helperText={`${
+                getCurrentStringValue("message_intro")?.length || 0
+              }/255 символов`}
+              sx={{ mt: 2 }}
+            />,
+            isLoadingChatsMap
           )}
 
           {renderWithSkeleton(

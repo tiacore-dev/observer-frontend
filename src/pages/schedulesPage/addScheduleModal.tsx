@@ -13,6 +13,7 @@ import {
   MenuItem,
   Typography,
   Tooltip,
+  TextField,
 } from "@mui/material";
 import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
@@ -196,6 +197,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       chat_id: scheduleData.chat_id,
       prompt_id: scheduleData.prompt_id,
       company_id: scheduleData.company_id,
+      message_intro: scheduleData.message_intro || undefined,
+
       schedule_type: scheduleData.schedule_type,
       target_chats: scheduleData.target_chats,
       bot_id: scheduleData.bot_id,
@@ -270,6 +273,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
           scheduleData.send_after_minutes
             ? Number(scheduleData.send_after_minutes)
             : undefined,
+        message_intro: scheduleData.message_intro || undefined,
       });
 
       onClose();
@@ -421,7 +425,22 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               tooltipMessageCompany
             )
           )}
-
+          {isLoadingChatsMap ? (
+            <SelectSkeleton />
+          ) : (
+            <TextField
+              name="message_intro"
+              label="Шапка сообщения"
+              value={scheduleData.message_intro}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={3}
+              inputProps={{ maxLength: 255 }}
+              helperText={`${scheduleData.message_intro.length}/255 символов`}
+              sx={{ mt: 2 }}
+            />
+          )}
           {isLoadingChatsMap ? (
             <SelectSkeleton />
           ) : (

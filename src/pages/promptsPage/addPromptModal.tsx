@@ -70,10 +70,10 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
     if (Object.values(newErrors).some((e) => e)) return;
 
     // Добавляем логирование для отладки
-    console.log("Отправляемые данные:", {
-      ...promptData,
-      textLength: promptData.text.length,
-    });
+    // console.log("Отправляемые данные:", {
+    //   ...promptData,
+    //   textLength: promptData.text.length,
+    // });
 
     try {
       await createPrompt.mutateAsync(promptData);

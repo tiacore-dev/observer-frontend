@@ -7,6 +7,8 @@ interface ValidationData {
   chat_id?: string | number;
   prompt_id?: string;
   company_id?: string;
+  message_intro?: string; //0-255
+
   target_chats: number[];
   schedule_type: "interval" | "cron" | "once" | "daily_time";
   interval_hours?: string | number;
@@ -36,7 +38,10 @@ export const useScheduleValidation = () => {
     if (!data.company_id) newErrors.company_id = "Компания обязательна";
     if (data.target_chats.length === 0)
       newErrors.target_chats = "Необходимо выбрать хотя бы один чат";
-
+    if (data.message_intro && data.message_intro.length > 255) {
+      errors.message_intro = "Максимальная длина - 255 символов";
+      // isValid = false;
+    }
     // Проверки для типа расписания
     if (data.schedule_type === "interval") {
       const hours =

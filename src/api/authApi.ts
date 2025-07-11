@@ -73,3 +73,23 @@ export const refreshToken = async (): Promise<string | null> => {
     return null;
   }
 };
+
+export const resetPasswordRequest = async (email: string) => {
+  const url = process.env.REACT_APP_API_URL;
+  const application_id = process.env.REACT_APP_ID;
+  if (!url) throw new Error("REACT_APP_API_URL is not defined");
+  await axiosInstance.post(`${url}/api/reset-password`, {
+    email,
+    application_id,
+  });
+};
+// /api/reset-verify
+// token (query)
+//   "password":"string"
+export const resetPassword = async (password: string, token: string) => {
+  const url = process.env.REACT_APP_API_URL;
+  if (!url) throw new Error("REACT_APP_API_URL is not defined");
+  await axiosInstance.post(`${url}/api/reset-verify?token=${token}`, {
+    password,
+  });
+};

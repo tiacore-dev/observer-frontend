@@ -102,7 +102,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                 label="Компания"
               />
             )}
-            <TableCell sx={{ width: "15%" }}>Токены (in/out)</TableCell>
+            {/* <TableCell sx={{ width: "15%" }}>Токены (in/out)</TableCell> */}
             {developerMode && (
               <SortableTableHeader<SortField>
                 field="created_at"
