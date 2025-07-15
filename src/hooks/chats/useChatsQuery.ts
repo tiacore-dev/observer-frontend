@@ -1,5 +1,7 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
-import { fetchChats, IChat } from "../../api/chatsApi";
+import { fetchChats, type IChat } from "../../api/chatsApi";
 import { useAuth } from "../../context/authContext";
 
 export interface IChatsResponse {
@@ -18,7 +20,7 @@ export const useChatsQuery = (
     queryFn: () => fetchChats(bot_id, company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: bot_id !== undefined, // Добавляем условие enabled
+    enabled: !!bot_id && !!(company_id || selectedCompanyId), // Включаем запрос только если есть bot_id и company_id
   });
 };
 
@@ -31,5 +33,6 @@ export const useChatsSelectQuery = (company_id?: string) => {
     queryFn: () => fetchChats(undefined, company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     retry: false,
+    enabled: !!(company_id || selectedCompanyId), // Включаем запрос только если есть company_id
   });
 };

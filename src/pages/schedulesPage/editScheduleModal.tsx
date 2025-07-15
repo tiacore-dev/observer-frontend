@@ -21,7 +21,7 @@ import type { ISchedule, IScheduleEdit } from "../../api/schedulesApi";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useBotMap } from "../../hooks/maps/useBotMap";
 import { usePromptMap } from "../../hooks/maps/usePromptMap";
-import { useChatMap } from "../../hooks/maps/useChatMap";
+import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
 import { ScheduleTypeFields } from "./components/scheduleTypeFields";
@@ -35,6 +35,7 @@ import {
   localToServerDatetime,
   serverToLocalDatetime,
   generateCronExpressionWithTimeConversion,
+  parseCronExpression,
 } from "./helpers/scheduleUtils";
 
 interface EditScheduleModalProps {
@@ -79,8 +80,18 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   const { promptMap, isLoadingPromptMap } = usePromptMap(
     getCurrentStringValue("company_id")
   );
-  const { chatMap, isLoadingChatsMap } = useChatMap(
+
+  // Используем новый хук для чатов с правильной фильтрацией
+  const { data: chatsData, isLoading: isLoadingChatsMap } = useChatsQuery(
+    getCurrentValue("bot_id") ? Number(getCurrentValue("bot_id")) : undefined,
     getCurrentStringValue("company_id")
+  );
+
+  const chatMap = new Map(
+    chatsData?.chats?.map((chat) => [
+      chat.chat_id,
+      chat.chat_name || `Chat ${chat.chat_id}`,
+    ]) || []
   );
 
   const isCompanySelected = !!getCurrentStringValue("company_id");
@@ -91,17 +102,9 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   React.useEffect(() => {
     // Инициализация времени при загрузке расписания
     if (schedule.schedule_type === "cron" && schedule.cron_expression) {
-      const parts = schedule.cron_expression.split(" ");
-      if (parts.length >= 5) {
-        // Время в cron выражении уже в UTC, конвертируем в локальное для отображения
-        const utcTime = `${parts[1].padStart(2, "0")}:${parts[0].padStart(
-          2,
-          "0"
-        )}`;
-        const localTime = convertToLocalTime(utcTime);
-        setCronTime(localTime);
-        setSelectedDays(parts[4].split(",").map(Number));
-      }
+      const { localTime, days } = parseCronExpression(schedule.cron_expression);
+      setCronTime(localTime);
+      setSelectedDays(days);
     }
 
     // Конвертация времени из UTC в локальное для отображения
@@ -247,6 +250,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       <DialogTitle>Редактировать расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+          {/* Поле бота */}
           {renderWithSkeleton(
             renderWithTooltip(
               <FormControl fullWidth required error={!!errors.bot_id}>
@@ -276,6 +280,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             isLoadingBotMap
           )}
 
+          {/* Поле анализируемого чата */}
           {renderWithSkeleton(
             renderWithTooltip(
               <FormControl fullWidth required error={!!errors.chat_id}>
@@ -305,6 +310,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             isLoadingChatsMap
           )}
 
+          {/* Поле промпта */}
           {renderWithSkeleton(
             renderWithTooltip(
               <FormControl fullWidth required error={!!errors.prompt_id}>
@@ -334,6 +340,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             isLoadingPromptMap
           )}
 
+          {/* Поле шапки сообщения */}
           {renderWithSkeleton(
             <TextField
               name="message_intro"
@@ -352,6 +359,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             isLoadingChatsMap
           )}
 
+          {/* Селектор целевых чатов */}
           {renderWithSkeleton(
             <TargetChatSelector
               chatMap={chatMap}
@@ -366,6 +374,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             isLoadingChatsMap
           )}
 
+          {/* Тип расписания */}
           <FormControl fullWidth>
             <InputLabel>Тип расписания</InputLabel>
             <Select
@@ -381,6 +390,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             </Select>
           </FormControl>
 
+          {/* Поля для типа расписания */}
           <ScheduleTypeFields
             scheduleType={getCurrentValue("schedule_type")}
             intervalHours={getCurrentNumberAsString("interval_hours")}
@@ -395,6 +405,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             onToggleDay={toggleDaySelection}
           />
 
+          {/* Стратегия отправки */}
           <FormControl fullWidth>
             <InputLabel>Стратегия отправки</InputLabel>
             <Select
@@ -410,6 +421,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             </Select>
           </FormControl>
 
+          {/* Поля для стратегии отправки */}
           <SendStrategyFields
             sendStrategy={getCurrentValue("send_strategy")}
             timeToSend={getCurrentStringValue("time_to_send")}
@@ -418,6 +430,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             onFieldChange={handleChange}
           />
 
+          {/* Статус */}
           <FormControl fullWidth>
             <InputLabel>Статус</InputLabel>
             <Select

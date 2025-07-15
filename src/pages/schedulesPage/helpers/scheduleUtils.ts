@@ -156,3 +156,21 @@ export const generateCronExpressionWithTimeConversion = (
 
   return `${minutes} ${hours} * * ${selectedDays.join(",")}`;
 };
+
+/**
+ * Парсит cron выражение и возвращает время в локальном часовом поясе
+ * @param cronExpression - cron выражение
+ * @returns объект с локальным временем и днями недели
+ */
+export const parseCronExpression = (
+  cronExpression: string
+): { localTime: string; days: number[] } => {
+  const parts = cronExpression.split(" ");
+  if (parts.length >= 5) {
+    const utcTime = `${parts[1].padStart(2, "0")}:${parts[0].padStart(2, "0")}`;
+    const localTime = convertToLocalTime(utcTime);
+    const days = parts[4].split(",").map(Number);
+    return { localTime, days };
+  }
+  return { localTime: "09:00", days: [1, 2, 3, 4, 5] };
+};

@@ -21,7 +21,7 @@ import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useBotMap } from "../../hooks/maps/useBotMap";
 import { usePromptMap } from "../../hooks/maps/usePromptMap";
-import { useChatMap } from "../../hooks/maps/useChatMap";
+import { useChatsQuery } from "../../hooks/chats/useChatsQuery";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
 import { ScheduleTypeFields } from "./components/scheduleTypeFields";
@@ -51,7 +51,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   const [scheduleData, setScheduleData] = useState({
     chat_id: "",
     prompt_id: "",
-    company_id: "",
+    company_id: isSuperadmin ? "" : selectedCompanyId || "",
     schedule_type: "interval" as ScheduleType,
     interval_hours: "",
     interval_minutes: "",
@@ -84,12 +84,25 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     }
   }, [isSuperadmin, selectedCompanyId]);
 
+  // Хуки для загрузки данных
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { botMap, isLoadingBotMap } = useBotMap(scheduleData.company_id);
   const { promptMap, isLoadingPromptMap } = usePromptMap(
     scheduleData.company_id
   );
-  const { chatMap, isLoadingChatsMap } = useChatMap(scheduleData.company_id);
+
+  // Используем новый хук для чатов с правильной фильтрацией
+  const { data: chatsData, isLoading: isLoadingChatsMap } = useChatsQuery(
+    scheduleData.bot_id ? Number(scheduleData.bot_id) : undefined,
+    scheduleData.company_id
+  );
+
+  const chatMap = new Map(
+    chatsData?.chats?.map((chat) => [
+      chat.chat_id,
+      chat.chat_name || `Chat ${chat.chat_id}`,
+    ]) || []
+  );
 
   const isCompanySelected = !!scheduleData.company_id;
   const isBotSelected = !!scheduleData.bot_id;
@@ -200,7 +213,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       prompt_id: scheduleData.prompt_id,
       company_id: scheduleData.company_id,
       message_intro: scheduleData.message_intro || undefined,
-
       schedule_type: scheduleData.schedule_type,
       target_chats: scheduleData.target_chats,
       bot_id: scheduleData.bot_id,
@@ -279,10 +291,11 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       });
 
       onClose();
+      // Сброс формы
       setScheduleData({
         chat_id: "",
         prompt_id: "",
-        company_id: "",
+        company_id: isSuperadmin ? "" : selectedCompanyId || "",
         schedule_type: "interval",
         interval_hours: "",
         interval_minutes: "",
@@ -315,7 +328,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       <DialogTitle>Добавить новое расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          {isSuperadmin ? (
+          {/* Поле компании только для суперадминов */}
+          {isSuperadmin && (
             <FormControl fullWidth required error={!!errors.company_id}>
               <InputLabel>Компания</InputLabel>
               <Select
@@ -336,8 +350,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 </Typography>
               )}
             </FormControl>
-          ) : null}
+          )}
 
+          {/* Поле бота */}
           {isLoadingBotMap ? (
             <SelectSkeleton />
           ) : (
@@ -368,6 +383,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             )
           )}
 
+          {/* Поле анализируемого чата */}
           {isLoadingChatsMap ? (
             <SelectSkeleton />
           ) : (
@@ -398,6 +414,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             )
           )}
 
+          {/* Поле промпта */}
           {isLoadingPromptMap ? (
             <SelectSkeleton />
           ) : (
@@ -427,37 +444,34 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               tooltipMessageCompany
             )
           )}
-          {isLoadingChatsMap ? (
-            <SelectSkeleton />
-          ) : (
-            <TextField
-              name="message_intro"
-              label="Шапка сообщения"
-              value={scheduleData.message_intro}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={3}
-              inputProps={{ maxLength: 255 }}
-              helperText={`${scheduleData.message_intro.length}/255 символов`}
-              sx={{ mt: 2 }}
-            />
-          )}
-          {isLoadingChatsMap ? (
-            <SelectSkeleton />
-          ) : (
-            <TargetChatSelector
-              chatMap={chatMap}
-              selectedChats={scheduleData.target_chats}
-              onChatToggle={handleChatToggle}
-              disabled={!isCompanySelected || !isBotSelected}
-              error={errors.target_chats}
-              tooltipMessage={
-                !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
-              }
-            />
-          )}
 
+          {/* Поле шапки сообщения */}
+          <TextField
+            name="message_intro"
+            label="Шапка сообщения"
+            value={scheduleData.message_intro}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            rows={3}
+            inputProps={{ maxLength: 255 }}
+            helperText={`${scheduleData.message_intro.length}/255 символов`}
+            sx={{ mt: 2 }}
+          />
+
+          {/* Селектор целевых чатов */}
+          <TargetChatSelector
+            chatMap={chatMap}
+            selectedChats={scheduleData.target_chats}
+            onChatToggle={handleChatToggle}
+            disabled={!isCompanySelected || !isBotSelected}
+            error={errors.target_chats}
+            tooltipMessage={
+              !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
+            }
+          />
+
+          {/* Тип расписания */}
           {renderWithTooltip(
             <FormControl fullWidth required>
               <InputLabel>Тип расписания</InputLabel>
@@ -478,6 +492,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             tooltipMessageCompany
           )}
 
+          {/* Поля для типа расписания */}
           <ScheduleTypeFields
             scheduleType={scheduleData.schedule_type}
             intervalHours={scheduleData.interval_hours}
@@ -494,6 +509,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             onToggleDay={toggleDaySelection}
           />
 
+          {/* Стратегия отправки */}
           {renderWithTooltip(
             <FormControl fullWidth required>
               <InputLabel>Стратегия отправки</InputLabel>
@@ -514,6 +530,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             tooltipMessageCompany
           )}
 
+          {/* Поля для стратегии отправки */}
           <SendStrategyFields
             sendStrategy={scheduleData.send_strategy}
             timeToSend={scheduleData.time_to_send}
@@ -524,6 +541,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             onFieldChange={handleChange}
           />
 
+          {/* Статус */}
           {renderWithTooltip(
             <FormControl fullWidth>
               <InputLabel>Статус</InputLabel>
