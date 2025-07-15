@@ -27,7 +27,7 @@ import { useBotMap } from "../../hooks/maps/useBotMap";
 import { EditScheduleModal } from "./editScheduleModal";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
-import { convertToLocalTime } from "./helpers/scheduleUtils";
+import { daysOfWeek, convertToLocalTime } from "./helpers/scheduleUtils";
 
 export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
@@ -80,6 +80,52 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
         return strategy;
     }
   };
+
+  // Добавьте эту функцию в ваш файл scheduleDetailsPage.tsx
+  const formatCronExpressionForDisplay = (cronExpression: string) => {
+    if (!cronExpression) return "";
+
+    try {
+      const parts = cronExpression.split(" ");
+      if (parts.length < 5) return cronExpression;
+
+      // Получаем минуты и часы из cron выражения (они в UTC)
+      const utcMinutes = parts[0];
+      const utcHours = parts[1];
+      const days = parts[4];
+
+      // Конвертируем UTC время в локальное
+      const utcTime = `${utcHours.padStart(2, "0")}:${utcMinutes.padStart(
+        2,
+        "0"
+      )}`;
+      const localTime = convertToLocalTime(utcTime);
+
+      // Преобразуем дни недели в читаемый формат
+      const dayNumbers = days.split(",").map(Number);
+      const dayNames = dayNumbers.map((dayNum) => {
+        const day = daysOfWeek.find((d) => d.id === dayNum);
+        return day ? day.name : dayNum;
+      });
+
+      return `${dayNames.join(", ")} в ${localTime}`;
+    } catch (error) {
+      console.error("Error formatting cron expression:", error);
+      return cronExpression;
+    }
+  };
+
+  // // Затем в JSX замените отображение cron выражения:
+  // {
+  //   schedule.schedule_type === "cron" && schedule.cron_expression && (
+  //     <Box sx={{ mt: 2 }}>
+  //       <Typography variant="subtitle1">Расписание:</Typography>
+  //       <Typography variant="body1">
+  //         {formatCronExpressionForDisplay(schedule.cron_expression)}
+  //       </Typography>
+  //     </Box>
+  //   );
+  // }
 
   const formatTimeDisplay = (utcTime: string | undefined) => {
     if (!utcTime) return "";
@@ -311,10 +357,19 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
         {schedule.schedule_type === "cron" && schedule.cron_expression && (
           <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1">Расписание:</Typography>
+            <Typography variant="body1">
+              {formatCronExpressionForDisplay(schedule.cron_expression!)}
+            </Typography>
+          </Box>
+        )}
+
+        {/* {schedule.schedule_type === "cron" && schedule.cron_expression && (
+          <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">Cron выражение:</Typography>
             <Typography variant="body1">{schedule.cron_expression}</Typography>
           </Box>
-        )}
+        )} */}
 
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Стратегия отправки:</Typography>
