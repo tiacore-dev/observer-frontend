@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Dialog,
@@ -32,6 +34,7 @@ import {
   convertToLocalTime,
   localToServerDatetime,
   serverToLocalDatetime,
+  generateCronExpressionWithTimeConversion,
 } from "./helpers/scheduleUtils";
 
 interface EditScheduleModalProps {
@@ -90,9 +93,13 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     if (schedule.schedule_type === "cron" && schedule.cron_expression) {
       const parts = schedule.cron_expression.split(" ");
       if (parts.length >= 5) {
-        setCronTime(
-          `${parts[1].padStart(2, "0")}:${parts[0].padStart(2, "0")}`
-        );
+        // Время в cron выражении уже в UTC, конвертируем в локальное для отображения
+        const utcTime = `${parts[1].padStart(2, "0")}:${parts[0].padStart(
+          2,
+          "0"
+        )}`;
+        const localTime = convertToLocalTime(utcTime);
+        setCronTime(localTime);
         setSelectedDays(parts[4].split(",").map(Number));
       }
     }
@@ -198,9 +205,10 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
         currentScheduleType === "cron" &&
         (changedData.schedule_type || selectedDays.length > 0)
       ) {
-        dataToUpdate.cron_expression = `${cronTime.split(":")[1]} ${
-          cronTime.split(":")[0]
-        } * * ${selectedDays.join(",")}`;
+        dataToUpdate.cron_expression = generateCronExpressionWithTimeConversion(
+          cronTime,
+          selectedDays
+        );
       }
 
       // Конвертация времени перед отправкой на сервер

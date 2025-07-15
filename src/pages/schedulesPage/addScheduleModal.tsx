@@ -1,3 +1,5 @@
+"use client";
+
 import type React from "react";
 import { useState, useEffect } from "react";
 import {
@@ -30,7 +32,7 @@ import { useAuth } from "../../context/authContext";
 import {
   convertToServerTime,
   localToServerDatetime,
-  generateCronExpression,
+  generateCronExpressionWithTimeConversion,
 } from "./helpers/scheduleUtils";
 
 interface AddScheduleModalProps {
@@ -93,6 +95,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   const isBotSelected = !!scheduleData.bot_id;
   const tooltipMessageCompany = "Сначала выберите компанию";
   const tooltipMessageBot = "Сначала выберите бота";
+
   const renderWithTooltip = (
     element: React.ReactElement,
     condition: boolean,
@@ -253,7 +256,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             : undefined,
         cron_expression:
           scheduleData.schedule_type === "cron"
-            ? generateCronExpression(cronTime, selectedDays)
+            ? generateCronExpressionWithTimeConversion(cronTime, selectedDays)
             : undefined,
         run_at:
           scheduleData.schedule_type === "once" && serverRunAt

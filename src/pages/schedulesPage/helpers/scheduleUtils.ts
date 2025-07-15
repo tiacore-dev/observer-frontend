@@ -25,50 +25,55 @@ export const getTimezoneOffset = () => new Date().getTimezoneOffset();
 
 /**
  * Конвертирует время из формата HH:MM в UTC для сервера
- * @param localTime Время в локальном формате (например, "14:00")
- * @returns Время в UTC формате (например, "11:00" для GMT+3)
+ * @param localTime Время в локальном формате (например, "16:00")
+ * @returns Время в UTC формате (например, "09:00" для UTC+7)
  */
 export const convertToServerTime = (localTime: string) => {
   if (!localTime) return "";
 
-  const offset = getTimezoneOffset();
+  const offset = getTimezoneOffset(); // Для UTC+7 вернет -420 (минус 7 часов)
   const [hours, minutes] = localTime.split(":");
 
-  // Вычисляем общее количество минут с учетом смещения
-  const totalMinutes = parseInt(hours) * 60 + parseInt(minutes) - offset;
+  // Вычисляем общее количество минут
+  const totalMinutes = Number.parseInt(hours) * 60 + Number.parseInt(minutes);
+
+  // Конвертируем в UTC: добавляем offset (для UTC+7 offset = -420, поэтому добавляем -420, что равно вычитанию 420)
+  const utcMinutes = totalMinutes + offset;
 
   // Корректируем отрицательные значения и переход через полночь
-  const adjustedMinutes = (totalMinutes + 1440) % 1440; // 1440 минут в сутках
+  const adjustedMinutes = (utcMinutes + 1440) % 1440; // 1440 минут в сутках
   const utcHours = Math.floor(adjustedMinutes / 60);
-  const utcMinutes = adjustedMinutes % 60;
+  const utcMinutesRemainder = adjustedMinutes % 60;
 
-  return `${String(utcHours).padStart(2, "0")}:${String(utcMinutes).padStart(
-    2,
-    "0"
-  )}`;
+  return `${String(utcHours).padStart(2, "0")}:${String(
+    utcMinutesRemainder
+  ).padStart(2, "0")}`;
 };
 
 /**
  * Конвертирует серверное время (UTC) в локальный формат
- * @param serverTime Время в UTC формате (например, "11:00")
- * @returns Время в локальном формате (например, "14:00" для GMT+3)
+ * @param serverTime Время в UTC формате (например, "09:00")
+ * @returns Время в локальном формате (например, "16:00" для UTC+7)
  */
 export const convertToLocalTime = (serverTime: string) => {
   if (!serverTime) return "";
 
-  const offset = getTimezoneOffset();
+  const offset = getTimezoneOffset(); // Для UTC+7 вернет -420
   const [hours, minutes] = serverTime.split(":");
 
-  // Вычисляем общее количество минут с учетом смещения
-  const totalMinutes = parseInt(hours) * 60 + parseInt(minutes) + offset;
+  // Вычисляем общее количество минут UTC времени
+  const totalMinutes = Number.parseInt(hours) * 60 + Number.parseInt(minutes);
+
+  // Конвертируем в локальное время: вычитаем offset (для UTC+7 offset = -420, поэтому вычитаем -420, что равно добавлению 420)
+  const localMinutes = totalMinutes - offset;
 
   // Корректируем отрицательные значения и переход через полночь
-  const adjustedMinutes = (totalMinutes + 1440) % 1440;
+  const adjustedMinutes = (localMinutes + 1440) % 1440;
   const localHours = Math.floor(adjustedMinutes / 60);
-  const localMinutes = adjustedMinutes % 60;
+  const localMinutesRemainder = adjustedMinutes % 60;
 
   return `${String(localHours).padStart(2, "0")}:${String(
-    localMinutes
+    localMinutesRemainder
   ).padStart(2, "0")}`;
 };
 
@@ -103,7 +108,7 @@ export const formatDisplayTime = (time: string) => {
   try {
     const [hours, minutes] = time.split(":");
     const date = new Date();
-    date.setHours(parseInt(hours), parseInt(minutes));
+    date.setHours(Number.parseInt(hours), Number.parseInt(minutes));
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   } catch (error) {
     console.error("Error formatting time:", error);
@@ -131,4 +136,23 @@ export const formatDateTimeForDisplay = (isoString: string) => {
     console.error("Error formatting datetime:", error);
     return isoString;
   }
+};
+
+/**
+ * Генерирует cron выражение с конвертацией времени в UTC
+ * @param localTime Время в локальном формате (например, "16:00")
+ * @param selectedDays Выбранные дни недели
+ * @returns Cron выражение с UTC временем
+ */
+export const generateCronExpressionWithTimeConversion = (
+  localTime: string,
+  selectedDays: number[]
+) => {
+  if (!localTime || selectedDays.length === 0) return "";
+
+  // Конвертируем время в UTC
+  const utcTime = convertToServerTime(localTime);
+  const [hours, minutes] = utcTime.split(":");
+
+  return `${minutes} ${hours} * * ${selectedDays.join(",")}`;
 };
