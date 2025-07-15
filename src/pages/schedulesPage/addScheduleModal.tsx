@@ -93,7 +93,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   const isBotSelected = !!scheduleData.bot_id;
   const tooltipMessageCompany = "Сначала выберите компанию";
   const tooltipMessageBot = "Сначала выберите бота";
-
   const renderWithTooltip = (
     element: React.ReactElement,
     condition: boolean,
