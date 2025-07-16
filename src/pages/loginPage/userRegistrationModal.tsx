@@ -52,7 +52,6 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
     setShowConfirmPassword((show) => !show);
 
   const onSubmit = (data: FormData) => {
-    // Удаляем confirmPassword перед отправкой, так как он нужен только для валидации
     const { confirmPassword, ...userData } = data;
     registerMutation.mutate(userData, {
       onSuccess: () => {
@@ -72,6 +71,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
           component="form"
           onSubmit={handleSubmit(onSubmit)}
           sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+          autoComplete="off" // Отключаем автозаполнение для всей формы
         >
           <Controller
             name="email"
@@ -90,6 +90,13 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                 label="Email"
                 error={!!errors.email}
                 helperText={errors.email?.message}
+                autoComplete="new-email" // Специальное значение для email
+                inputProps={{
+                  autocomplete: "new-email", // Дублируем для надежности
+                  autocorrect: "off",
+                  autocapitalize: "none",
+                  spellcheck: "false",
+                }}
               />
             )}
           />
@@ -112,6 +119,13 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                 label="Пароль"
                 error={!!errors.password}
                 helperText={errors.password?.message}
+                autoComplete="new-password" // Лучшее значение для паролей
+                inputProps={{
+                  autocomplete: "new-password",
+                  autocorrect: "off",
+                  autocapitalize: "none",
+                  spellcheck: "false",
+                }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -144,6 +158,13 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                 label="Подтвердите пароль"
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword?.message}
+                autoComplete="new-password" // Также new-password для подтверждения
+                inputProps={{
+                  autocomplete: "new-password",
+                  autocorrect: "off",
+                  autocapitalize: "none",
+                  spellcheck: "false",
+                }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -176,6 +197,13 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                 label="Полное имя"
                 error={!!errors.full_name}
                 helperText={errors.full_name?.message}
+                autoComplete="off"
+                inputProps={{
+                  autocomplete: "off",
+                  autocorrect: "off",
+                  autocapitalize: "words",
+                  spellcheck: "false",
+                }}
               />
             )}
           />
@@ -184,7 +212,17 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
             name="position"
             control={control}
             render={({ field }) => (
-              <TextField {...field} fullWidth label="Должность" />
+              <TextField 
+                {...field} 
+                fullWidth 
+                label="Должность" 
+                autoComplete="off"
+                inputProps={{
+                  autocomplete: "off",
+                  autocorrect: "off",
+                  spellcheck: "false",
+                }}
+              />
             )}
           /> */}
         </Box>
