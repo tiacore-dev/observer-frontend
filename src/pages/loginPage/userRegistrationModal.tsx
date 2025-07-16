@@ -185,7 +185,6 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
               />
             )}
           />
-
           <Controller
             name="full_name"
             control={control}
