@@ -2,63 +2,63 @@ import { axiosInstance } from "../axiosConfig";
 
 export interface ISchedule {
   schedule_id: string;
-  chat_id: number;
-  prompt_id: string;
+  schedule_strategy: "analysis" | "notification";
+  notification_text?: string;
+  chat_id?: number;
+  prompt_id?: string;
   company_id: string;
-  message_intro?: string; //0-255
-  schedule_type: "interval" | "cron" | "once" | "daily_time";
+  schedule_type: "interval" | "cron";
+  message_intro?: string;
   interval_hours?: number;
   interval_minutes?: number;
-  time_of_day?: string;
   cron_expression?: string;
-  run_at?: string;
   enabled: boolean;
   last_run_at?: string;
   created_at: string;
-  send_strategy: "fixed" | "relative";
+  send_strategy?: "fixed" | "relative";
   time_to_send?: string;
   send_after_minutes?: number;
   bot_id: number;
   target_chats: number[];
 }
 
-export interface IscheduleCreate {
-  chat_id: number;
-  prompt_id: string;
-  schedule_type: "interval" | "cron" | "once" | "daily_time";
-  company_id: string;
-  target_chats: number[];
-  message_intro?: string; //0-255
-  bot_id: number;
-  send_strategy: "fixed" | "relative";
+export interface IScheduleCreate {
+  schedule_strategy: "analysis" | "notification";
+  chat_id?: number;
+  prompt_id?: string;
+  schedule_type: "interval" | "cron";
+  notification_text?: string;
+  message_intro?: string;
   interval_hours?: number;
   interval_minutes?: number;
-  time_of_day?: string;
   cron_expression?: string;
-  run_at?: string;
+  company_id: string;
+  target_chats: number[];
+  bot_id: number;
   enabled?: boolean;
+  send_strategy?: "fixed" | "relative";
   time_to_send?: string;
   send_after_minutes?: number;
 }
 
 export interface IScheduleEdit {
-  chat_id: number;
-  prompt_id: string;
-  schedule_type: "interval" | "cron" | "once" | "daily_time";
-  target_chats: number[];
-  removed_chats: number[];
-  bot_id: number;
-  message_intro?: string; //0-255
-  send_strategy: "fixed" | "relative";
+  schedule_strategy?: "analysis" | "notification";
+  notification_text?: string;
+  chat_id?: number;
+  prompt_id?: string;
+  schedule_type?: "interval" | "cron";
+  message_intro?: string;
   interval_hours?: number;
   interval_minutes?: number;
-  time_of_day?: string;
   cron_expression?: string;
-  run_at?: string;
+  target_chats?: number[];
+  removed_chats?: number[];
+  bot_id?: number;
   enabled?: boolean;
+  send_strategy?: "fixed" | "relative";
   time_to_send?: string;
   send_after_minutes?: number;
-  company_id: string;
+  company_id?: string;
 }
 
 export const fetchSchedules = async (
@@ -84,7 +84,7 @@ export const fetchSchedules = async (
 };
 
 export const createSchedule = async (
-  newSchedule: IscheduleCreate,
+  newSchedule: IScheduleCreate,
   isSuperadmin?: boolean,
   selectedCompanyId?: string | null
 ): Promise<ISchedule> => {
@@ -138,7 +138,7 @@ export const fetchScheduleDetails = async (
 
 export const updateSchedule = async (
   schedule_id: string,
-  updatedData: any,
+  updatedData: IScheduleEdit,
   isSuperadmin?: boolean,
   selectedCompanyId?: string | null
 ) => {

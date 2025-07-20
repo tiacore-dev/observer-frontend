@@ -60,9 +60,9 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
       case "interval":
         return "Интервал";
       case "cron":
-        return "Повторяющееся";
+        return "По дням недели";
       case "once":
-        return "Одноразово";
+        return "Однократно";
       case "daily_time":
         return "Ежедневно";
       default:
@@ -164,10 +164,14 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 </TableCell>
               )}
               <TableCell>
-                {promptMap.get(schedule.prompt_id) || schedule.prompt_id}
+                {schedule.prompt_id
+                  ? `${promptMap.get(schedule.prompt_id) || schedule.prompt_id}`
+                  : "-"}
               </TableCell>
               <TableCell>
-                {chatMap.get(schedule.chat_id) || schedule.chat_id}
+                {schedule.chat_id
+                  ? `${chatMap.get(schedule.chat_id) || schedule.chat_id}`
+                  : "-"}
               </TableCell>
               <TableCell>
                 {botMap.get(schedule.bot_id.toString()) || schedule.bot_id}

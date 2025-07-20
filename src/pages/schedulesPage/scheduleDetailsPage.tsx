@@ -60,13 +60,20 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
       case "interval":
         return "Интервал";
       case "cron":
-        return "Повторяющееся";
-      case "once":
-        return "Одноразово";
-      case "daily_time":
-        return "Ежедневно";
+        return "По дням недели";
       default:
         return type;
+    }
+  };
+
+  const getScheduleStrategyLabel = (strategy: string) => {
+    switch (strategy) {
+      case "analysis":
+        return "Анализ";
+      case "notification":
+        return "Уведомление";
+      default:
+        return strategy;
     }
   };
 
@@ -81,7 +88,6 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     }
   };
 
-  // Добавьте эту функцию в ваш файл scheduleDetailsPage.tsx
   const formatCronExpressionForDisplay = (cronExpression: string) => {
     if (!cronExpression) return "";
 
@@ -89,19 +95,16 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
       const parts = cronExpression.split(" ");
       if (parts.length < 5) return cronExpression;
 
-      // Получаем минуты и часы из cron выражения (они в UTC)
       const utcMinutes = parts[0];
       const utcHours = parts[1];
       const days = parts[4];
 
-      // Конвертируем UTC время в локальное
       const utcTime = `${utcHours.padStart(2, "0")}:${utcMinutes.padStart(
         2,
         "0"
       )}`;
       const localTime = convertToLocalTime(utcTime);
 
-      // Преобразуем дни недели в читаемый формат
       const dayNumbers = days.split(",").map(Number);
       const dayNames = dayNumbers.map((dayNum) => {
         const day = daysOfWeek.find((d) => d.id === dayNum);
@@ -115,22 +118,9 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     }
   };
 
-  // // Затем в JSX замените отображение cron выражения:
-  // {
-  //   schedule.schedule_type === "cron" && schedule.cron_expression && (
-  //     <Box sx={{ mt: 2 }}>
-  //       <Typography variant="subtitle1">Расписание:</Typography>
-  //       <Typography variant="body1">
-  //         {formatCronExpressionForDisplay(schedule.cron_expression)}
-  //       </Typography>
-  //     </Box>
-  //   );
-  // }
-
-  const formatTimeDisplay = (utcTime: string | undefined) => {
+  const formatTimeDisplay = (utcTime: string | undefined | null) => {
     if (!utcTime) return "";
 
-    // Удаляем секунды если они есть (формат HH:MM:SS)
     const timeWithoutSeconds = utcTime.split(":").slice(0, 2).join(":");
     const localTime = convertToLocalTime(timeWithoutSeconds);
 
@@ -141,11 +131,11 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
       });
     } catch (error) {
       console.error("Error formatting time:", error);
-      return localTime; // Возвращаем в формате HH:MM если не удалось отформатировать
+      return localTime;
     }
   };
 
-  const formatDateTimeDisplay = (utcDateTime: string | undefined) => {
+  const formatDateTimeDisplay = (utcDateTime: string | undefined | null) => {
     if (!utcDateTime) return "";
 
     try {
@@ -209,8 +199,6 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     );
   }
 
-  const showToggleButton = schedule.schedule_type !== "once";
-
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "start", mb: 2 }}>
@@ -221,21 +209,19 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
         >
           Назад
         </Button>
-        {showToggleButton && (
-          <Button
-            startIcon={<PowerSettingsNewIcon />}
-            onClick={handleToggle}
-            variant="outlined"
-            color={schedule.enabled ? "error" : "success"}
-            style={{ marginLeft: 8 }}
-            disabled={toggleScheduleMutation.isPending}
-          >
-            {schedule.enabled ? "Выключить" : "Включить"}
-            {toggleScheduleMutation.isPending && (
-              <CircularProgress size={20} sx={{ ml: 1 }} />
-            )}
-          </Button>
-        )}
+        <Button
+          startIcon={<PowerSettingsNewIcon />}
+          onClick={handleToggle}
+          variant="outlined"
+          color={schedule.enabled ? "error" : "success"}
+          style={{ marginLeft: 8 }}
+          disabled={toggleScheduleMutation.isPending}
+        >
+          {schedule.enabled ? "Выключить" : "Включить"}
+          {toggleScheduleMutation.isPending && (
+            <CircularProgress size={20} sx={{ ml: 1 }} />
+          )}
+        </Button>
         <Button
           startIcon={<EditIcon />}
           onClick={() => setIsEditModalOpen(true)}
@@ -262,6 +248,22 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
         </Typography>
 
         <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle1">Стратегия:</Typography>
+          <Typography variant="body1">
+            {getScheduleStrategyLabel(schedule.schedule_strategy)}
+          </Typography>
+        </Box>
+
+        {schedule.schedule_strategy === "notification" && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1">Текст уведомления:</Typography>
+            <Typography variant="body1">
+              {schedule.notification_text || "-"}
+            </Typography>
+          </Box>
+        )}
+
+        <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Тип расписания:</Typography>
           <Typography variant="body1">
             {getScheduleTypeLabel(schedule.schedule_type)}
@@ -278,19 +280,23 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           </Typography>
         </Box>
 
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Анализируемый чат:</Typography>
-          <Typography variant="body1">
-            {chatMap.get(schedule.chat_id) || schedule.chat_id}
-          </Typography>
-        </Box>
+        {schedule.chat_id && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1">Анализируемый чат:</Typography>
+            <Typography variant="body1">
+              {chatMap.get(schedule.chat_id) || schedule.chat_id}
+            </Typography>
+          </Box>
+        )}
 
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Промпт:</Typography>
-          <Typography variant="body1">
-            {promptMap.get(schedule.prompt_id) || schedule.prompt_id}
-          </Typography>
-        </Box>
+        {schedule.prompt_id && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1">Промпт:</Typography>
+            <Typography variant="body1">
+              {promptMap.get(schedule.prompt_id) || schedule.prompt_id}
+            </Typography>
+          </Box>
+        )}
 
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Бот:</Typography>
@@ -298,12 +304,14 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             {botMap.get(schedule.bot_id.toString()) || schedule.bot_id}
           </Typography>
         </Box>
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Шапка сообщения:</Typography>
-          <Typography variant="body1">
-            {schedule.message_intro || "-"}
-          </Typography>
-        </Box>
+
+        {schedule.message_intro && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle1">Шапка сообщения:</Typography>
+            <Typography variant="body1">{schedule.message_intro}</Typography>
+          </Box>
+        )}
+
         {schedule.target_chats && schedule.target_chats.length > 0 && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">
@@ -339,46 +347,23 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           </Box>
         )}
 
-        {schedule.schedule_type === "daily_time" && schedule.time_of_day && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Время выполнения:</Typography>
-            <Typography variant="body1">
-              {formatTimeDisplay(schedule.time_of_day)}
-            </Typography>
-          </Box>
-        )}
-
-        {schedule.schedule_type === "once" && schedule.run_at && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Время выполнения:</Typography>
-            <Typography variant="body1">
-              {formatDateTimeDisplay(schedule.run_at)}
-            </Typography>
-          </Box>
-        )}
-
         {schedule.schedule_type === "cron" && schedule.cron_expression && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle1">Расписание:</Typography>
             <Typography variant="body1">
-              {formatCronExpressionForDisplay(schedule.cron_expression!)}
+              {formatCronExpressionForDisplay(schedule.cron_expression)}
             </Typography>
           </Box>
         )}
 
-        {/* {schedule.schedule_type === "cron" && schedule.cron_expression && (
+        {schedule.send_strategy && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Cron выражение:</Typography>
-            <Typography variant="body1">{schedule.cron_expression}</Typography>
+            <Typography variant="subtitle1">Стратегия отправки:</Typography>
+            <Typography variant="body1">
+              {getSendStrategyLabel(schedule.send_strategy)}
+            </Typography>
           </Box>
-        )} */}
-
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Стратегия отправки:</Typography>
-          <Typography variant="body1">
-            {getSendStrategyLabel(schedule.send_strategy)}
-          </Typography>
-        </Box>
+        )}
 
         {schedule.send_strategy === "fixed" && schedule.time_to_send && (
           <Box sx={{ mt: 2 }}>

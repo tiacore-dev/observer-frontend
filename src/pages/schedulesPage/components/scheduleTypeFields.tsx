@@ -1,20 +1,12 @@
 import type React from "react";
 import { Box, TextField } from "@mui/material";
 import { DaySelector } from "./daySelector";
-import {
-  convertToServerTime,
-  convertToLocalTime,
-  localToServerDatetime,
-  serverToLocalDatetime,
-} from "../helpers/scheduleUtils";
 
 interface ScheduleTypeFieldsProps {
-  scheduleType: "interval" | "cron" | "once" | "daily_time";
+  scheduleType: "interval" | "cron";
   intervalHours?: string;
   intervalMinutes?: string;
-  timeOfDay?: string; // Локальное время (HH:MM)
-  runAt?: string; // Локальная дата-время (YYYY-MM-DDTHH:MM)
-  cronTime: string; // Локальное время (HH:MM)
+  cronTime: string;
   selectedDays: number[];
   errors: Record<string, string>;
   disabled?: boolean;
@@ -28,8 +20,6 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
   scheduleType,
   intervalHours,
   intervalMinutes,
-  timeOfDay,
-  runAt,
   cronTime,
   selectedDays,
   errors,
@@ -47,13 +37,10 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
     );
   };
 
-  // Обработчик для числовых полей (часы/минуты)
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Разрешаем только цифры или пустую строку
     if (value === "" || /^\d+$/.test(value)) {
-      // Дополнительная проверка для минут (0-59)
       if (name === "interval_minutes") {
         const numValue = Number.parseInt(value);
         if (value !== "" && (numValue < 0 || numValue > 59)) {
@@ -64,7 +51,6 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
     }
   };
 
-  // Блокировка нечисловых символов
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const allowedKeys = [
       "Backspace",
@@ -89,7 +75,6 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
     }
   };
 
-  // Блокировка нечислового вставления
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData("text");
     if (!/^\d*$/.test(pastedText)) {
@@ -162,43 +147,6 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
             tooltipMessage={tooltipMessage}
           />
         </Box>
-      );
-
-    case "once":
-      return renderWithTooltip(
-        <TextField
-          fullWidth
-          label="Время выполнения"
-          name="run_at"
-          type="datetime-local"
-          value={runAt || ""}
-          onChange={onFieldChange}
-          error={!!errors.run_at}
-          helperText={errors.run_at}
-          required
-          InputLabelProps={{ shrink: true }}
-          inputProps={{
-            min: new Date().toISOString().slice(0, 16),
-          }}
-          disabled={disabled}
-        />
-      );
-
-    case "daily_time":
-      return renderWithTooltip(
-        <TextField
-          fullWidth
-          label="Время выполнения (HH:MM)"
-          name="time_of_day"
-          type="time"
-          value={timeOfDay || ""}
-          onChange={onFieldChange}
-          error={!!errors.time_of_day}
-          helperText={errors.time_of_day}
-          required
-          InputLabelProps={{ shrink: true }}
-          disabled={disabled}
-        />
       );
 
     default:

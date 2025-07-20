@@ -16,6 +16,9 @@ import {
   CircularProgress,
   Tooltip,
   TextField,
+  FormControlLabel,
+  Switch,
+  Stack,
 } from "@mui/material";
 import type { ISchedule, IScheduleEdit } from "../../api/schedulesApi";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
@@ -31,9 +34,6 @@ import { useScheduleValidation } from "./helpers/useScheduleValidation";
 import { useScheduleChanges } from "./helpers/useScheduleChanges";
 import {
   convertToServerTime,
-  convertToLocalTime,
-  localToServerDatetime,
-  serverToLocalDatetime,
   generateCronExpressionWithTimeConversion,
   parseCronExpression,
 } from "./helpers/scheduleUtils";
@@ -81,7 +81,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     getCurrentStringValue("company_id")
   );
 
-  // Используем новый хук для чатов с правильной фильтрацией
   const { data: chatsData, isLoading: isLoadingChatsMap } = useChatsQuery(
     getCurrentValue("bot_id") ? Number(getCurrentValue("bot_id")) : undefined,
     getCurrentStringValue("company_id")
@@ -100,22 +99,14 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   const tooltipMessageBot = "Сначала выберите бота";
 
   React.useEffect(() => {
-    // Инициализация времени при загрузке расписания
     if (schedule.schedule_type === "cron" && schedule.cron_expression) {
       const { localTime, days } = parseCronExpression(schedule.cron_expression);
       setCronTime(localTime);
       setSelectedDays(days);
     }
 
-    // Конвертация времени из UTC в локальное для отображения
-    if (schedule.time_of_day) {
-      updateField("time_of_day", convertToLocalTime(schedule.time_of_day));
-    }
     if (schedule.time_to_send) {
-      updateField("time_to_send", convertToLocalTime(schedule.time_to_send));
-    }
-    if (schedule.run_at) {
-      updateField("run_at", serverToLocalDatetime(schedule.run_at));
+      updateField("time_to_send", convertToServerTime(schedule.time_to_send));
     }
   }, [schedule]);
 
@@ -146,7 +137,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       updateField("chat_id", 0);
       updateTargetChats([]);
     } else if (name === "company_id") {
-      // Запрещаем изменение company_id
       return;
     } else {
       updateField(name, value);
@@ -174,18 +164,23 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     );
   };
 
+  const handleToggleChange = (field: string, value: string) => {
+    updateField(field, value);
+  };
+
   const handleSubmit = async () => {
     const dataForValidation = {
+      schedule_strategy: getCurrentValue("schedule_strategy"),
+      notification_text:
+        getCurrentStringValue("notification_text") || undefined,
       chat_id: getCurrentValue("chat_id"),
       prompt_id: getCurrentStringValue("prompt_id"),
       schedule_type: getCurrentValue("schedule_type"),
       target_chats: currentTargetChats,
       bot_id: getCurrentValue("bot_id"),
-      send_strategy: getCurrentValue("send_strategy"),
+      send_strategy: getCurrentValue("send_strategy") || "fixed",
       interval_hours: getCurrentNumberValue("interval_hours"),
       interval_minutes: getCurrentNumberValue("interval_minutes"),
-      time_of_day: getCurrentStringValue("time_of_day"),
-      run_at: getCurrentStringValue("run_at"),
       time_to_send: getCurrentStringValue("time_to_send"),
       send_after_minutes: getCurrentNumberValue("send_after_minutes"),
       company_id: getCurrentStringValue("company_id"),
@@ -214,21 +209,10 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
         );
       }
 
-      // Конвертация времени перед отправкой на сервер
-      if (changedData.time_of_day) {
-        dataToUpdate.time_of_day = `${convertToServerTime(
-          changedData.time_of_day
-        )}:00`;
-      }
-
       if (changedData.time_to_send) {
         dataToUpdate.time_to_send = `${convertToServerTime(
           changedData.time_to_send
         )}:00`;
-      }
-
-      if (changedData.run_at) {
-        dataToUpdate.run_at = localToServerDatetime(changedData.run_at);
       }
 
       await onUpdate({
@@ -250,7 +234,52 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       <DialogTitle>Редактировать расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          {/* Поле бота */}
+          {/* Заменяем Select на Toggle для стратегии расписания */}
+          <FormControl fullWidth required>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              {/* <Typography>Стратегия расписания:</Typography> */}
+              <Button
+                variant={
+                  getCurrentValue("schedule_strategy") === "analysis"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  handleToggleChange("schedule_strategy", "analysis")
+                }
+              >
+                Анализ
+              </Button>
+              <Button
+                variant={
+                  getCurrentValue("schedule_strategy") === "notification"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  handleToggleChange("schedule_strategy", "notification")
+                }
+              >
+                Уведомление
+              </Button>
+            </Stack>
+          </FormControl>
+
+          {getCurrentValue("schedule_strategy") === "notification" && (
+            <TextField
+              name="notification_text"
+              label="Текст уведомления"
+              value={getCurrentStringValue("notification_text") || ""}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={3}
+              required
+              error={!!errors.notification_text}
+              helperText={errors.notification_text}
+            />
+          )}
+
           {renderWithSkeleton(
             renderWithTooltip(
               <FormControl fullWidth required error={!!errors.bot_id}>
@@ -280,86 +309,85 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             isLoadingBotMap
           )}
 
-          {/* Поле анализируемого чата */}
-          {renderWithSkeleton(
-            renderWithTooltip(
-              <FormControl fullWidth required error={!!errors.chat_id}>
-                <InputLabel>Анализируемый чат</InputLabel>
-                <Select
-                  name="chat_id"
-                  value={getCurrentValue("chat_id") || ""}
-                  label="Анализируемый чат"
-                  onChange={handleSelectChange}
-                  disabled={!isBotSelected}
-                >
-                  {Array.from(chatMap.entries()).map(([id, name]) => (
-                    <MenuItem key={id} value={id.toString()}>
-                      {name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.chat_id && (
-                  <Typography variant="caption" color="error">
-                    {errors.chat_id}
-                  </Typography>
-                )}
-              </FormControl>,
-              !isCompanySelected || !isBotSelected,
-              !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
-            ),
-            isLoadingChatsMap
-          )}
+          {getCurrentValue("schedule_strategy") === "analysis" &&
+            renderWithSkeleton(
+              renderWithTooltip(
+                <FormControl fullWidth required error={!!errors.chat_id}>
+                  <InputLabel>Анализируемый чат</InputLabel>
+                  <Select
+                    name="chat_id"
+                    value={getCurrentValue("chat_id") || ""}
+                    label="Анализируемый чат"
+                    onChange={handleSelectChange}
+                    disabled={!isBotSelected}
+                  >
+                    {Array.from(chatMap.entries()).map(([id, name]) => (
+                      <MenuItem key={id} value={id.toString()}>
+                        {name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.chat_id && (
+                    <Typography variant="caption" color="error">
+                      {errors.chat_id}
+                    </Typography>
+                  )}
+                </FormControl>,
+                !isCompanySelected || !isBotSelected,
+                !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
+              ),
+              isLoadingChatsMap
+            )}
 
-          {/* Поле промпта */}
-          {renderWithSkeleton(
-            renderWithTooltip(
-              <FormControl fullWidth required error={!!errors.prompt_id}>
-                <InputLabel>Промпт</InputLabel>
-                <Select
-                  name="prompt_id"
-                  value={getCurrentStringValue("prompt_id") || ""}
-                  label="Промпт"
-                  onChange={handleSelectChange}
-                  disabled={!isCompanySelected}
-                >
-                  {Array.from(promptMap.entries()).map(([id, name]) => (
-                    <MenuItem key={id} value={id}>
-                      {name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.prompt_id && (
-                  <Typography variant="caption" color="error">
-                    {errors.prompt_id}
-                  </Typography>
-                )}
-              </FormControl>,
-              !isCompanySelected,
-              tooltipMessageCompany
-            ),
-            isLoadingPromptMap
-          )}
+          {getCurrentValue("schedule_strategy") === "analysis" &&
+            renderWithSkeleton(
+              renderWithTooltip(
+                <FormControl fullWidth required error={!!errors.prompt_id}>
+                  <InputLabel>Промпт</InputLabel>
+                  <Select
+                    name="prompt_id"
+                    value={getCurrentStringValue("prompt_id") || ""}
+                    label="Промпт"
+                    onChange={handleSelectChange}
+                    disabled={!isCompanySelected}
+                  >
+                    {Array.from(promptMap.entries()).map(([id, name]) => (
+                      <MenuItem key={id} value={id}>
+                        {name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.prompt_id && (
+                    <Typography variant="caption" color="error">
+                      {errors.prompt_id}
+                    </Typography>
+                  )}
+                </FormControl>,
+                !isCompanySelected,
+                tooltipMessageCompany
+              ),
+              isLoadingPromptMap
+            )}
 
-          {/* Поле шапки сообщения */}
-          {renderWithSkeleton(
-            <TextField
-              name="message_intro"
-              label="Шапка сообщения"
-              value={getCurrentStringValue("message_intro") || ""}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={3}
-              inputProps={{ maxLength: 255 }}
-              helperText={`${
-                getCurrentStringValue("message_intro")?.length || 0
-              }/255 символов`}
-              sx={{ mt: 2 }}
-            />,
-            isLoadingChatsMap
-          )}
+          {getCurrentValue("schedule_strategy") === "analysis" &&
+            renderWithSkeleton(
+              <TextField
+                name="message_intro"
+                label="Шапка сообщения"
+                value={getCurrentStringValue("message_intro") || ""}
+                onChange={handleChange}
+                fullWidth
+                multiline
+                rows={3}
+                inputProps={{ maxLength: 255 }}
+                helperText={`${
+                  getCurrentStringValue("message_intro")?.length || 0
+                }/255 символов`}
+                sx={{ mt: 2 }}
+              />,
+              isLoadingChatsMap
+            )}
 
-          {/* Селектор целевых чатов */}
           {renderWithSkeleton(
             <TargetChatSelector
               chatMap={chatMap}
@@ -374,29 +402,37 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             isLoadingChatsMap
           )}
 
-          {/* Тип расписания */}
+          {/* Заменяем Select на Toggle для типа расписания */}
           <FormControl fullWidth>
-            <InputLabel>Тип расписания</InputLabel>
-            <Select
-              name="schedule_type"
-              value={getCurrentValue("schedule_type") || "interval"}
-              label="Тип расписания"
-              onChange={handleSelectChange}
-            >
-              <MenuItem value="interval">Интервал</MenuItem>
-              <MenuItem value="cron">Повторяющееся (Cron)</MenuItem>
-              <MenuItem value="once">Одноразово</MenuItem>
-              <MenuItem value="daily_time">Ежедневно</MenuItem>
-            </Select>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              {/* <Typography>Тип расписания:</Typography> */}
+              <Button
+                variant={
+                  getCurrentValue("schedule_type") === "interval"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() => handleToggleChange("schedule_type", "interval")}
+              >
+                Повторять каждые...
+              </Button>
+              <Button
+                variant={
+                  getCurrentValue("schedule_type") === "cron"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() => handleToggleChange("schedule_type", "cron")}
+              >
+                По дням недели
+              </Button>
+            </Stack>
           </FormControl>
 
-          {/* Поля для типа расписания */}
           <ScheduleTypeFields
             scheduleType={getCurrentValue("schedule_type")}
             intervalHours={getCurrentNumberAsString("interval_hours")}
             intervalMinutes={getCurrentNumberAsString("interval_minutes")}
-            timeOfDay={getCurrentStringValue("time_of_day")}
-            runAt={getCurrentStringValue("run_at")}
             cronTime={cronTime}
             selectedDays={selectedDays}
             errors={errors}
@@ -405,32 +441,42 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             onToggleDay={toggleDaySelection}
           />
 
-          {/* Стратегия отправки */}
+          {/* Заменяем Select на Toggle для стратегии отправки */}
           <FormControl fullWidth>
-            <InputLabel>Стратегия отправки</InputLabel>
-            <Select
-              name="send_strategy"
-              value={getCurrentValue("send_strategy") || "fixed"}
-              label="Стратегия отправки"
-              onChange={handleSelectChange}
-            >
-              <MenuItem value="fixed">Фиксированное время</MenuItem>
-              <MenuItem value="relative">
-                Относительно времени выполнения
-              </MenuItem>
-            </Select>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              {/* <Typography>Стратегия отправки:</Typography> */}
+              <Button
+                variant={
+                  getCurrentValue("send_strategy") === "fixed"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() => handleToggleChange("send_strategy", "fixed")}
+              >
+                Фиксированное время
+              </Button>
+              <Button
+                variant={
+                  getCurrentValue("send_strategy") === "relative"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() => handleToggleChange("send_strategy", "relative")}
+              >
+                Относительно времени
+              </Button>
+            </Stack>
           </FormControl>
 
-          {/* Поля для стратегии отправки */}
           <SendStrategyFields
-            sendStrategy={getCurrentValue("send_strategy")}
+            sendStrategy={getCurrentValue("send_strategy") || "fixed"}
             timeToSend={getCurrentStringValue("time_to_send")}
             sendAfterMinutes={getCurrentNumberAsString("send_after_minutes")}
             errors={errors}
             onFieldChange={handleChange}
           />
 
-          {/* Статус */}
+          {/* Оставляем Select для статуса, так как это бинарный выбор */}
           <FormControl fullWidth>
             <InputLabel>Статус</InputLabel>
             <Select

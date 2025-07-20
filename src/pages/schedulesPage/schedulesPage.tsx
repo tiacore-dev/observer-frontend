@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useSchedulesQuery } from "../../hooks/schedules/useSchedulesQuery";
 import {
-  Paper,
-  CircularProgress,
   Typography,
   Box,
   Button,
-  Pagination,
-  Tooltip,
   Autocomplete,
   TextField,
   MenuItem,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import ClearIcon from "@mui/icons-material/Clear";
 import { PageProps } from "../../App";
 import { SchedulesTable } from "./schedulesTable";
 import { AddScheduleModal } from "./addScheduleModal";
@@ -32,11 +27,11 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Состояния фильтров
-  const [promptFilter, setPromptFilter] = useState("");
-  const [chatFilter, setChatFilter] = useState("");
-  const [botFilter, setBotFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("");
+  const [promptFilter, setPromptFilter] = useState<string>("");
+  const [chatFilter, setChatFilter] = useState<string>("");
+  const [botFilter, setBotFilter] = useState<string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [companyFilter, setCompanyFilter] = useState<string>("");
   const [enabledFilter, setEnabledFilter] = useState<boolean | "all">("all");
 
   const [sortField, setSortField] = useState<
@@ -55,9 +50,9 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   // Используем хуки для маппингов
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
-  const { chatMap, isLoadingChatsMap } = useChatMap();
-  const { promptMap, isLoadingPromptMap } = usePromptMap();
-  const { botMap, isLoadingBotMap } = useBotMap();
+  const { chatMap } = useChatMap();
+  const { promptMap } = usePromptMap();
+  const { botMap } = useBotMap();
 
   const isLoadingAll = isLoading || isLoadingCompanyMap;
 
@@ -80,11 +75,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
       case "interval":
         return "Интервал";
       case "cron":
-        return "Повторяющееся";
-      case "once":
-        return "Одноразово";
-      case "daily_time":
-        return "Ежедневно";
+        return "По дням недели";
       default:
         return type;
     }
@@ -92,18 +83,23 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   // Подготавливаем данные для фильтров
   const prompts = Array.from(
-    new Set(data?.schedules.map((schedule) => schedule.prompt_id) || [])
+    new Set(
+      data?.schedules.map((schedule) => schedule.prompt_id).filter(Boolean) ||
+        []
+    )
   ).map((promptId) => ({
-    id: promptId,
-    name: promptMap.get(promptId) || promptId,
+    id: promptId as string,
+    name: promptMap.get(promptId as string) || promptId,
   }));
 
   const chats = Array.from(
     new Set(
-      data?.schedules.map((schedule) => schedule.chat_id.toString()) || []
+      data?.schedules
+        .map((schedule) => schedule.chat_id?.toString())
+        .filter(Boolean) || []
     )
   ).map((chatId) => ({
-    id: chatId,
+    id: chatId as string,
     name: chatMap.get(Number(chatId)) || chatId,
   }));
 
@@ -133,6 +129,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
     let filteredSchedules = [...data.schedules];
 
+    // Применяем фильтры
     if (promptFilter) {
       filteredSchedules = filteredSchedules.filter(
         (schedule) => schedule.prompt_id === promptFilter
@@ -141,7 +138,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (chatFilter) {
       filteredSchedules = filteredSchedules.filter(
-        (schedule) => schedule.chat_id.toString() === chatFilter
+        (schedule) => schedule.chat_id?.toString() === chatFilter
       );
     }
 
@@ -169,19 +166,21 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
       );
     }
 
+    // Сортируем данные
     filteredSchedules.sort((a, b) => {
-      // Для полей, которые используют маппинг (prompt, chat, bot, company)
       if (sortField === "prompt_id") {
-        const aPrompt = promptMap.get(a.prompt_id) ?? a.prompt_id;
-        const bPrompt = promptMap.get(b.prompt_id) ?? b.prompt_id;
+        const aPrompt = promptMap.get(a.prompt_id || "") ?? (a.prompt_id || "");
+        const bPrompt = promptMap.get(b.prompt_id || "") ?? (b.prompt_id || "");
         if (aPrompt < bPrompt) return sortDirection === "asc" ? -1 : 1;
         if (aPrompt > bPrompt) return sortDirection === "asc" ? 1 : -1;
         return 0;
       }
 
       if (sortField === "chat_id") {
-        const aChat = chatMap.get(a.chat_id) ?? a.chat_id.toString();
-        const bChat = chatMap.get(b.chat_id) ?? b.chat_id.toString();
+        const aChat =
+          chatMap.get(a.chat_id || 0) ?? (a.chat_id?.toString() || "");
+        const bChat =
+          chatMap.get(b.chat_id || 0) ?? (b.chat_id?.toString() || "");
         if (aChat < bChat) return sortDirection === "asc" ? -1 : 1;
         if (aChat > bChat) return sortDirection === "asc" ? 1 : -1;
         return 0;
@@ -203,7 +202,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         return 0;
       }
 
-      // Для типа расписания
       if (sortField === "schedule_type") {
         const aType = getScheduleTypeLabel(a.schedule_type);
         const bType = getScheduleTypeLabel(b.schedule_type);
@@ -212,7 +210,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         return 0;
       }
 
-      // Для статуса
       if (sortField === "enabled") {
         if (a.enabled === b.enabled) return 0;
         if (sortDirection === "asc") {
@@ -222,7 +219,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         }
       }
 
-      // Для даты создания
       if (sortField === "created_at") {
         const dateA = new Date(a.created_at).getTime();
         const dateB = new Date(b.created_at).getTime();
@@ -298,13 +294,13 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           mb: 3,
           flexWrap: "wrap",
           alignItems: "center",
-          width: "100%", // Добавлено для полной ширины
+          width: "100%",
         }}
       >
         {/* Фильтр по промпту */}
         <Autocomplete
           options={prompts}
-          getOptionLabel={(option) => option.name}
+          getOptionLabel={(option) => option.name || option.id} // Добавлено fallback к option.id
           value={prompts.find((p) => p.id === promptFilter) || null}
           onChange={(_, value) => setPromptFilter(value?.id || "")}
           renderInput={(params) => (
@@ -316,7 +312,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         {/* Фильтр по чату */}
         <Autocomplete
           options={chats}
-          getOptionLabel={(option) => option.name}
+          getOptionLabel={(option) => option.name || option.id} // Добавлено fallback к option.id
           value={chats.find((c) => c.id === chatFilter) || null}
           onChange={(_, value) => setChatFilter(value?.id || "")}
           renderInput={(params) => (
@@ -328,7 +324,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         {/* Фильтр по боту */}
         <Autocomplete
           options={bots}
-          getOptionLabel={(option) => option.name}
+          getOptionLabel={(option) => option.name || option.id} // Добавлено fallback к option.id
           value={bots.find((b) => b.id === botFilter) || null}
           onChange={(_, value) => setBotFilter(value?.id || "")}
           renderInput={(params) => (
@@ -337,7 +333,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           sx={{ width: 200 }}
         />
 
-        {/* Фильтр по типу (обычный Select) */}
+        {/* Фильтр по типу */}
         <TextField
           select
           label="Тип"
@@ -354,7 +350,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           ))}
         </TextField>
 
-        {/* Фильтр по статусу (обычный Select) */}
+        {/* Фильтр по статусу */}
         <TextField
           select
           label="Статус"
@@ -376,7 +372,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         {isSuperadmin && (
           <Autocomplete
             options={companies}
-            getOptionLabel={(option) => option.name}
+            getOptionLabel={(option) => option.name || option.id} // Добавлено fallback к option.id
             value={companies.find((c) => c.id === companyFilter) || null}
             onChange={(_, value) => setCompanyFilter(value?.id || "")}
             renderInput={(params) => (
@@ -415,6 +411,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           onPageChange={setPage}
         />
       </Box>
+
       <AddScheduleModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}

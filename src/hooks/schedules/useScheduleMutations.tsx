@@ -3,7 +3,7 @@ import {
   createSchedule,
   deleteSchedule,
   ISchedule,
-  IscheduleCreate,
+  IScheduleCreate,
   toggleSchedule,
   updateSchedule,
 } from "../../api/schedulesApi";
@@ -15,7 +15,7 @@ export const useCreateSchedule = () => {
   const { isSuperadmin, selectedCompanyId } = useAuth();
 
   return useMutation({
-    mutationFn: (newSchedule: IscheduleCreate) =>
+    mutationFn: (newSchedule: IScheduleCreate) =>
       createSchedule(newSchedule, isSuperadmin, selectedCompanyId),
     onSuccess: () => {
       enqueueSnackbar("Успешно добавлено", { variant: "success" });
