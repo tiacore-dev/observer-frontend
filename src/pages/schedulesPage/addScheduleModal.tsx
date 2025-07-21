@@ -220,16 +220,17 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       schedule_type: scheduleData.schedule_type,
       target_chats: scheduleData.target_chats,
       bot_id: scheduleData.bot_id,
-      send_strategy: scheduleData.send_strategy,
+      // Добавляем поля стратегии отправки только для анализа
+      ...(scheduleData.schedule_strategy === "analysis" && {
+        send_strategy: scheduleData.send_strategy,
+        time_to_send: scheduleData.time_to_send,
+        send_after_minutes: scheduleData.send_after_minutes,
+      }),
       interval_hours: scheduleData.interval_hours
         ? Number(scheduleData.interval_hours)
         : undefined,
       interval_minutes: scheduleData.interval_minutes
         ? Number(scheduleData.interval_minutes)
-        : undefined,
-      time_to_send: scheduleData.time_to_send,
-      send_after_minutes: scheduleData.send_after_minutes
-        ? Number(scheduleData.send_after_minutes)
         : undefined,
     };
 
@@ -273,16 +274,19 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         enabled: scheduleData.enabled,
         bot_id: Number.parseInt(scheduleData.bot_id),
         target_chats: scheduleData.target_chats,
-        send_strategy: scheduleData.send_strategy,
-        time_to_send:
-          scheduleData.send_strategy === "fixed" && serverTimeToSend
-            ? serverTimeToSend
-            : undefined,
-        send_after_minutes:
-          scheduleData.send_strategy === "relative" &&
-          scheduleData.send_after_minutes
-            ? Number(scheduleData.send_after_minutes)
-            : undefined,
+        // Добавляем поля стратегии отправки только для анализа
+        ...(scheduleData.schedule_strategy === "analysis" && {
+          send_strategy: scheduleData.send_strategy,
+          time_to_send:
+            scheduleData.send_strategy === "fixed" && serverTimeToSend
+              ? serverTimeToSend
+              : undefined,
+          send_after_minutes:
+            scheduleData.send_strategy === "relative" &&
+            scheduleData.send_after_minutes
+              ? Number(scheduleData.send_after_minutes)
+              : undefined,
+        }),
         message_intro: scheduleData.message_intro || undefined,
       });
 
@@ -323,54 +327,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       <DialogTitle>Добавить новое расписание</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          {/* Заменяем Select на Toggle для стратегии расписания */}
-          <FormControl fullWidth required>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              {/* <Typography>Стратегия расписания:</Typography> */}
-              <Button
-                variant={
-                  scheduleData.schedule_strategy === "analysis"
-                    ? "contained"
-                    : "outlined"
-                }
-                onClick={() =>
-                  handleToggleChange("schedule_strategy", "analysis")
-                }
-                disabled={!isCompanySelected}
-              >
-                Анализ
-              </Button>
-              <Button
-                variant={
-                  scheduleData.schedule_strategy === "notification"
-                    ? "contained"
-                    : "outlined"
-                }
-                onClick={() =>
-                  handleToggleChange("schedule_strategy", "notification")
-                }
-                disabled={!isCompanySelected}
-              >
-                Уведомление
-              </Button>
-            </Stack>
-          </FormControl>
-
-          {scheduleData.schedule_strategy === "notification" && (
-            <TextField
-              name="notification_text"
-              label="Текст уведомления"
-              value={scheduleData.notification_text}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={3}
-              required
-              error={!!errors.notification_text}
-              helperText={errors.notification_text}
-            />
-          )}
-
           {isSuperadmin && (
             <FormControl fullWidth required error={!!errors.company_id}>
               <InputLabel>Компания</InputLabel>
@@ -424,6 +380,53 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             )
           )}
 
+          {/* Заменяем Select на Toggle для стратегии расписания */}
+          <FormControl fullWidth required>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              {/* <Typography>Стратегия расписания:</Typography> */}
+              <Button
+                variant={
+                  scheduleData.schedule_strategy === "analysis"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  handleToggleChange("schedule_strategy", "analysis")
+                }
+                disabled={!isCompanySelected}
+              >
+                Анализ
+              </Button>
+              <Button
+                variant={
+                  scheduleData.schedule_strategy === "notification"
+                    ? "contained"
+                    : "outlined"
+                }
+                onClick={() =>
+                  handleToggleChange("schedule_strategy", "notification")
+                }
+                disabled={!isCompanySelected}
+              >
+                Уведомление
+              </Button>
+            </Stack>
+          </FormControl>
+
+          {scheduleData.schedule_strategy === "notification" && (
+            <TextField
+              name="notification_text"
+              label="Текст уведомления"
+              value={scheduleData.notification_text}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={3}
+              required
+              error={!!errors.notification_text}
+              helperText={errors.notification_text}
+            />
+          )}
           {scheduleData.schedule_strategy === "analysis" &&
             (isLoadingChatsMap ? (
               <SelectSkeleton />
@@ -553,46 +556,49 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             onCronTimeChange={setCronTime}
             onToggleDay={toggleDaySelection}
           />
-
-          {/* Заменяем Select на Toggle для стратегии отправки */}
-          <FormControl fullWidth>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              {/* <Typography>Стратегия отправки:</Typography> */}
-              <Button
-                variant={
-                  scheduleData.send_strategy === "fixed"
-                    ? "contained"
-                    : "outlined"
-                }
-                onClick={() => handleToggleChange("send_strategy", "fixed")}
+          {scheduleData.schedule_strategy === "analysis" && (
+            <>
+              {/* Заменяем Select на Toggle для стратегии отправки */}
+              <FormControl fullWidth>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  {/* <Typography>Стратегия отправки:</Typography> */}
+                  <Button
+                    variant={
+                      scheduleData.send_strategy === "fixed"
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() => handleToggleChange("send_strategy", "fixed")}
+                    disabled={!isCompanySelected}
+                  >
+                    Фиксированное время
+                  </Button>
+                  <Button
+                    variant={
+                      scheduleData.send_strategy === "relative"
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() =>
+                      handleToggleChange("send_strategy", "relative")
+                    }
+                    disabled={!isCompanySelected}
+                  >
+                    Относительное времени
+                  </Button>
+                </Stack>
+              </FormControl>
+              <SendStrategyFields
+                sendStrategy={scheduleData.send_strategy}
+                timeToSend={scheduleData.time_to_send}
+                sendAfterMinutes={scheduleData.send_after_minutes}
+                errors={errors}
                 disabled={!isCompanySelected}
-              >
-                Фиксированное время
-              </Button>
-              <Button
-                variant={
-                  scheduleData.send_strategy === "relative"
-                    ? "contained"
-                    : "outlined"
-                }
-                onClick={() => handleToggleChange("send_strategy", "relative")}
-                disabled={!isCompanySelected}
-              >
-                Относительно времени
-              </Button>
-            </Stack>
-          </FormControl>
-
-          <SendStrategyFields
-            sendStrategy={scheduleData.send_strategy}
-            timeToSend={scheduleData.time_to_send}
-            sendAfterMinutes={scheduleData.send_after_minutes}
-            errors={errors}
-            disabled={!isCompanySelected}
-            tooltipMessage={tooltipMessageCompany}
-            onFieldChange={handleChange}
-          />
-
+                tooltipMessage={tooltipMessageCompany}
+                onFieldChange={handleChange}
+              />{" "}
+            </>
+          )}
           {/* Оставляем Select для статуса, так как это бинарный выбор */}
           {renderWithTooltip(
             <FormControl fullWidth>

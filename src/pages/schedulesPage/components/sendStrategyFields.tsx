@@ -77,7 +77,10 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
         value={timeToSend || ""} // Отображаем как есть (локальное время)
         onChange={onFieldChange}
         error={!!errors.time_to_send}
-        helperText={errors.time_to_send || "Локальное время пользователя"}
+        helperText={
+          errors.time_to_send
+          // || "Локальное время пользователя"
+        }
         required
         InputLabelProps={{ shrink: true }}
         disabled={disabled}
@@ -101,7 +104,8 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
         onPaste={handlePaste}
         error={!!errors.send_after_minutes}
         helperText={
-          errors.send_after_minutes || "Только целые положительные числа"
+          errors.send_after_minutes
+          //  || "Только целые положительные числа"
         }
         required
         inputProps={{

@@ -440,42 +440,48 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             onCronTimeChange={setCronTime}
             onToggleDay={toggleDaySelection}
           />
+          {getCurrentValue("schedule_strategy") === "analysis" && (
+            <>
+              {/* Заменяем Select на Toggle для стратегии отправки */}
+              <FormControl fullWidth>
+                <Stack direction="row" alignItems="center" spacing={2}>
+                  {/* <Typography>Стратегия отправки:</Typography> */}
+                  <Button
+                    variant={
+                      getCurrentValue("send_strategy") === "fixed"
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() => handleToggleChange("send_strategy", "fixed")}
+                  >
+                    Фиксированное время
+                  </Button>
+                  <Button
+                    variant={
+                      getCurrentValue("send_strategy") === "relative"
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() =>
+                      handleToggleChange("send_strategy", "relative")
+                    }
+                  >
+                    Относительное времени
+                  </Button>
+                </Stack>
+              </FormControl>
 
-          {/* Заменяем Select на Toggle для стратегии отправки */}
-          <FormControl fullWidth>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              {/* <Typography>Стратегия отправки:</Typography> */}
-              <Button
-                variant={
-                  getCurrentValue("send_strategy") === "fixed"
-                    ? "contained"
-                    : "outlined"
-                }
-                onClick={() => handleToggleChange("send_strategy", "fixed")}
-              >
-                Фиксированное время
-              </Button>
-              <Button
-                variant={
-                  getCurrentValue("send_strategy") === "relative"
-                    ? "contained"
-                    : "outlined"
-                }
-                onClick={() => handleToggleChange("send_strategy", "relative")}
-              >
-                Относительно времени
-              </Button>
-            </Stack>
-          </FormControl>
-
-          <SendStrategyFields
-            sendStrategy={getCurrentValue("send_strategy") || "fixed"}
-            timeToSend={getCurrentStringValue("time_to_send")}
-            sendAfterMinutes={getCurrentNumberAsString("send_after_minutes")}
-            errors={errors}
-            onFieldChange={handleChange}
-          />
-
+              <SendStrategyFields
+                sendStrategy={getCurrentValue("send_strategy") || "fixed"}
+                timeToSend={getCurrentStringValue("time_to_send")}
+                sendAfterMinutes={getCurrentNumberAsString(
+                  "send_after_minutes"
+                )}
+                errors={errors}
+                onFieldChange={handleChange}
+              />
+            </>
+          )}
           {/* Оставляем Select для статуса, так как это бинарный выбор */}
           <FormControl fullWidth>
             <InputLabel>Статус</InputLabel>

@@ -314,9 +314,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
         {schedule.target_chats && schedule.target_chats.length > 0 && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">
-              Чаты для получения отчёта:
-            </Typography>
+            <Typography variant="subtitle1">Чаты для получения:</Typography>
             <Stack
               direction="row"
               spacing={1}

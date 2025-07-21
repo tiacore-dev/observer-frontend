@@ -97,9 +97,8 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
             onPaste={handlePaste}
             error={!!errors.interval || !!errors.interval_hours}
             helperText={
-              errors.interval ||
-              errors.interval_hours ||
-              "Только целые положительные числа"
+              errors.interval || errors.interval_hours
+              // "Только целые положительные числа"
             }
             inputProps={{
               inputMode: "numeric",

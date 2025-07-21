@@ -31,7 +31,7 @@ export const TargetChatSelector: React.FC<TargetChatSelectorProps> = ({
   const content = (
     <FormControl fullWidth required error={!!error}>
       <Typography variant="subtitle1" gutterBottom>
-        Выберите чаты для получения отчёта:
+        Выберите чаты для получения:
       </Typography>
       <Box
         sx={{

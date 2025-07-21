@@ -14,9 +14,9 @@ interface ValidationData {
   schedule_type: "interval" | "cron";
   interval_hours?: string | number;
   interval_minutes?: string | number;
-  send_strategy: "fixed" | "relative";
-  time_to_send?: string;
-  send_after_minutes?: string | number;
+  send_strategy?: "fixed" | "relative"; // Теперь необязательное поле
+  time_to_send?: string; // Теперь необязательное поле
+  send_after_minutes?: string | number; // Теперь необязательное поле
 }
 
 export const useScheduleValidation = () => {
@@ -40,6 +40,22 @@ export const useScheduleValidation = () => {
     if (data.schedule_strategy === "analysis") {
       if (!data.chat_id) newErrors.chat_id = "Анализируемый чат обязателен";
       if (!data.prompt_id) newErrors.prompt_id = "Промпт обязателен";
+
+      // Валидация стратегии отправки (только для анализа)
+      if (data.send_strategy === "fixed") {
+        if (!data.time_to_send) {
+          newErrors.time_to_send = "Время отправки обязательно";
+        }
+      } else if (data.send_strategy === "relative") {
+        const minutes = Number(data.send_after_minutes) || 0;
+        if (minutes <= 0) {
+          newErrors.send_after_minutes = "Укажите положительное число минут";
+        } else if (!Number.isInteger(minutes)) {
+          newErrors.send_after_minutes = "Должно быть целым числом";
+        }
+      } else {
+        newErrors.send_strategy = "Выберите стратегию отправки";
+      }
     } else if (data.schedule_strategy === "notification") {
       if (!data.notification_text) {
         newErrors.notification_text = "Текст уведомления обязателен";
@@ -70,20 +86,6 @@ export const useScheduleValidation = () => {
     } else if (data.schedule_type === "cron") {
       if (selectedDays.length === 0 || !cronTime) {
         newErrors.cron_expression = "Выберите дни и время";
-      }
-    }
-
-    // Валидация стратегии отправки
-    if (data.send_strategy === "fixed") {
-      if (!data.time_to_send) {
-        newErrors.time_to_send = "Время отправки обязательно";
-      }
-    } else if (data.send_strategy === "relative") {
-      const minutes = Number(data.send_after_minutes) || 0;
-      if (minutes <= 0) {
-        newErrors.send_after_minutes = "Укажите положительное число минут";
-      } else if (!Number.isInteger(minutes)) {
-        newErrors.send_after_minutes = "Должно быть целым числом";
       }
     }
 
