@@ -42,6 +42,8 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
     | "enabled"
     | "company_id"
     | "created_at"
+    | "last_run_at"
+    | "schedule_strategy"
   >("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -240,6 +242,8 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
       | "enabled"
       | "company_id"
       | "created_at"
+      | "last_run_at"
+      | "schedule_strategy" // Добавляем новое поле для сортировки
   ) => {
     if (sortField === field) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));

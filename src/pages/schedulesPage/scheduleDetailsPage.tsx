@@ -9,6 +9,10 @@ import {
   Button,
   Chip,
   Stack,
+  Grid,
+  CardContent,
+  Card,
+  Divider,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
@@ -175,6 +179,47 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     }
   };
 
+  const DetailItem = ({
+    label,
+    value,
+    color,
+    multiline = false,
+  }: {
+    label: string;
+    value: string | React.ReactNode;
+    color?: string;
+    multiline?: boolean;
+  }) => (
+    <Box sx={{ mb: 2 }}>
+      <Typography variant="subtitle2" color="text.secondary">
+        {label}
+      </Typography>
+      {multiline ? (
+        <Typography
+          variant="body1"
+          sx={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            color: color || "inherit",
+          }}
+        >
+          {value}
+        </Typography>
+      ) : (
+        <Typography
+          variant="body1"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            color: color || "inherit",
+          }}
+        >
+          {value}
+        </Typography>
+      )}
+    </Box>
+  );
+
   if (isLoadingAll) {
     return (
       <DetailsPageSkeleton developerMode={developerMode} buttonCount={4} />
@@ -201,221 +246,274 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "start", mb: 2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(-1)}
-          variant="outlined"
-        >
-          Назад
-        </Button>
-        <Button
-          startIcon={<PowerSettingsNewIcon />}
-          onClick={handleToggle}
-          variant="outlined"
-          color={schedule.enabled ? "error" : "success"}
-          style={{ marginLeft: 8 }}
-          disabled={toggleScheduleMutation.isPending}
-        >
-          {schedule.enabled ? "Выключить" : "Включить"}
-          {toggleScheduleMutation.isPending && (
-            <CircularProgress size={20} sx={{ ml: 1 }} />
-          )}
-        </Button>
-        <Button
-          startIcon={<EditIcon />}
-          onClick={() => setIsEditModalOpen(true)}
-          variant="contained"
-          color="primary"
-          style={{ marginLeft: 8 }}
-        >
-          Редактировать
-        </Button>
-        <Button
-          startIcon={<DeleteIcon />}
-          onClick={() => setIsDeleteDialogOpen(true)}
-          variant="contained"
-          color="error"
-          style={{ marginLeft: 8 }}
-        >
-          Удалить
-        </Button>
+      {/* Заголовок и кнопки действий */}
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+        {/* <Typography variant="h4">Детали расписания</Typography> */}
+        <Stack direction="row" spacing={1}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate(-1)}
+            variant="outlined"
+          >
+            Назад
+          </Button>
+          <Button
+            startIcon={<PowerSettingsNewIcon />}
+            onClick={handleToggle}
+            variant="outlined"
+            color={schedule.enabled ? "error" : "success"}
+            disabled={toggleScheduleMutation.isPending}
+          >
+            {schedule.enabled ? "Выключить" : "Включить"}
+            {toggleScheduleMutation.isPending && (
+              <CircularProgress size={20} sx={{ ml: 1 }} />
+            )}
+          </Button>
+          <Button
+            startIcon={<EditIcon />}
+            onClick={() => setIsEditModalOpen(true)}
+            variant="contained"
+            color="primary"
+          >
+            Редактировать
+          </Button>
+          <Button
+            startIcon={<DeleteIcon />}
+            onClick={() => setIsDeleteDialogOpen(true)}
+            variant="contained"
+            color="error"
+          >
+            Удалить
+          </Button>
+        </Stack>
       </Box>
 
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          Детали расписания
-        </Typography>
+      {/* Основная информация */}
+      <Grid container spacing={3}>
+        {/* Основные параметры */}
+        <Grid>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Основные параметры
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
 
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Стратегия:</Typography>
-          <Typography variant="body1">
-            {getScheduleStrategyLabel(schedule.schedule_strategy)}
-          </Typography>
-        </Box>
+              <DetailItem
+                label="Стратегия"
+                value={getScheduleStrategyLabel(schedule.schedule_strategy)}
+              />
 
-        {schedule.schedule_strategy === "notification" && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Текст уведомления:</Typography>
-            <Typography variant="body1">
-              {schedule.notification_text || "-"}
-            </Typography>
-          </Box>
-        )}
+              <DetailItem
+                label="Тип расписания"
+                value={getScheduleTypeLabel(schedule.schedule_type)}
+              />
 
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Тип расписания:</Typography>
-          <Typography variant="body1">
-            {getScheduleTypeLabel(schedule.schedule_type)}
-          </Typography>
-        </Box>
+              <DetailItem
+                label="Статус"
+                value={schedule.enabled ? "Включено" : "Выключено"}
+                color={schedule.enabled ? "success.main" : "error"}
+              />
 
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Статус:</Typography>
-          <Typography
-            variant="body1"
-            color={schedule.enabled ? "success.main" : "error"}
-          >
-            {schedule.enabled ? "Включено" : "Выключено"}
-          </Typography>
-        </Box>
+              <DetailItem
+                label="Бот"
+                value={
+                  botMap.get(schedule.bot_id.toString()) || schedule.bot_id
+                }
+              />
 
-        {schedule.chat_id && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Анализируемый чат:</Typography>
-            <Typography variant="body1">
-              {chatMap.get(schedule.chat_id) || schedule.chat_id}
-            </Typography>
-          </Box>
-        )}
+              {developerMode && (
+                <>
+                  <DetailItem label="ID" value={schedule.schedule_id} />
+                  <DetailItem
+                    label="Компания"
+                    value={
+                      companyMap.get(schedule.company_id) || schedule.company_id
+                    }
+                  />
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
 
-        {schedule.prompt_id && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Промпт:</Typography>
-            <Typography variant="body1">
-              {promptMap.get(schedule.prompt_id) || schedule.prompt_id}
-            </Typography>
-          </Box>
-        )}
+        {/* Детали стратегии */}
+        <Grid>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                {schedule.schedule_strategy === "analysis"
+                  ? "Параметры анализа"
+                  : "Параметры уведомления"}
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
 
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle1">Бот:</Typography>
-          <Typography variant="body1">
-            {botMap.get(schedule.bot_id.toString()) || schedule.bot_id}
-          </Typography>
-        </Box>
-
-        {schedule.message_intro && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Шапка сообщения:</Typography>
-            <Typography variant="body1">{schedule.message_intro}</Typography>
-          </Box>
-        )}
-
-        {schedule.target_chats && schedule.target_chats.length > 0 && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Чаты для получения:</Typography>
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{ mt: 1 }}
-              flexWrap="wrap"
-              gap={1}
-            >
-              {schedule.target_chats.map((chatId: number) => (
-                <Chip
-                  key={chatId}
-                  label={chatMap.get(chatId) || chatId}
-                  variant="outlined"
+              {schedule.schedule_strategy === "notification" ? (
+                <DetailItem
+                  label="Текст уведомления"
+                  value={schedule.notification_text || "-"}
+                  multiline
                 />
-              ))}
-            </Stack>
-          </Box>
-        )}
+              ) : (
+                <>
+                  {schedule.chat_id && (
+                    <DetailItem
+                      label="Анализируемый чат"
+                      value={chatMap.get(schedule.chat_id) || schedule.chat_id}
+                    />
+                  )}
 
-        {schedule.schedule_type === "interval" && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Интервал:</Typography>
-            <Typography variant="body1">
-              {schedule.interval_hours ? `${schedule.interval_hours} ч ` : ""}
-              {schedule.interval_minutes
-                ? `${schedule.interval_minutes} мин`
-                : ""}
-            </Typography>
-          </Box>
-        )}
+                  {schedule.prompt_id && (
+                    <DetailItem
+                      label="Промпт"
+                      value={
+                        promptMap.get(schedule.prompt_id) || schedule.prompt_id
+                      }
+                    />
+                  )}
 
-        {schedule.schedule_type === "cron" && schedule.cron_expression && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Расписание:</Typography>
-            <Typography variant="body1">
-              {formatCronExpressionForDisplay(schedule.cron_expression)}
-            </Typography>
-          </Box>
-        )}
+                  {schedule.message_intro && (
+                    <DetailItem
+                      label="Шапка сообщения"
+                      value={schedule.message_intro}
+                      multiline
+                    />
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
 
-        {schedule.send_strategy && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Стратегия отправки:</Typography>
-            <Typography variant="body1">
-              {getSendStrategyLabel(schedule.send_strategy)}
-            </Typography>
-          </Box>
-        )}
-
-        {schedule.send_strategy === "fixed" && schedule.time_to_send && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Время отправки:</Typography>
-            <Typography variant="body1">
-              {formatTimeDisplay(schedule.time_to_send)}
-            </Typography>
-          </Box>
-        )}
-
-        {schedule.send_strategy === "relative" &&
-          schedule.send_after_minutes && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">
-                Отправить через (минуты):
+        {/* Расписание */}
+        <Grid>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Расписание
               </Typography>
-              <Typography variant="body1">
-                {schedule.send_after_minutes}
-              </Typography>
-            </Box>
-          )}
+              <Divider sx={{ mb: 2 }} />
 
+              {schedule.schedule_type === "interval" ? (
+                <DetailItem
+                  label="Интервал"
+                  value={`${
+                    schedule.interval_hours
+                      ? `${schedule.interval_hours} ч `
+                      : ""
+                  }
+                    ${
+                      schedule.interval_minutes
+                        ? `${schedule.interval_minutes} мин`
+                        : ""
+                    }`}
+                />
+              ) : (
+                schedule.cron_expression && (
+                  <DetailItem
+                    label="Расписание"
+                    value={formatCronExpressionForDisplay(
+                      schedule.cron_expression
+                    )}
+                  />
+                )
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Получатели */}
+        <Grid>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Получатели
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              {schedule.target_chats && schedule.target_chats.length > 0 ? (
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Чаты для получения:
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                    {schedule.target_chats.map((chatId: number) => (
+                      <Chip
+                        key={chatId}
+                        label={chatMap.get(chatId) || chatId}
+                        variant="outlined"
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              ) : (
+                <Typography variant="body2">Нет выбранных чатов</Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Стратегия отправки (только для анализа) */}
+        {schedule.schedule_strategy === "analysis" && (
+          <Grid>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Стратегия отправки
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                <DetailItem
+                  label="Стратегия"
+                  value={getSendStrategyLabel(schedule.send_strategy || "")}
+                />
+
+                {schedule.send_strategy === "fixed" &&
+                  schedule.time_to_send && (
+                    <DetailItem
+                      label="Время отправки"
+                      value={formatTimeDisplay(schedule.time_to_send)}
+                    />
+                  )}
+
+                {schedule.send_strategy === "relative" &&
+                  schedule.send_after_minutes && (
+                    <DetailItem
+                      label="Отправить через (минуты)"
+                      value={schedule.send_after_minutes.toString()}
+                    />
+                  )}
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* История выполнения */}
         {schedule.last_run_at && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="subtitle1">Последний запуск:</Typography>
-            <Typography variant="body1">
-              {formatDateTimeDisplay(schedule.last_run_at)}
-            </Typography>
-          </Box>
+          <Grid>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  История выполнения
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                <DetailItem
+                  label="Последний запуск"
+                  value={formatDateTimeDisplay(schedule.last_run_at)}
+                />
+
+                {developerMode && schedule.created_at && (
+                  <DetailItem
+                    label="Дата создания"
+                    value={formatDateTimeDisplay(schedule.created_at)}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
         )}
-
-        {developerMode && (
-          <>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">ID:</Typography>
-              <Typography variant="body1">{schedule.schedule_id}</Typography>
-            </Box>
-
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">Компания:</Typography>
-              <Typography variant="body1">
-                {companyMap.get(schedule.company_id) || schedule.company_id}
-              </Typography>
-            </Box>
-
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">Дата создания:</Typography>
-              <Typography variant="body1">
-                {formatDateTimeDisplay(schedule.created_at)}
-              </Typography>
-            </Box>
-          </>
-        )}
-      </Paper>
+      </Grid>
 
       <EditScheduleModal
         open={isEditModalOpen}

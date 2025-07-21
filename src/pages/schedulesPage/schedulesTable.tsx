@@ -25,7 +25,9 @@ type SortField =
   | "schedule_type"
   | "enabled"
   | "company_id"
-  | "created_at";
+  | "created_at"
+  | "last_run_at"
+  | "schedule_strategy"; // Добавляем новое поле для сортировки
 
 interface SchedulesTableProps {
   schedules: ISchedule[];
@@ -53,6 +55,17 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
   const chatMap = useChatMap().chatMap;
   const promptMap = usePromptMap().promptMap;
   const botMap = useBotMap().botMap;
+
+  const getScheduleStrategyLabel = (strategy: string) => {
+    switch (strategy) {
+      case "analysis":
+        return "Анализ";
+      case "notification":
+        return "Уведомление";
+      default:
+        return strategy;
+    }
+  };
 
   // Функция для преобразования типа расписания в читаемый формат
   const getScheduleTypeLabel = (type: string) => {
@@ -93,25 +106,18 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
           <TableRow>
             {developerMode && <TableCell>ID</TableCell>}
             <SortableTableHeader<SortField>
-              field="prompt_id"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label="Промпт"
-            />
-            <SortableTableHeader<SortField>
-              field="chat_id"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label="Чат"
-            />
-            <SortableTableHeader<SortField>
               field="bot_id"
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
               label="Бот"
+            />
+            <SortableTableHeader<SortField> // Добавляем новую колонку
+              field="schedule_strategy"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Стратегия"
             />
             <SortableTableHeader<SortField>
               field="schedule_type"
@@ -136,6 +142,14 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 label="Компания"
               />
             )}
+            <SortableTableHeader<SortField>
+              field="last_run_at"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label="Последний запуск"
+              defaultDirection="desc"
+            />
             {developerMode && (
               <SortableTableHeader<SortField>
                 field="created_at"
@@ -164,17 +178,11 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 </TableCell>
               )}
               <TableCell>
-                {schedule.prompt_id
-                  ? `${promptMap.get(schedule.prompt_id) || schedule.prompt_id}`
-                  : "-"}
-              </TableCell>
-              <TableCell>
-                {schedule.chat_id
-                  ? `${chatMap.get(schedule.chat_id) || schedule.chat_id}`
-                  : "-"}
-              </TableCell>
-              <TableCell>
                 {botMap.get(schedule.bot_id.toString()) || schedule.bot_id}
+              </TableCell>
+              <TableCell>
+                {/* Новая колонка для стратегии */}
+                {getScheduleStrategyLabel(schedule.schedule_strategy)}
               </TableCell>
               <TableCell>
                 {getScheduleTypeLabel(schedule.schedule_type)}
@@ -191,6 +199,11 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   {companyMap.get(schedule.company_id) || schedule.company_id}
                 </TableCell>
               )}
+              <TableCell>
+                {schedule.last_run_at
+                  ? new Date(schedule.last_run_at).toLocaleString()
+                  : "-"}
+              </TableCell>
               {developerMode && (
                 <TableCell>
                   {new Date(schedule.created_at).toLocaleString()}
