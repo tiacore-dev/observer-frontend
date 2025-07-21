@@ -33,6 +33,6 @@ export const useChatsSelectQuery = (company_id?: string) => {
     queryFn: () => fetchChats(undefined, company_id || selectedCompanyId),
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: !!(company_id || selectedCompanyId), // Включаем запрос только если есть company_id
+    // enabled: !!(company_id || selectedCompanyId), // Включаем запрос только если есть company_id
   });
 };
