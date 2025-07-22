@@ -16,9 +16,11 @@ import {
   Analytics,
   Business,
   Group,
+  Info,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -59,10 +61,22 @@ export const HomePage: React.FC = () => {
       path: "/companies",
     },
     {
-      title: "Аккаунты и чаты",
-      description: "Список Telegram аккаунтов и чатов",
+      title: "Аккаунты",
+      description: "Список Telegram аккаунтов",
       icon: <Group sx={{ fontSize: 40 }} />,
       path: "/accounts",
+    },
+    {
+      title: "Чаты",
+      description: "Список Telegram чатов",
+      icon: <QuestionAnswerIcon sx={{ fontSize: 40 }} />,
+      path: "/chats",
+    },
+    {
+      title: "Справка",
+      description: "",
+      icon: <Info sx={{ fontSize: 40 }} />,
+      path: "/help",
     },
   ];
 

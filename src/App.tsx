@@ -24,6 +24,7 @@ import theme from "./themeConfig/theme";
 import { ThemeProvider } from "@mui/material/styles";
 import { AnalysisDetailsPage } from "./pages/analysisPage/analysisDetailsPage";
 import { ScheduleDetailsPage } from "./pages/schedulesPage/scheduleDetailsPage";
+import { HelpPage } from "./pages/helpPage/helpPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -109,6 +110,11 @@ const App: React.FC = () => {
                     path="/companies/:companyId"
                     element={<CompaniesPage developerMode={developerMode} />}
                   />
+                  <Route
+                    path="/help"
+                    element={<HelpPage developerMode={developerMode} />}
+                  />
+
                   <Route path="/home" element={<HomePage />} />
                   <Route path="*" element={<Navigate to="/home" />} />
                 </Route>

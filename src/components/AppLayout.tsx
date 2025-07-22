@@ -1,3 +1,5 @@
+"use client";
+
 // src/components/AppLayout.tsx
 import React, { useMemo, useState } from "react";
 import {
@@ -38,6 +40,7 @@ import {
   Settings,
   Add,
   Group,
+  Info, // Добавьте эту строку
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
@@ -54,11 +57,11 @@ interface AppLayoutProps {
   onToggleDeveloperMode: () => void;
 }
 
-interface MenuItem {
+interface AppMenuItem {
   text: string;
   icon?: React.ReactNode;
   path?: string;
-  children?: MenuItem[];
+  children?: AppMenuItem[];
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({
@@ -85,19 +88,24 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const isHomePage = location.pathname === "/home";
 
   const menuItems = useMemo(() => {
-    const baseItems: MenuItem[] = [
+    const baseItems: AppMenuItem[] = [
       { text: "Боты", icon: <SmartToy />, path: "/bots" },
       { text: "Промпты", icon: <Psychology />, path: "/prompts" },
       { text: "Расписания", icon: <Schedule />, path: "/schedules" },
       { text: "Анализ", icon: <Analytics />, path: "/analysis" },
       { text: "Компании", icon: <Business />, path: "/companies" },
+      // {
+      //   text: "Аккаунты и чаты",
+      //   icon: <RemoveIcon />,
+      //   children: [
+      { text: "Аккаунты", icon: <Group />, path: "/accounts" },
+      { text: "Чаты", icon: <QuestionAnswerIcon />, path: "/chats" },
+      //   ],
+      // },
       {
-        text: "Аккаунты и чаты",
-        icon: <RemoveIcon />,
-        children: [
-          { text: "Аккаунты", icon: <Group />, path: "/accounts" },
-          { text: "Чаты", icon: <QuestionAnswerIcon />, path: "/chats" },
-        ],
+        text: "Справка",
+        icon: <Info />,
+        path: "/help",
       },
     ];
 
