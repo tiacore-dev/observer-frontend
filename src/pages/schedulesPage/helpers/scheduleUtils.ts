@@ -172,5 +172,5 @@ export const parseCronExpression = (
     const days = parts[4].split(",").map(Number);
     return { localTime, days };
   }
-  return { localTime: "09:00", days: [1, 2, 3, 4, 0] };
+  return { localTime: "09:00", days: [0, 1, 2, 3, 4] };
 };

@@ -69,7 +69,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   });
 
   const [cronTime, setCronTime] = useState<string>("09:00");
-  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [selectedDays, setSelectedDays] = useState<number[]>([0, 1, 2, 3, 4]);
 
   const createSchedule = useCreateSchedule();
   const { errors, validateFields, clearError, setError } =
@@ -310,7 +310,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         send_after_minutes: "",
       });
       setCronTime("09:00");
-      setSelectedDays([1, 2, 3, 4, 5]);
+      setSelectedDays([0, 1, 2, 3, 4]);
     } catch (error) {
       console.error("Error creating schedule:", error);
     }
