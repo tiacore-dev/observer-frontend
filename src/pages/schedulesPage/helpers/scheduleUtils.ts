@@ -1,11 +1,11 @@
 export const daysOfWeek = [
-  { id: 1, name: "Понедельник" },
-  { id: 2, name: "Вторник" },
-  { id: 3, name: "Среда" },
-  { id: 4, name: "Четверг" },
-  { id: 5, name: "Пятница" },
-  { id: 6, name: "Суббота" },
-  { id: 0, name: "Воскресенье" },
+  { id: 0, name: "Понедельник" },
+  { id: 1, name: "Вторник" },
+  { id: 2, name: "Среда" },
+  { id: 3, name: "Четверг" },
+  { id: 4, name: "Пятница" },
+  { id: 5, name: "Суббота" },
+  { id: 6, name: "Воскресенье" },
 ];
 
 export const generateCronExpression = (
@@ -172,5 +172,5 @@ export const parseCronExpression = (
     const days = parts[4].split(",").map(Number);
     return { localTime, days };
   }
-  return { localTime: "09:00", days: [1, 2, 3, 4, 5] };
+  return { localTime: "09:00", days: [1, 2, 3, 4, 0] };
 };
