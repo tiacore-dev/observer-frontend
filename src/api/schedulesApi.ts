@@ -19,6 +19,7 @@ export interface ISchedule {
   time_to_send?: string;
   send_after_minutes?: number;
   bot_id: number;
+
   target_chats: number[];
 }
 
