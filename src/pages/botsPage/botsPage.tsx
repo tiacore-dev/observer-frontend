@@ -28,11 +28,49 @@ import { HelpTooltip } from "../../components/helpTooltip";
 import { InfoCard } from "../../components/infoCard";
 import { ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useAuth } from "../../context/authContext";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setBotIdFilter,
+  setBotNameFilter,
+  setBotNameSelectFilter,
+  setCompanyFilter,
+  setCompanySelectFilter,
+  setStatusFilter,
+  setPage,
+  setSortField,
+  setSortDirection,
+  resetFilters,
+} from "../../redux/slice/botsSlice";
+import type { RootState } from "../../redux/store";
+
+// Определяем тип SortField в соответствии с BotsTable
+type SortField =
+  | "bot_username"
+  | "bot_first_name"
+  | "company_id"
+  | "is_active"
+  | "comment"
+  | "created_at";
 
 export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const { botId } = useParams();
   const navigate = useNavigate();
   const { isSuperadmin } = useAuth();
+  const dispatch = useDispatch();
+
+  // Получаем состояние из Redux store
+  const {
+    botIdFilter,
+    botNameFilter,
+    botNameSelectFilter,
+    companyFilter,
+    companySelectFilter,
+    statusFilter,
+    page,
+    sortField,
+    sortDirection,
+  } = useSelector((state: RootState) => state.bots);
+
   const {
     data: botsData,
     isLoading: botsLoading,
@@ -51,34 +89,10 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const isLoading = botsLoading || companiesLoading || isLoadingCompanyMap;
   const error = botsError || companiesError;
 
-  const [botIdFilter, setBotIdFilter] = useState("");
-  const [botNameFilter, setBotNameFilter] = useState("");
-  const [botNameSelectFilter, setBotNameSelectFilter] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("");
-  const [companySelectFilter, setCompanySelectFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState<boolean | "all">("all");
-  const [sortField, setSortField] = useState<
-    | "bot_username"
-    | "bot_first_name"
-    | "company_id"
-    | "is_active"
-    | "comment"
-    | "created_at"
-  >("created_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
   const resetAllFilters = () => {
-    setBotIdFilter("");
-    setBotNameFilter("");
-    setBotNameSelectFilter("");
-    setCompanyFilter("");
-    setCompanySelectFilter("");
-    setStatusFilter("all");
-    setSortField("created_at");
-    setSortDirection("desc");
-    setPage(1);
+    dispatch(resetFilters());
   };
 
   const companies = Array.from(
@@ -101,7 +115,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (botIdFilter) {
       filteredBots = filteredBots.filter((bot) =>
-        bot.bot_id.toLowerCase().includes(botIdFilter.toLowerCase())
+        String(bot.bot_id).toLowerCase().includes(botIdFilter.toLowerCase())
       );
     }
 
@@ -122,7 +136,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
             .get(bot.company_id)
             ?.toLowerCase()
             .includes(companyFilterValue.toLowerCase()) ||
-          bot.company_id
+          String(bot.company_id)
             .toLowerCase()
             .includes(companyFilterValue.toLowerCase())
       );
@@ -145,8 +159,8 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
       }
 
       if (sortField === "company_id") {
-        const aCompany = companyMap.get(a.company_id) ?? a.company_id;
-        const bCompany = companyMap.get(b.company_id) ?? b.company_id;
+        const aCompany = companyMap.get(a.company_id) ?? String(a.company_id);
+        const bCompany = companyMap.get(b.company_id) ?? String(b.company_id);
         if (aCompany < bCompany) return sortDirection === "asc" ? -1 : 1;
         if (aCompany > bCompany) return sortDirection === "asc" ? 1 : -1;
         return 0;
@@ -162,12 +176,12 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
     return filteredBots;
   };
 
-  const handleSort = (field: typeof sortField) => {
+  const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      dispatch(setSortDirection(sortDirection === "asc" ? "desc" : "asc"));
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      dispatch(setSortField(field));
+      dispatch(setSortDirection("asc"));
     }
   };
 
@@ -179,7 +193,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   );
 
   useEffect(() => {
-    setPage(1);
+    dispatch(setPage(1));
   }, [
     botIdFilter,
     botNameFilter,
@@ -292,7 +306,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={botIdFilter}
-                onChange={(e) => setBotIdFilter(e.target.value)}
+                onChange={(e) => dispatch(setBotIdFilter(e.target.value))}
                 placeholder="ID бота"
                 sx={{ minWidth: 200 }}
               />
@@ -302,7 +316,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={botNameFilter}
-                onChange={(e) => setBotNameFilter(e.target.value)}
+                onChange={(e) => dispatch(setBotNameFilter(e.target.value))}
                 placeholder="Например: my_bot"
                 sx={{ minWidth: 300 }}
               />
@@ -313,7 +327,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
                   variant="outlined"
                   size="small"
                   value={companyFilter}
-                  onChange={(e) => setCompanyFilter(e.target.value)}
+                  onChange={(e) => dispatch(setCompanyFilter(e.target.value))}
                   placeholder="Название компании"
                   sx={{ minWidth: 300 }}
                 />
@@ -340,7 +354,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
               bots={paginatedBots}
               companyMap={companyMap}
               developerMode={developerMode}
-              sortField={sortField}
+              sortField={sortField as SortField}
               sortDirection={sortDirection}
               onSort={handleSort}
               onRowClick={(botId) => navigate(`/bots/${botId}`)}
@@ -360,7 +374,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
               <PaginationControls
                 count={totalPages}
                 page={page}
-                onPageChange={setPage}
+                onPageChange={(newPage) => dispatch(setPage(newPage))}
               />
             </Box>
           )}

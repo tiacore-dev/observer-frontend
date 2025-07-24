@@ -11,15 +11,9 @@ import {
   Box,
   TextField,
   Button,
-  Tooltip,
   Autocomplete,
   Paper,
-  Grid,
-  Card,
-  CardContent,
-  IconButton,
   Alert,
-  Chip,
 } from "@mui/material";
 import type { PageProps } from "../../App";
 import { AnalysisTable } from "./analysisTable";
@@ -34,23 +28,45 @@ import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
 import { useAuth } from "../../context/authContext";
 import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
 import { PaginationControls } from "../../components/table/paginationControls";
-import {
-  Analytics,
-  FilterAlt,
-  Chat,
-  Description,
-  Business,
-  Info,
-  HelpOutline,
-  Refresh,
-} from "@mui/icons-material";
+import { Analytics } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ru } from "date-fns/locale";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setChatFilter,
+  setChatSelectFilter,
+  setPromptFilter,
+  setPromptSelectFilter,
+  setCompanyFilter,
+  setCompanySelectFilter,
+  setDateFrom,
+  setDateTo,
+  setPage,
+  setSortField,
+  setSortDirection,
+  resetFilters,
+} from "../../redux/slice/analysisSlice";
+import type { RootState } from "../../redux/store";
 
 export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const { isSuperadmin } = useAuth();
+  const dispatch = useDispatch();
+  const {
+    chatFilter,
+    chatSelectFilter,
+    promptFilter,
+    promptSelectFilter,
+    companyFilter,
+    companySelectFilter,
+    dateFrom,
+    dateTo,
+    page,
+    sortField,
+    sortDirection,
+  } = useSelector((state: RootState) => state.analysis);
+
   const {
     data: analysisData,
     isLoading: analysisLoading,
@@ -74,7 +90,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { chatMap, isLoadingChatsMap } = useChatMap();
   const { promptMap, isLoadingPromptMap } = usePromptMap();
-
+  const rowsPerPage = 10;
   const isLoading =
     analysisLoading ||
     companiesLoading ||
@@ -83,32 +99,10 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     isLoadingCompanyMap;
   const error = analysisError || companiesError || chatsError || promptsError;
 
-  const [chatFilter, setChatFilter] = useState("");
-  const [chatSelectFilter, setChatSelectFilter] = useState("");
-  const [promptFilter, setPromptFilter] = useState("");
-  const [promptSelectFilter, setPromptSelectFilter] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("");
-  const [companySelectFilter, setCompanySelectFilter] = useState("");
-  const [dateFrom, setDateFrom] = useState<Date | null>(null);
-  const [dateTo, setDateTo] = useState<Date | null>(null);
-  const [sortField, setSortField] = useState<keyof IAnalys>("created_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const resetAllFilters = () => {
-    setChatFilter("");
-    setChatSelectFilter("");
-    setPromptFilter("");
-    setPromptSelectFilter("");
-    setCompanyFilter("");
-    setCompanySelectFilter("");
-    setDateFrom(null);
-    setDateTo(null);
-    setSortField("created_at");
-    setSortDirection("desc");
-    setPage(1);
+    dispatch(resetFilters());
   };
 
   const getFilteredAndSortedAnalysis = () => {
@@ -181,10 +175,10 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const handleSort = (field: keyof IAnalys) => {
     if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      dispatch(setSortDirection(sortDirection === "asc" ? "desc" : "asc"));
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      dispatch(setSortField(field));
+      dispatch(setSortDirection("asc"));
     }
   };
 
@@ -194,10 +188,6 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
-
-  useEffect(() => {
-    setPage(1);
-  }, [chatFilter, promptFilter, companyFilter, dateFrom, dateTo]);
 
   if (error) {
     return (
@@ -283,14 +273,12 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                         size="small"
                         sx={{ width: 250 }}
                         onChange={(e) => {
-                          setChatFilter(e.target.value);
-                          setChatSelectFilter("");
+                          dispatch(setChatFilter(e.target.value));
                         }}
                       />
                     )}
                     onChange={(_, value) => {
-                      setChatSelectFilter(value || "");
-                      setChatFilter("");
+                      dispatch(setChatSelectFilter(value || ""));
                     }}
                   />
                 </Box>
@@ -308,14 +296,12 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                         size="small"
                         sx={{ width: 250 }}
                         onChange={(e) => {
-                          setPromptFilter(e.target.value);
-                          setPromptSelectFilter("");
+                          dispatch(setPromptFilter(e.target.value));
                         }}
                       />
                     )}
                     onChange={(_, value) => {
-                      setPromptSelectFilter(value || "");
-                      setPromptFilter("");
+                      dispatch(setPromptSelectFilter(value || ""));
                     }}
                   />
                 </Box>
@@ -334,14 +320,12 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                           size="small"
                           sx={{ width: 250 }}
                           onChange={(e) => {
-                            setCompanyFilter(e.target.value);
-                            setCompanySelectFilter("");
+                            dispatch(setCompanyFilter(e.target.value));
                           }}
                         />
                       )}
                       onChange={(_, value) => {
-                        setCompanySelectFilter(value || "");
-                        setCompanyFilter("");
+                        dispatch(setCompanySelectFilter(value || ""));
                       }}
                     />
                   </Box>
@@ -350,7 +334,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                 <DatePicker
                   label="От"
                   value={dateFrom}
-                  onChange={(newValue) => setDateFrom(newValue)}
+                  onChange={(newValue) => dispatch(setDateFrom(newValue))}
                   slotProps={{
                     textField: {
                       size: "small",
@@ -363,7 +347,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                 <DatePicker
                   label="До"
                   value={dateTo}
-                  onChange={(newValue) => setDateTo(newValue)}
+                  onChange={(newValue) => dispatch(setDateTo(newValue))}
                   minDate={dateFrom || undefined}
                   slotProps={{
                     textField: {
@@ -418,7 +402,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                   <PaginationControls
                     count={totalPages}
                     page={page}
-                    onPageChange={setPage}
+                    onPageChange={(newPage) => dispatch(setPage(newPage))}
                   />
                 </Box>
               )}

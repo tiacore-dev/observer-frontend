@@ -1,7 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Typography, Box, TextField, Paper, Alert, Chip } from "@mui/material";
 import type { PageProps } from "../../App";
 import { useAccountsQuery } from "../../hooks/accounts/useAccountsQuery";
@@ -10,10 +11,28 @@ import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
 import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
 import { PaginationControls } from "../../components/table/paginationControls";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import SearchIcon from "@mui/icons-material/Search";
-import InfoIcon from "@mui/icons-material/Info";
+import {
+  setNameFilter,
+  setUsernameFilter,
+  setIdFilter,
+  setPage,
+  setSortField,
+  setSortDirection,
+  resetFilters,
+} from "../../redux/slice/accountsSlice";
+import type { RootState } from "../../redux/store";
 
 export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
+  const dispatch = useDispatch();
+  const {
+    nameFilter,
+    usernameFilter,
+    idFilter,
+    page,
+    sortField,
+    sortDirection,
+  } = useSelector((state: RootState) => state.accounts);
+
   const {
     data: accountsData,
     isLoading: accountsLoading,
@@ -23,23 +42,8 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   const isLoading = accountsLoading;
   const error = accountsError;
 
-  const [nameFilter, setNameFilter] = useState("");
-  const [usernameFilter, setUsernameFilter] = useState("");
-  const [idFilter, setIdFilter] = useState(""); // Новый фильтр по ID
-  const [sortField, setSortField] = useState<
-    "account_id" | "account_name" | "username" | "created_at"
-  >("created_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 10;
-
   const resetAllFilters = () => {
-    setNameFilter("");
-    setUsernameFilter("");
-    setIdFilter(""); // Сбрасываем фильтр по ID
-    setSortField("created_at");
-    setSortDirection("desc");
-    setPage(1);
+    dispatch(resetFilters());
   };
 
   const getFilteredAndSortedAccounts = () => {
@@ -79,14 +83,15 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     field: "account_id" | "account_name" | "username" | "created_at"
   ) => {
     if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      dispatch(setSortDirection(sortDirection === "asc" ? "desc" : "asc"));
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      dispatch(setSortField(field));
+      dispatch(setSortDirection("asc"));
     }
   };
 
   const filteredAccounts = getFilteredAndSortedAccounts();
+  const rowsPerPage = 10;
   const totalPages = Math.ceil(filteredAccounts.length / rowsPerPage);
   const paginatedChats = filteredAccounts.slice(
     (page - 1) * rowsPerPage,
@@ -94,8 +99,8 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   );
 
   useEffect(() => {
-    setPage(1);
-  }, [nameFilter, usernameFilter, idFilter]); // Добавляем idFilter в зависимости
+    dispatch(setPage(1));
+  }, [nameFilter, usernameFilter, idFilter, dispatch]);
 
   if (error) {
     return (
@@ -115,7 +120,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   return (
     <Box sx={{ pl: 2, pr: 2, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
-        <PageSkeleton filterCount={3} pagination={true} hasAddButton={false} /> // Обновляем filterCount до 3
+        <PageSkeleton filterCount={3} pagination={true} hasAddButton={false} />
       ) : (
         <>
           {/* Заголовок страницы */}
@@ -164,7 +169,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={idFilter}
-                onChange={(e) => setIdFilter(e.target.value)}
+                onChange={(e) => dispatch(setIdFilter(e.target.value))}
                 placeholder="Например: 123456"
                 sx={{ minWidth: 250 }}
               />
@@ -173,7 +178,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={nameFilter}
-                onChange={(e) => setNameFilter(e.target.value)}
+                onChange={(e) => dispatch(setNameFilter(e.target.value))}
                 placeholder="Например: Мой рабочий аккаунт"
                 sx={{ minWidth: 250 }}
               />
@@ -182,7 +187,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={usernameFilter}
-                onChange={(e) => setUsernameFilter(e.target.value)}
+                onChange={(e) => dispatch(setUsernameFilter(e.target.value))}
                 placeholder="Например: @username"
                 sx={{ minWidth: 250 }}
               />
@@ -214,7 +219,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
                 <PaginationControls
                   count={totalPages}
                   page={page}
-                  onPageChange={setPage}
+                  onPageChange={(newPage) => dispatch(setPage(newPage))}
                 />
               </Box>
             )}

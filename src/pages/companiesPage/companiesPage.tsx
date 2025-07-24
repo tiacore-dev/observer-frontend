@@ -1,3 +1,6 @@
+// companiesPage.tsx
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
@@ -19,25 +22,31 @@ import { CompanyDetailsPage } from "./companyDetailsPage";
 import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
 import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
 import { PaginationControls } from "../../components/table/paginationControls";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../redux/store";
+import {
+  setNameFilter,
+  setPage,
+  setSortField,
+  setSortDirection,
+  resetFilters,
+} from "../../redux/slice/companiesSlice";
 
 export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { companyId } = useParams();
   const navigate = useNavigate();
   const { data, isLoading, error } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [nameFilter, setNameFilter] = useState("");
-  const [sortField, setSortField] = useState<"company_name" | "description">(
-    "company_name"
+  const dispatch = useDispatch();
+
+  const { nameFilter, page, sortField, sortDirection } = useSelector(
+    (state: RootState) => state.companies
   );
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
   const rowsPerPage = 10;
 
   const resetAllFilters = () => {
-    setNameFilter("");
-    setSortField("company_name");
-    setSortDirection("desc");
-    setPage(1);
+    dispatch(resetFilters());
   };
 
   const getFilteredAndSortedCompanies = () => {
@@ -65,10 +74,10 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const handleSort = (field: "company_name" | "description") => {
     if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      dispatch(setSortDirection(sortDirection === "asc" ? "desc" : "asc"));
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      dispatch(setSortField(field));
+      dispatch(setSortDirection("asc"));
     }
   };
 
@@ -80,8 +89,8 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   );
 
   useEffect(() => {
-    setPage(1);
-  }, [nameFilter]);
+    dispatch(setPage(1));
+  }, [nameFilter, dispatch]);
 
   if (companyId) {
     return (
@@ -110,7 +119,6 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
         <PageSkeleton filterCount={1} pagination={true} hasAddButton={true} />
       ) : (
         <>
-          {/* Заголовок страницы */}
           <Paper
             elevation={1}
             sx={{
@@ -141,7 +149,6 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Фильтры */}
           <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
             <Box
               sx={{
@@ -156,7 +163,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={nameFilter}
-                onChange={(e) => setNameFilter(e.target.value)}
+                onChange={(e) => dispatch(setNameFilter(e.target.value))}
                 placeholder="Например: My Company"
                 sx={{ minWidth: 300 }}
               />
@@ -176,7 +183,6 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Таблица */}
           <Paper elevation={1} sx={{ overflow: "hidden" }}>
             <CompaniesTable
               companies={paginatedCompanies}
@@ -186,7 +192,6 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
               onSort={handleSort}
             />
 
-            {/* Пагинация */}
             {totalPages > 1 && (
               <Box
                 sx={{
@@ -199,13 +204,12 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
                 <PaginationControls
                   count={totalPages}
                   page={page}
-                  onPageChange={setPage}
+                  onPageChange={(newPage) => dispatch(setPage(newPage))}
                 />
               </Box>
             )}
           </Paper>
 
-          {/* Пустое состояние */}
           {filteredCompanies.length === 0 && !isLoading && (
             <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
               <BusinessIcon

@@ -13,8 +13,23 @@ import ChatIcon from "@mui/icons-material/Chat";
 import SearchIcon from "@mui/icons-material/Search";
 import InfoIcon from "@mui/icons-material/Info";
 import GroupIcon from "@mui/icons-material/Group";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setNameFilter,
+  setIdFilter,
+  setPage,
+  setSortField,
+  setSortDirection,
+  resetFilters,
+} from "../../redux/slice/chatsSlice";
+import type { RootState } from "../../redux/store";
 
 export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
+  const dispatch = useDispatch();
+  const { nameFilter, idFilter, page, sortField, sortDirection } = useSelector(
+    (state: RootState) => state.chats
+  );
+
   const {
     data: chatsData,
     isLoading: chatsLoading,
@@ -23,22 +38,10 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const isLoading = chatsLoading;
   const error = chatsError;
-
-  const [nameFilter, setNameFilter] = useState("");
-  const [idFilter, setIdFilter] = useState(""); // Новый фильтр по ID
-  const [sortField, setSortField] = useState<
-    "chat_name" | "chat_id" | "created_at"
-  >("created_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
   const resetAllFilters = () => {
-    setNameFilter("");
-    setIdFilter(""); // Сбрасываем фильтр по ID
-    setSortField("created_at");
-    setSortDirection("desc");
-    setPage(1);
+    dispatch(resetFilters());
   };
 
   const getFilteredAndSortedChats = () => {
@@ -72,10 +75,10 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const handleSort = (field: "chat_name" | "chat_id" | "created_at") => {
     if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      dispatch(setSortDirection(sortDirection === "asc" ? "desc" : "asc"));
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      dispatch(setSortField(field));
+      dispatch(setSortDirection("asc"));
     }
   };
 
@@ -87,8 +90,8 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
   );
 
   useEffect(() => {
-    setPage(1);
-  }, [nameFilter, idFilter]); // Добавляем idFilter в зависимости
+    dispatch(setPage(1));
+  }, [nameFilter, idFilter]);
 
   if (error) {
     return (
@@ -156,7 +159,7 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={nameFilter}
-                onChange={(e) => setNameFilter(e.target.value)}
+                onChange={(e) => dispatch(setNameFilter(e.target.value))}
                 placeholder="Например: Рабочая группа"
                 sx={{ minWidth: 300 }}
               />
@@ -166,7 +169,7 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
                 variant="outlined"
                 size="small"
                 value={idFilter}
-                onChange={(e) => setIdFilter(e.target.value)}
+                onChange={(e) => dispatch(setIdFilter(e.target.value))}
                 placeholder="Например: 123456789"
                 sx={{ minWidth: 300 }}
               />
@@ -198,7 +201,7 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
                 <PaginationControls
                   count={totalPages}
                   page={page}
-                  onPageChange={setPage}
+                  onPageChange={(newPage) => dispatch(setPage(newPage))}
                 />
               </Box>
             )}
