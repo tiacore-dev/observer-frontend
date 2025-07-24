@@ -55,6 +55,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
         account_name: newName,
       });
     }
+    setIsModalOpen(false);
   };
 
   const formatDate = (dateString: string | Date) => {

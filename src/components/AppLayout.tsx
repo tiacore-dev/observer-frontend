@@ -606,10 +606,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             elevation: 8,
             sx: {
               mt: 1,
-              borderRadius: 0, // Убираем закругленные углы
+              borderRadius: 2, // Убираем закругленные углы
               minWidth: 200,
               "& .MuiMenuItem-root": {
-                borderRadius: 0, // Убираем закругленные углы
+                borderRadius: 1, // Убираем закругленные углы
                 mx: 1,
                 my: 0.5,
               },

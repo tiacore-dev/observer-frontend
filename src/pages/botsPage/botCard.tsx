@@ -26,6 +26,7 @@ import type { IBot } from "../../api/botsApi";
 import { useNavigate } from "react-router-dom";
 import { useUpdateBot } from "../../hooks/bots/useBotsMutations";
 import { EditBotDescriptionModal } from "./editBotDescriptionModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface BotCardProps {
   bot: IBot;
@@ -108,15 +109,41 @@ export const BotCard: React.FC<BotCardProps> = ({
       </Box>
     </Box>
   );
+  const queryClient = useQueryClient();
+  const selectedCompanyId = localStorage.getItem("selected_company_id");
 
   const handleSaveDescription = async (newDescription: string) => {
+    // 1. Оптимистичное обновление (UI изменится мгновенно)
+    queryClient.setQueryData(
+      ["botDetails", bot.bot_id, selectedCompanyId],
+      (oldData: IBot | undefined) => {
+        if (!oldData) return oldData;
+        return { ...oldData, comment: newDescription };
+      }
+    );
+
     try {
+      // 2. Отправляем запрос на сервер
       await updateBot.mutateAsync({
         bot_id: bot.bot_id,
         comment: newDescription,
       });
+
+      // 3. Принудительно перезапрашиваем данные (на случай, если API не возвращает обновлённый объект)
+      await queryClient.refetchQueries({
+        queryKey: ["botDetails", bot.bot_id, selectedCompanyId],
+      });
+
       setIsEditModalOpen(false);
     } catch (error) {
+      // 4. Откатываем изменения при ошибке
+      queryClient.setQueryData(
+        ["botDetails", bot.bot_id, selectedCompanyId],
+        (oldData: IBot | undefined) => {
+          if (!oldData) return oldData;
+          return { ...oldData, comment: bot.comment }; // Возвращаем старое значение
+        }
+      );
       console.error("Error updating bot description:", error);
     }
   };

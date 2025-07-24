@@ -49,14 +49,17 @@ export const useUpdateBot = () => {
     mutationFn: ({ bot_id, comment }: { bot_id: string; comment: string }) =>
       updateBot(bot_id, comment, isSuperadmin, selectedCompanyId),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["bots"] });
+      // Инвалидируем все возможные варианты ключа
       queryClient.invalidateQueries({
         queryKey: ["botDetails", variables.bot_id],
+        exact: false, // Инвалидирует все подходящие ключи
       });
-      enqueueSnackbar("Успешно обновлено", { variant: "success" });
+      enqueueSnackbar("Описание бота успешно обновлено", {
+        variant: "success",
+      });
     },
     onError: () => {
-      enqueueSnackbar("Ошибка при обновлении", { variant: "error" });
+      enqueueSnackbar("Ошибка при обновлении описания", { variant: "error" });
     },
   });
 };

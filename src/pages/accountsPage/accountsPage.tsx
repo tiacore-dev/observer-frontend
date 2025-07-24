@@ -49,12 +49,12 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (nameFilter) {
       filteredAccounts = filteredAccounts.filter((account) =>
-        account.account_name.toLowerCase().includes(nameFilter.toLowerCase())
+        account.account_name?.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
     if (usernameFilter) {
       filteredAccounts = filteredAccounts.filter((account) =>
-        account.username.toLowerCase().includes(usernameFilter.toLowerCase())
+        account.username?.toLowerCase().includes(usernameFilter.toLowerCase())
       );
     }
     if (idFilter) {

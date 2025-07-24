@@ -111,14 +111,15 @@ export const updateBot = async (
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   const params: any = {};
-
+  const newdata: any = {};
+  newdata.comment = comment;
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
 
   const response = await axiosInstance.patch(
     `${url}/api/bots/${bot_id}`,
-    comment,
+    newdata, // ← Оберните в объект
     {
       params,
       headers: {

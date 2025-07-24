@@ -38,14 +38,15 @@ export const updateAccount = async (
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
   const params: any = {};
-
+  const newdata: any = {};
+  newdata.account_name = account_name;
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
 
   const response = await axiosInstance.patch(
     `${url}/api/accounts/${account_id}`,
-    account_name,
+    newdata,
     {
       params,
       headers: {

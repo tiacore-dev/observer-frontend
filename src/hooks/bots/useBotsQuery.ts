@@ -25,7 +25,7 @@ export const useBotDetailsQuery = (bot_id: string) => {
   return useQuery({
     queryKey: ["botDetails", bot_id, selectedCompanyId],
     queryFn: () => fetchBotDetails(bot_id, selectedCompanyId, isSuperadmin),
-    staleTime: 5 * 60 * 1000,
-    retry: false,
+    // staleTime: 5 * 60 * 1000,
+    // retry: false,
   });
 };
