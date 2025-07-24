@@ -65,6 +65,10 @@ export const LoginPage: React.FC = () => {
         if (error.response?.status === 403) {
           setShowResendLink(true);
           enqueueSnackbar("Email не подтвержден", { variant: "error" });
+        } else if (error.response?.status === 401) {
+          enqueueSnackbar("Неверный логин или пароль", { variant: "error" });
+        } else if (error.response?.status === 404) {
+          enqueueSnackbar("Пользователь не найден", { variant: "error" });
         } else {
           setShowResendLink(false);
           enqueueSnackbar("Ошибка при авторизации", { variant: "error" });
