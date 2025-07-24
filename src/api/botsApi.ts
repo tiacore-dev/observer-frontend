@@ -101,3 +101,32 @@ export const deleteBot = async (
     },
   });
 };
+
+export const updateBot = async (
+  bot_id: string,
+  comment: string,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+) => {
+  const url = process.env.REACT_APP_API_URL;
+  const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+
+  const response = await axiosInstance.patch(
+    `${url}/api/bots/${bot_id}`,
+    comment,
+    {
+      params,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data;
+};

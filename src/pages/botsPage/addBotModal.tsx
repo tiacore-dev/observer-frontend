@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import type React from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,13 +14,27 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  CircularProgress,
   Typography,
+  Alert,
+  Link,
+  CircularProgress,
+  Collapse,
+  Tooltip,
 } from "@mui/material";
+import {
+  SmartToy as BotIcon,
+  Info as InfoIcon,
+  CheckCircle,
+  Warning,
+  Business as BusinessIcon,
+  ExpandMore,
+  ExpandLess,
+} from "@mui/icons-material";
 import { useCreateBot } from "../../hooks/bots/useBotsMutations";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { useAuth } from "../../context/authContext";
+import { InfoCard } from "../../components/infoCard";
 
 interface AddBotModalProps {
   open: boolean;
@@ -31,9 +48,9 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     company_id: "",
     comment: "",
   });
+  const [showHelp, setShowHelp] = useState(false);
   const createBot = useCreateBot();
 
-  // Автоматически устанавливаем company_id для обычных пользователей
   useEffect(() => {
     if (!isSuperadmin && selectedCompanyId) {
       setBotData((prev) => ({
@@ -43,7 +60,6 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     }
   }, [isSuperadmin, selectedCompanyId]);
 
-  // Получаем список компаний
   const { data: companiesData, isLoading, error } = useCompaniesQuery();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +76,19 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     const tokenRegex = /^\d+:[a-zA-Z0-9_-]+$/;
     return tokenRegex.test(token);
   };
+
+  const getTokenValidationStatus = (token: string) => {
+    if (!token) return { status: "empty", message: "" };
+    if (!token.includes(":"))
+      return { status: "error", message: "Токен должен содержать символ ':'" };
+    if (token.split(":")[0]?.length < 8)
+      return { status: "error", message: "Неверный формат токена" };
+    if (!validateToken(token))
+      return { status: "error", message: "Неверный формат токена" };
+    return { status: "success", message: "Токен выглядит корректно" };
+  };
+
+  const tokenStatus = getTokenValidationStatus(botData.token);
 
   const handleSubmit = async () => {
     const newErrors = {
@@ -84,7 +113,6 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     }
   };
 
-  // Обработка состояний загрузки и ошибок
   if (isLoading) {
     return <ModalSkeleton fieldCount={3} hasActions />;
   }
@@ -92,11 +120,18 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
   if (error) {
     return (
       <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Добавить нового бота</DialogTitle>
+        <DialogTitle>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <BotIcon color="primary" />
+            Добавить Telegram-бота
+          </Box>
+        </DialogTitle>
         <DialogContent>
-          <Typography color="error">
-            Ошибка при загрузке компаний: {(error as Error).message}
-          </Typography>
+          <Alert severity="error">
+            <Typography>
+              Ошибка при загрузке данных: {(error as Error).message}
+            </Typography>
+          </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Закрыть</Button>
@@ -106,15 +141,73 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Добавить нового бота</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <BotIcon color="primary" />
+          Добавить Telegram-бота
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="text"
+            onClick={() => setShowHelp(!showHelp)}
+            endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
+            size="small"
+          >
+            Инструкция по созданию бота
+          </Button>
+        </Box>
+      </DialogTitle>
       <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+        <Collapse in={showHelp}>
+          <Box sx={{ mb: 3 }}>
+            <InfoCard
+              type="info"
+              title="Для создания бота выполните следующие шаги:"
+              description=" "
+            >
+              <Box component="ol" sx={{ pl: 2, mt: 1, mb: 0 }}>
+                <li>
+                  Откройте Telegram и найдите <strong>@BotFather</strong>
+                </li>
+                <li>
+                  Отправьте команду <code>/newbot</code>
+                </li>
+                <li>
+                  Придумайте имя для бота (например: "Мой Аналитический Бот")
+                </li>
+                <li>Придумайте username (должен заканчиваться на "bot")</li>
+                <li>Скопируйте полученный токен</li>
+              </Box>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 600, mb: 1, mt: 1, ml: -1, color: "#1e293b" }}
+              >
+                После создания бота:
+              </Typography>
+              <Box component="ol" sx={{ pl: 2, mt: 1, mb: 0 }}>
+                <li>
+                  Добавьте бота в нужные чаты через меню "Добавить участников"
+                </li>
+                <li>
+                  Дайте боту права <strong>администратора</strong> с
+                  возможностью отправки сообщений
+                </li>
+              </Box>
+            </InfoCard>
+          </Box>
+        </Collapse>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
           {isSuperadmin && (
-            <FormControl fullWidth required error={!!errors.company_id}>
-              <InputLabel>Компания</InputLabel>
+            <FormControl fullWidth error={!!errors.company_id}>
+              <InputLabel>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <BusinessIcon fontSize="small" />
+                  Компания
+                </Box>
+              </InputLabel>
               <Select
-                name="company"
+                name="company_id"
                 value={botData.company_id}
                 label="Компания"
                 onChange={(e) =>
@@ -145,33 +238,65 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
             value={botData.token}
             onChange={handleChange}
             error={!!errors.token}
-            helperText={errors.token}
+            helperText={
+              errors.token ||
+              tokenStatus.message ||
+              "Вставьте токен, полученный от @BotFather"
+            }
             required
+            placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+            InputProps={{
+              endAdornment:
+                tokenStatus.status === "success" ? (
+                  <CheckCircle color="success" />
+                ) : tokenStatus.status === "error" ? (
+                  <Warning color="error" />
+                ) : null,
+            }}
           />
 
           <TextField
             fullWidth
-            label="Комментарий (необязательно)"
+            label="Описание бота (необязательно)"
             name="comment"
             value={botData.comment}
             onChange={handleChange}
             multiline
             rows={3}
+            helperText="Краткое описание назначения бота"
+            placeholder="Например: Бот для отправки еженедельных отчетов по чату поддержки"
           />
+
+          <Alert severity="info" variant="outlined">
+            <Typography variant="body2">
+              После создания бота не забудьте добавить его в нужные чаты и
+              назначить администратором с правами на отправку сообщений.
+            </Typography>
+          </Alert>
         </Box>
       </DialogContent>
-      <DialogActions>
+      <DialogActions
+        sx={{
+          paddingBottom: 3,
+          paddingTop: 0,
+          paddingRight: 3,
+          justifyContent: "flex-end",
+        }}
+      >
         <Button onClick={onClose}>Отмена</Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
           disabled={
             !botData.token ||
-            (!isSuperadmin && !botData.company_id) ||
-            (isSuperadmin && !botData.company_id)
+            !botData.company_id ||
+            tokenStatus.status !== "success"
+          }
+          startIcon={
+            createBot.isPending ? <CircularProgress size={16} /> : <BotIcon />
           }
         >
-          Создать
+          {createBot.isPending ? "Создание бота..." : "Создать бота"}
         </Button>
       </DialogActions>
     </Dialog>

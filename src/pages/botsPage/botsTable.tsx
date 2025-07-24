@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import type React from "react";
 import {
   Table,
   TableBody,
@@ -8,10 +10,19 @@ import {
   TableRow,
   Paper,
   Typography,
+  Chip,
+  Avatar,
+  Box,
 } from "@mui/material";
-import { IBot } from "../../api/botsApi";
+import type { IBot } from "../../api/botsApi";
 import { useAuth } from "../../context/authContext";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+import {
+  SmartToy,
+  CheckCircle,
+  Cancel,
+  CalendarMonth,
+} from "@mui/icons-material";
 
 type SortField =
   | "bot_username"
@@ -31,6 +42,20 @@ interface BotsTableProps {
   onRowClick: (botId: string) => void;
 }
 
+// Функция для генерации цвета аватара на основе имени
+const stringToColor = (string: string) => {
+  let hash = 0;
+  for (let i = 0; i < string.length; i++) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let color = "#";
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    color += `00${value.toString(16)}`.slice(-2);
+  }
+  return color;
+};
+
 export const BotsTable: React.FC<BotsTableProps> = ({
   bots,
   companyMap,
@@ -42,18 +67,49 @@ export const BotsTable: React.FC<BotsTableProps> = ({
 }) => {
   const { isSuperadmin } = useAuth();
 
+  // Функция для получения инициалов из имени бота
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Функция для форматирования даты
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="bots table">
+    <TableContainer
+      component={Paper}
+      elevation={2}
+      sx={{
+        borderRadius: 2,
+        overflow: "hidden",
+        mb: 4,
+      }}
+    >
+      <Table sx={{ minWidth: 650 }} aria-label="таблица ботов">
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>
+
             <SortableTableHeader<SortField>
               field="bot_username"
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
-              label="Имя бота"
+              label="Бот"
             />
             <SortableTableHeader<SortField>
               field="bot_first_name"
@@ -84,7 +140,7 @@ export const BotsTable: React.FC<BotsTableProps> = ({
                 currentSortField={sortField}
                 sortDirection={sortDirection}
                 onSort={onSort}
-                label="Дата создания"
+                label="Дата регистрации"
                 defaultDirection="desc"
               />
             )}
@@ -93,7 +149,7 @@ export const BotsTable: React.FC<BotsTableProps> = ({
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
-              label="Комментарий"
+              label="Описание"
             />
           </TableRow>
         </TableHead>
@@ -105,35 +161,105 @@ export const BotsTable: React.FC<BotsTableProps> = ({
               sx={{
                 "&:last-child td, &:last-child th": { border: 0 },
                 "&:hover": {
-                  backgroundColor: "action.hover",
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
                   cursor: "pointer",
+                  transition: "background-color 0.2s ease",
                 },
               }}
               onClick={() => onRowClick(bot.bot_id)}
             >
-              <TableCell component="th" scope="row">
-                {bot.bot_id}
+              <TableCell>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  {/* <Avatar
+                    sx={{
+                      bgcolor: stringToColor(
+                        bot.bot_first_name || bot.bot_username
+                      ),
+                      width: 40,
+                      height: 40,
+                      mr: 2,
+                    }}
+                  >
+                    {getInitials(bot.bot_first_name || bot.bot_username)}
+                  </Avatar> */}
+                  {/* {developerMode && ( */}
+                  <Typography
+                    variant="body2"
+                    component="span"
+                    sx={{
+                      fontFamily: "monospace",
+                      bgcolor: "grey.100",
+                      p: 0.5,
+                      borderRadius: 1,
+                    }}
+                  >
+                    {bot.bot_id}
+                  </Typography>
+                  {/* )} */}
+                </Box>
               </TableCell>
-              <TableCell>{bot.bot_username}</TableCell>
+              <TableCell>
+                <Typography variant="body2">@{bot.bot_username}</Typography>
+              </TableCell>
               <TableCell>{bot.bot_first_name}</TableCell>
               {isSuperadmin && (
                 <TableCell>
-                  {companyMap.get(bot.company_id) || bot.company_id}
+                  <Chip
+                    size="small"
+                    label={companyMap.get(bot.company_id) || bot.company_id}
+                    sx={{
+                      bgcolor: "primary.light",
+                      color: "primary.contrastText",
+                      fontWeight: 500,
+                    }}
+                  />
                 </TableCell>
               )}
               <TableCell>
                 {bot.is_active ? (
-                  <Typography color="success.main">Активен</Typography>
+                  <Chip
+                    icon={<CheckCircle fontSize="small" />}
+                    label="Активен"
+                    color="success"
+                    variant="outlined"
+                    size="small"
+                  />
                 ) : (
-                  <Typography color="error">Неактивен</Typography>
+                  <Chip
+                    icon={<Cancel fontSize="small" />}
+                    label="Неактивен"
+                    color="error"
+                    variant="outlined"
+                    size="small"
+                  />
                 )}
               </TableCell>
               {developerMode && (
                 <TableCell>
-                  {new Date(bot.created_at).toLocaleString()}
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <CalendarMonth
+                      fontSize="small"
+                      sx={{ mr: 1, color: "text.secondary" }}
+                    />
+                    <Typography variant="body2">
+                      {formatDate(bot.created_at)}
+                    </Typography>
+                  </Box>
                 </TableCell>
               )}
-              <TableCell>{bot.comment || "-"}</TableCell>
+              <TableCell>
+                {bot.comment ? (
+                  <Typography variant="body2">{bot.comment}</Typography>
+                ) : (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ fontStyle: "italic" }}
+                  >
+                    Нет описания
+                  </Typography>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

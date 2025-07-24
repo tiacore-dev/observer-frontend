@@ -1,283 +1,440 @@
+"use client";
+
 import type React from "react";
+import { useState } from "react";
 import {
-  Container,
-  Typography,
-  Paper,
   Box,
+  Typography,
+  Card,
+  CardContent,
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Card,
-  CardContent,
   List,
   ListItem,
-  ListItemText,
   ListItemIcon,
+  ListItemText,
   Alert,
+  Grid,
+  Divider,
+  Chip,
+  Paper,
 } from "@mui/material";
 import {
   ExpandMore,
   SmartToy,
-  Psychology,
-  Schedule,
-  Analytics,
   Business,
+  Schedule,
+  Description,
   Group,
+  Settings,
+  HelpOutline,
+  PlayArrow,
   CheckCircle,
+  Info,
+  Analytics,
 } from "@mui/icons-material";
-import type { PageProps } from "../../App";
 
-export const HelpPage: React.FC<PageProps> = ({ developerMode }) => {
-  const scenarios = [
+export const HelpPage: React.FC = () => {
+  const [expandedSection, setExpandedSection] = useState<string | false>(
+    "getting-started"
+  );
+
+  const handleAccordionChange =
+    (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpandedSection(isExpanded ? panel : false);
+    };
+
+  const faqItems = [
     {
-      title: "1. Добавление компании",
-      content: [
-        "Компания — это организация, для которой вы настраиваете ботов, промпты и анализ.",
-        "Пока в системе нет ни одной компании, другие функции будут недоступны.",
-        "Перейдите в раздел Компании в левом меню или выберите в выпадающем списке в верхней части страницы.",
-        "Нажмите кнопку + Добавить компанию.",
-        "Введите название компании и, при необходимости, описание.",
-        "Сохраните компанию.",
-        "Она появится в списке, а в шапке сайта можно выбрать эту компанию из выпадающего списка.",
-      ],
+      question: "Что такое Observer и для чего он нужен?",
+      answer:
+        "Observer - это система для автоматизации анализа Telegram-чатов. Она позволяет настроить ботов для регулярного анализа сообщений в чатах и получения полезной информации о активности, настроениях участников и других метриках.",
     },
     {
-      title: "2. Подключение бота",
-      content: [
-        "Убедитесь, что бот уже создан в Telegram и добавлен администратором в нужные чаты.",
-        "Как создать бота и получить токен — смотрите официальную инструкцию Telegram: BotFather",
-        "В интерфейсе Observer откройте раздел Боты.",
-        "Нажмите кнопку + Добавить бота.",
-        "Введите данные бота (имя, токен, при необходимости комментарий).",
-        "Сохраните изменения.",
-        "Бот появится в списке, статус должен быть Активен.",
-      ],
+      question: "Безопасно ли использовать Observer с моими чатами?",
+      answer:
+        "Да, Observer использует только официальные API Telegram и не хранит содержимое ваших сообщений. Все данные обрабатываются в зашифрованном виде и удаляются после анализа.",
     },
     {
-      title: "3. Создание промпта",
-      content: [
-        "Промпт — это шаблон текста, который указывает, что именно нужно проанализировать в чате.",
-        "Например: «Перечисли самые обсуждаемые темы за день» или «Найди негативные комментарии»",
-        "Перейдите в раздел Промпты.",
-        "Нажмите кнопку + Добавить промпт.",
-        "Заполните поля: Компания, Название промпта, Текст инструкции для анализа.",
-        "Сохраните промпт.",
-        "Он появится в списке промптов.",
-      ],
+      question: "Почему анализ занимает много времени?",
+      answer:
+        "Время анализа зависит от размера чата и сложности промпта. Большие чаты (>1000 сообщений) могут анализироваться до 5-10 минут. Упростите промпт или уменьшите период анализа для ускорения.",
     },
     {
-      title: "4. Настройка расписания",
-      content: [
-        "Перейдите в раздел Расписания.",
-        "Нажмите кнопку + Добавить расписание.",
-        "В форме выберите: компанию, бот, анализируемый чат и нужный промпт.",
-        "Шапка сообщения (необязательно) — добавляется к началу отчёта.",
-        "Чат для отчёта — отметьте галочкой, куда будет отправлен результат.",
-        "Тип расписания — Ежедневно, Одноразово, Интервал, Повторяющееся.",
-        "Время выполнения — укажите дату и время.",
-        "Стратегия отправки — например, относительно времени выполнения.",
-        "Отправить через (минуты) — через какое время после формирования отчета он будет отправлен.",
-        'Статус — включите, или выберите "выключен" если пока не планируете использовать это расписание.',
-        "Нажмите Сохранить.",
-      ],
+      question: "Какие данные собирает Observer?",
+      answer:
+        "Observer собирает только метаданные сообщений (время, количество, авторы). Содержимое сообщений обрабатывается временно и не сохраняется в системе.",
     },
     {
-      title: "5. Просмотр результатов анализа",
-      content: [
-        "Перейдите в раздел Анализ.",
-        "В таблице отобразятся результаты для выбранной компании.",
-        "Используйте фильтры и поиск сверху, чтобы найти нужный отчёт: по чату или по промпту.",
-      ],
+      question: "Как создать бота в Telegram?",
+      answer:
+        "Откройте чат с @BotFather, отправьте команду /newbot, придумайте имя и username для бота (должен заканчиваться на 'bot'). Получите токен и добавьте бота в нужные чаты как администратора.",
+    },
+    {
+      question: "Сколько ботов можно подключить?",
+      answer:
+        "Количество ботов не ограничено, но каждый бот должен быть уникальным и правильно настроенным в Telegram.",
+    },
+    {
+      question: "Как часто можно запускать анализ?",
+      answer:
+        "Анализ можно запускать по расписанию с минимальным интервалом 15 минут. Для больших чатов рекомендуем интервал не менее 1 часа.",
+    },
+    {
+      question: "Где просмотреть результаты анализа?",
+      answer:
+        "Все результаты доступны в разделе 'Анализ'. Вы можете фильтровать их по компании, чату или промпту.",
     },
   ];
 
-  const pageDescriptions = [
+  const sections = [
     {
-      title: "Боты",
-      icon: <SmartToy color="primary" />,
-      description:
-        "На этой странице вы можете просмотреть список используемых вами ботов и добавить нового. Чтобы добавить бота, сначала создайте его через BotFather, затем введите полученный токен, нажав кнопку «Добавить бота».",
+      id: "getting-started",
+      title: "Начало работы",
+      icon: <PlayArrow color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Краткое руководство по началу работы
+          </Typography>
+
+          <Typography paragraph>
+            Observer — это платформа для автоматического анализа информации в
+            чатах и группах Telegram. Мы помогаем сотрудникам получать краткие и
+            полезные отчёты по заранее заданным сценариям.
+          </Typography>
+
+          <Alert severity="info" sx={{ mb: 3 }}>
+            Для работы системы вам понадобится Telegram-бот. Создайте его через
+            @BotFather в Telegram.
+          </Alert>
+
+          <Typography variant="subtitle1" gutterBottom>
+            Основные шаги:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="1. Добавьте компанию" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="2. Подключите бота" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="3. Создайте промпт" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon>
+                <CheckCircle color="success" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="4. Настройте расписание" />
+            </ListItem>
+          </List>
+        </Box>
+      ),
     },
     {
-      title: "Промпты",
-      icon: <Psychology color="primary" />,
-      description:
-        "На этой странице вы можете создавать и редактировать промпты, которые будут использоваться в чатах. Промпт задаёт, какие данные искать и как анализировать сообщения в чатах. Чтобы создать промпт, укажите текст задания и сохраните, например: «Ответь на следующие вопросы» или «Расскажи о чем шла речь».",
-    },
-    {
-      title: "Расписания",
-      icon: <Schedule color="primary" />,
-      description:
-        "На этой странице вы можете настроить расписание, по которому будет происходить анализ в чатах. Вы можете выбрать один из вариантов расписания. Если вы не уверены, начните с ежедневного — его проще всего настроить.",
-    },
-    {
-      title: "Анализ",
-      icon: <Analytics color="primary" />,
-      description:
-        "На этой странице вы можете просмотреть, какие анализы были выполнены ранее, а также запустить новый анализ. Для нового анализа выберите промпт, период и чат, затем нажмите «Запустить». Если данных за выбранный период нет — попробуйте выбрать другой интервал или чат.",
-    },
-    {
+      id: "companies",
       title: "Компании",
       icon: <Business color="primary" />,
-      description:
-        "Используйте компании, чтобы группировать чаты и отчёты по направлениям бизнеса или отделам. Это поможет быстрее находить нужные данные.",
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Работа с компаниями
+          </Typography>
+
+          <Typography paragraph>
+            Компания — это организация, для которой вы настраиваете ботов,
+            промпты и анализ. Пока в системе нет ни одной компании, другие
+            функции будут недоступны.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            Как добавить компанию:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary="1. Перейдите в раздел 'Компании'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="2. Нажмите кнопку '+ Добавить компанию'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="3. Введите название и описание (необязательно)" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="4. Сохраните компанию" />
+            </ListItem>
+          </List>
+
+          <Typography paragraph sx={{ mt: 2 }}>
+            После создания компания появится в списке, а в шапке сайта можно
+            выбрать её из выпадающего списка.
+          </Typography>
+        </Box>
+      ),
     },
     {
-      title: "Аккаунты и чаты",
-      icon: <Group color="primary" />,
-      description:
-        "На этой странице вы можете просматривать чаты с их участниками и задавать удобные имена пользователей, например с указанием их роли в проекте.",
+      id: "bots",
+      title: "Боты",
+      icon: <SmartToy color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Управление ботами
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            Как подключить бота:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary="1. Создайте бота через @BotFather в Telegram" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="2. Добавьте бота в нужные чаты как администратора" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="3. В интерфейсе Observer откройте раздел 'Боты'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="4. Нажмите '+ Добавить бота'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="5. Введите имя и токен бота" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="6. Сохраните изменения" />
+            </ListItem>
+          </List>
+
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Никогда не делитесь токеном бота с посторонними. Это ключ доступа к
+            вашему боту.
+          </Alert>
+        </Box>
+      ),
+    },
+    {
+      id: "prompts",
+      title: "Промпты",
+      icon: <Description color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Создание промптов
+          </Typography>
+
+          <Typography paragraph>
+            Промпт — это шаблон текста, который указывает, что именно нужно
+            проанализировать в чате.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            Примеры промптов:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary="«Перечисли самые обсуждаемые темы за день»" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="«Найди негативные комментарии»" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="«Найди и перечисли все вопросы, которые задавали в чате сегодня»" />
+            </ListItem>
+          </List>
+
+          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+            Как создать промпт:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary="1. Перейдите в раздел 'Промпты'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="2. Нажмите '+ Добавить промпт'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="3. Выберите компанию из списка" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="4. Укажите название промпта" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="5. Введите текст инструкции для анализа" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="6. Сохраните промпт" />
+            </ListItem>
+          </List>
+        </Box>
+      ),
+    },
+    {
+      id: "schedules",
+      title: "Расписания",
+      icon: <Schedule color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Настройка расписаний анализа
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            Как настроить расписание:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary="1. Перейдите в раздел 'Расписания'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="2. Нажмите '+ Добавить расписание'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="3. Выберите компанию, бота, чат и промпт" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="4. Укажите чат для отчёта (бот должен быть добавлен в него)" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="5. Выберите тип расписания (ежедневно, одноразово и т.д.)" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="6. Укажите время выполнения" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="7. Установите статус (включено/выключено)" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="8. Сохраните расписание" />
+            </ListItem>
+          </List>
+
+          <Typography paragraph sx={{ mt: 2 }}>
+            После сохранения расписание появится в списке и будет выполняться
+            согласно заданным параметрам.
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      id: "analysis",
+      title: "Анализ",
+      icon: <Analytics color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Просмотр результатов анализа
+          </Typography>
+
+          <Typography paragraph>
+            В этом разделе вы можете просмотреть все выполненные анализы и их
+            результаты.
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom>
+            Как работать с анализом:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemText primary="1. Перейдите в раздел 'Анализ'" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="2. Выберите компанию из списка" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="3. Используйте фильтры для поиска нужных отчётов" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="4. Для нового анализа выберите промпт, период и чат" />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="5. Нажмите 'Запустить'" />
+            </ListItem>
+          </List>
+
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Если данных за выбранный период нет, попробуйте выбрать другой
+            интервал или чат.
+          </Alert>
+        </Box>
+      ),
+    },
+    {
+      id: "faq",
+      title: "FAQ",
+      icon: <HelpOutline color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Часто задаваемые вопросы
+          </Typography>
+
+          {faqItems.map((item, index) => (
+            <Accordion key={index} sx={{ mb: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="subtitle2">{item.question}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography variant="body2">{item.answer}</Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+
+          <Alert severity="info" sx={{ mt: 3 }}>
+            Не нашли ответ на свой вопрос? Обратитесь в службу поддержки.
+          </Alert>
+        </Box>
+      ),
     },
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Справка по использованию Observer
-      </Typography>
-
-      <Alert severity="info" sx={{ mb: 4 }}>
-        <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-          Observer — это платформа для автоматического анализа информации в
-          чатах и группах Telegram
+    <Box sx={{ pl: 2, pr: 2, maxWidth: 1600, mx: "auto" }}>
+      <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+        <Typography variant="h3" component="h1" gutterBottom>
+          Справочная система
         </Typography>
-        <Typography variant="body2">
-          Мы помогаем сотрудникам получать краткие и полезные отчёты по заранее
-          заданным сценариям, снижая рутинную нагрузку.
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          Полное руководство по использованию Observer
         </Typography>
-      </Alert>
 
-      {/* Возможности системы */}
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          С помощью Observer вы можете:
-        </Typography>
-        <List>
-          <ListItem>
-            <ListItemIcon>
-              <CheckCircle color="success" />
-            </ListItemIcon>
-            <ListItemText primary="Создавать промпты (шаблоны анализа)" />
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <CheckCircle color="success" />
-            </ListItemIcon>
-            <ListItemText primary="Настраивать расписания анализа" />
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <CheckCircle color="success" />
-            </ListItemIcon>
-            <ListItemText primary="Получать отчёты прямо в ваши чаты" />
-          </ListItem>
-          <ListItem>
-            <ListItemIcon>
-              <CheckCircle color="success" />
-            </ListItemIcon>
-            <ListItemText primary="Следить за активностью участников" />
-          </ListItem>
-        </List>
-      </Paper>
+        <Divider sx={{ my: 3 }} />
 
-      {/* Пошаговые сценарии */}
-      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-        Пошаговые сценарии использования
-      </Typography>
-
-      {scenarios.map((scenario, index) => (
-        <Accordion key={index} sx={{ mb: 2 }}>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              {scenario.title}
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <List dense>
-              {scenario.content.map((step, stepIndex) => (
-                <ListItem key={stepIndex}>
-                  <ListItemIcon>
-                    <Box
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        backgroundColor: "primary.main",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.75rem",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {stepIndex + 1}
-                    </Box>
-                  </ListItemIcon>
-                  <ListItemText primary={step} />
-                </ListItem>
-              ))}
-            </List>
-          </AccordionDetails>
-        </Accordion>
-      ))}
-
-      {/* Описание страниц */}
-      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-        Описание разделов системы
-      </Typography>
-
-      <Box sx={{ display: "grid", gap: 2 }}>
-        {pageDescriptions.map((page, index) => (
-          <Card key={index} variant="outlined">
-            <CardContent>
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}
-              >
-                {page.icon}
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  {page.title}
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="text.secondary">
-                {page.description}
-              </Typography>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-
-      {/* Заключение */}
-      <Paper
-        elevation={1}
-        sx={{
-          p: 3,
-          mt: 4,
-          backgroundColor: "primary.light",
-          color: "primary.contrastText",
-        }}
-      >
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-          Мы помогаем находить главное в ваших чатах и экономить время
-        </Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" paragraph>
+          Observer помогает находить главное в ваших чатах и экономить время.
           Настраивайте ботов для сбора сообщений, создавайте промпты для
           анализа, получайте отчёты по расписанию и следите за активностью
-          участников — всё, чтобы важное было у вас под рукой.
+          участников.
         </Typography>
-      </Paper>
 
-      {developerMode && (
-        <Paper
-          elevation={1}
-          sx={{ p: 2, mt: 2, backgroundColor: "warning.light" }}
-        >
-          <Typography variant="body2">
-            <strong>Режим разработчика активен:</strong> Отображается
-            дополнительная техническая информация
-          </Typography>
-        </Paper>
-      )}
-    </Container>
+        {sections.map((section) => (
+          <Accordion
+            key={section.id}
+            expanded={expandedSection === section.id}
+            onChange={handleAccordionChange(section.id)}
+            sx={{ mb: 1 }}
+          >
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                {section.icon}
+                <Typography variant="h6">{section.title}</Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>{section.content}</AccordionDetails>
+          </Accordion>
+        ))}
+      </Paper>
+    </Box>
   );
 };

@@ -26,6 +26,12 @@ import {
   InputLabel,
   Button,
   Skeleton,
+  Avatar,
+  Badge,
+  Divider,
+  Paper,
+  useTheme,
+  alpha,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -33,23 +39,27 @@ import {
   Psychology,
   Schedule,
   Analytics,
-  AccountCircle,
   Business,
   ExitToApp,
   Person,
-  Settings,
   Add,
   Group,
-  Info, // Добавьте эту строку
+  Info,
+  Home,
+  DeveloperMode,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { AddCompanyModal } from "../pages/companiesPage/addCompanyModal";
 import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
-import RemoveIcon from "@mui/icons-material/Remove";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
-const drawerWidth = 240;
+
+const drawerWidth = 229;
+const LOGO_AVATAR_SIZE = 35;
+const LOGO_TEXT_VARIANT = "h6";
+const LOGO_CONTAINER_GAP = 1.5;
+const LOGO_LEFT_PADDING = 2;
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -62,6 +72,7 @@ interface AppMenuItem {
   icon?: React.ReactNode;
   path?: string;
   children?: AppMenuItem[];
+  badge?: number;
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({
@@ -74,6 +85,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const [addCompanyModalOpen, setAddCompanyModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
   const {
     isSuperadmin,
     user,
@@ -87,21 +99,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   const isHomePage = location.pathname === "/home";
 
-  const menuItems = useMemo(() => {
+  const menuItems: AppMenuItem[] = useMemo(() => {
     const baseItems: AppMenuItem[] = [
-      { text: "Боты", icon: <SmartToy />, path: "/bots" },
+      { text: "Главная", icon: <Home />, path: "/home" },
+      { text: "Telegram Боты", icon: <SmartToy />, path: "/bots" },
       { text: "Промпты", icon: <Psychology />, path: "/prompts" },
       { text: "Расписания", icon: <Schedule />, path: "/schedules" },
-      { text: "Анализ", icon: <Analytics />, path: "/analysis" },
+      { text: "Анализ чатов", icon: <Analytics />, path: "/analysis" },
       { text: "Компании", icon: <Business />, path: "/companies" },
-      // {
-      //   text: "Аккаунты и чаты",
-      //   icon: <RemoveIcon />,
-      //   children: [
-      { text: "Аккаунты", icon: <Group />, path: "/accounts" },
+      { text: "Telegram аккаунты", icon: <Person />, path: "/accounts" },
       { text: "Чаты", icon: <QuestionAnswerIcon />, path: "/chats" },
-      //   ],
-      // },
       {
         text: "Справка",
         icon: <Info />,
@@ -109,9 +116,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       },
     ];
 
-    // Если пользователь не суперадмин и у него нет доступных компаний
     if (!isSuperadmin && availableCompanies.length === 0) {
-      return baseItems.filter((item) => item.text === "Компании");
+      return [
+        { text: "Главная", icon: <Home />, path: "/home" },
+        { text: "Компании", icon: <Business />, path: "/companies" },
+        { text: "Справка", icon: <Info />, path: "/help" },
+      ];
     }
 
     return baseItems;
@@ -152,26 +162,30 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     await checkAuth();
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   const drawer = (
-    <div>
-      <Toolbar>
-        <Typography
-          variant="h6"
-          noWrap
-          component="div"
-          onClick={handleLogoClick}
-          sx={{ cursor: "pointer" }}
-        >
-          Observer
-        </Typography>
-      </Toolbar>
-      {!isHomePage && (
-        <List>
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box sx={{ flexGrow: 1, overflow: "auto", py: 1 }}>
+        <List sx={{ px: 1 }}>
           {menuItems.map((item) => (
             <React.Fragment key={item.text}>
               {item.children ? (
                 <>
-                  <ListItem disablePadding>
+                  <ListItem disablePadding sx={{ mb: 0.5 }}>
                     <ListItemButton
                       selected={item.children.some((child) =>
                         location.pathname.startsWith(child.path || "")
@@ -179,36 +193,86 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       onClick={() =>
                         item.children && navigate(item.children[0].path || "/")
                       }
+                      sx={{
+                        borderRadius: 2,
+                        mx: 1,
+                        "&.Mui-selected": {
+                          backgroundColor: alpha(
+                            theme.palette.primary.main,
+                            0.1
+                          ),
+                          "&:hover": {
+                            backgroundColor: alpha(
+                              theme.palette.primary.main,
+                              0.15
+                            ),
+                          },
+                        },
+                        "&:hover": {
+                          backgroundColor: alpha(
+                            theme.palette.primary.main,
+                            0.05
+                          ),
+                        },
+                      }}
                     >
-                      <ListItemIcon>{item.icon}</ListItemIcon>
+                      <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
+                        {item.icon}
+                      </ListItemIcon>
                       <ListItemText
                         primary={item.text}
-                        primaryTypographyProps={{ variant: "body1" }}
+                        slotProps={{
+                          primary: {
+                            variant: "body2",
+                            fontWeight: 500,
+                            fontSize: "0.9rem",
+                          },
+                        }}
                       />
                     </ListItemButton>
                   </ListItem>
                   {item.children.map((child) => (
-                    <ListItem key={child.text} disablePadding sx={{ pl: 1 }}>
+                    <ListItem key={child.text} disablePadding sx={{ mb: 0.5 }}>
                       <ListItemButton
                         selected={location.pathname.startsWith(
                           child.path || ""
                         )}
                         onClick={() => navigate(child.path || "/")}
                         sx={{
-                          py: 0.5,
-                          "& .MuiListItemText-root": {
-                            my: 0,
+                          borderRadius: 2,
+                          mx: 2,
+                          py: 1,
+                          "&.Mui-selected": {
+                            backgroundColor: alpha(
+                              theme.palette.primary.main,
+                              0.1
+                            ),
+                            "&:hover": {
+                              backgroundColor: alpha(
+                                theme.palette.primary.main,
+                                0.15
+                              ),
+                            },
+                          },
+                          "&:hover": {
+                            backgroundColor: alpha(
+                              theme.palette.primary.main,
+                              0.05
+                            ),
                           },
                         }}
                       >
-                        <ListItemIcon sx={{ minWidth: 32 }}>
+                        <ListItemIcon sx={{ minWidth: 32, color: "inherit" }}>
                           {child.icon}
                         </ListItemIcon>
                         <ListItemText
                           primary={child.text}
-                          primaryTypographyProps={{
-                            variant: "body2",
-                            sx: { fontSize: "0.875rem" },
+                          slotProps={{
+                            primary: {
+                              variant: "body2",
+                              fontSize: "0.85rem",
+                              fontWeight: 400,
+                            },
                           }}
                         />
                       </ListItemButton>
@@ -216,15 +280,48 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   ))}
                 </>
               ) : (
-                <ListItem key={item.text} disablePadding>
+                <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                   <ListItemButton
                     selected={location.pathname.startsWith(item.path || "")}
                     onClick={() => navigate(item.path || "/")}
+                    sx={{
+                      borderRadius: 2,
+                      mx: 1,
+                      "&.Mui-selected": {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        "&:hover": {
+                          backgroundColor: alpha(
+                            theme.palette.primary.main,
+                            0.15
+                          ),
+                        },
+                      },
+                      "&:hover": {
+                        backgroundColor: alpha(
+                          theme.palette.primary.main,
+                          0.05
+                        ),
+                      },
+                    }}
                   >
-                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
+                      {item.badge ? (
+                        <Badge badgeContent={item.badge} color="error">
+                          {item.icon}
+                        </Badge>
+                      ) : (
+                        item.icon
+                      )}
+                    </ListItemIcon>
                     <ListItemText
                       primary={item.text}
-                      primaryTypographyProps={{ variant: "body1" }}
+                      slotProps={{
+                        primary: {
+                          variant: "body2",
+                          fontWeight: 500,
+                          fontSize: "0.9rem",
+                        },
+                      }}
                     />
                   </ListItemButton>
                 </ListItem>
@@ -232,8 +329,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             </React.Fragment>
           ))}
         </List>
-      )}
-    </div>
+      </Box>
+    </Box>
   );
 
   return (
@@ -242,19 +339,31 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       <AppBar
         position="fixed"
         color="inherit"
+        elevation={0}
         sx={{
           width: "100%",
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          boxShadow: "0px 2px 4px -1px rgba(0,0,0,0.2)",
+          zIndex: (theme) => theme.zIndex.drawer - 1,
+          borderBottom: 1,
+          borderColor: "divider",
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          backdropFilter: "blur(10px)",
+          borderRadius: 0, // Убираем закругленные углы
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: "70px !important" }}>
           {!isHomePage && (
             <IconButton
               color="inherit"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: "none" } }}
+              sx={{
+                mr: 2,
+                display: { sm: "none" },
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                "&:hover": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.2),
+                },
+              }}
             >
               <MenuIcon />
             </IconButton>
@@ -263,55 +372,115 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <Box
             sx={{ flexGrow: 1, display: "flex", alignItems: "center", gap: 2 }}
           >
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: LOGO_CONTAINER_GAP,
+                cursor: "pointer",
+                ml: LOGO_LEFT_PADDING - 2,
+              }}
               onClick={handleLogoClick}
-              sx={{ cursor: "pointer" }}
             >
-              Observer
-            </Typography>
+              <Avatar
+                sx={{
+                  bgcolor: theme.palette.primary.main,
+                  width: LOGO_AVATAR_SIZE,
+                  height: LOGO_AVATAR_SIZE,
+                  fontWeight: "bold",
+                  color: "white",
+                }}
+              >
+                O
+              </Avatar>
+              <Typography
+                variant={LOGO_TEXT_VARIANT}
+                noWrap
+                component="div"
+                sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+              >
+                Observer
+              </Typography>
+            </Box>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            {/* Блок выбора компании */}
             {!isSuperadmin && (
               <>
                 {availableCompanies.length > 0 ? (
                   isLoadingCompanyMap ? (
-                    <Skeleton variant="rectangular" width={120} height={40} />
+                    <Skeleton
+                      variant="rectangular"
+                      width={140}
+                      height={40}
+                      sx={{ borderRadius: 1 }}
+                    />
                   ) : (
-                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                      <InputLabel>Компания</InputLabel>
-                      <Select
-                        value={selectedCompanyId || ""}
-                        onChange={handleCompanyChange}
-                        label="Компания"
-                      >
-                        {availableCompanies.map((companyId) => (
-                          <MenuItem key={companyId} value={companyId}>
-                            {companyMap.get(companyId) || companyId}
-                          </MenuItem>
-                        ))}
-                        <Button
-                          variant="outlined"
-                          startIcon={<Add />}
-                          onClick={handleAddCompanyClick}
-                          size="small"
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 1,
+                      }} // Убираем закругленные углы
+                    >
+                      <FormControl size="small" sx={{ minWidth: 140 }}>
+                        <InputLabel>Компании</InputLabel>
+                        <Select
+                          value={selectedCompanyId || ""}
+                          onChange={handleCompanyChange}
+                          label="Компании"
                           sx={{
-                            color: "black",
-                            borderColor: "white",
-                            "&:hover": {
-                              // backgroundColor: "rgba(0, 0, 0, 0.04)",
-                              borderColor: "white",
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              border: "none",
                             },
+                            borderRadius: 1, // Убираем закругленные углы
                           }}
                         >
-                          Добавить компанию
-                        </Button>
-                      </Select>
-                    </FormControl>
+                          {availableCompanies.map((companyId) => (
+                            <MenuItem key={companyId} value={companyId}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                }}
+                              >
+                                <Avatar
+                                  sx={{
+                                    width: 24,
+                                    height: 24,
+                                    fontSize: "0.7rem",
+                                    bgcolor: theme.palette.primary.main,
+                                  }}
+                                >
+                                  {companyMap.get(companyId)
+                                    ? getInitials(companyMap.get(companyId)!)
+                                    : "O"}
+                                </Avatar>
+                                {companyMap.get(companyId) || companyId}
+                              </Box>
+                            </MenuItem>
+                          ))}
+                          <Divider />
+                          <MenuItem
+                            onClick={handleAddCompanyClick}
+                            sx={{ color: theme.palette.primary.main }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <Add fontSize="small" />
+                              Добавить компанию
+                            </Box>
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Paper>
                   )
                 ) : (
                   <Button
@@ -320,12 +489,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     onClick={handleAddCompanyClick}
                     size="small"
                     sx={{
-                      color: "black",
-                      borderColor: "black",
-                      "&:hover": {
-                        backgroundColor: "rgba(0, 0, 0, 0.04)",
-                        borderColor: "black",
-                      },
+                      borderRadius: 1, // Убираем закругленные углы
+                      textTransform: "none",
+                      fontWeight: 500,
                     }}
                   >
                     Добавить компанию
@@ -334,38 +500,84 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               </>
             )}
 
-            <Tooltip title="Режим разработчика">
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={developerMode}
-                    onChange={onToggleDeveloperMode}
-                    color="secondary"
-                  />
-                }
-                label={<Settings />}
-              />
-            </Tooltip>
-
-            <Typography variant="body2">{user?.full_name}</Typography>
-            {isSuperadmin && (
-              <Chip
-                label="Суперадмин"
-                color="secondary"
-                size="small"
-                sx={{ color: "white" }}
-              />
-            )}
-            <IconButton
-              size="large"
-              edge="end"
-              aria-controls="primary-search-account-menu"
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
+            <Tooltip
+              title={
+                developerMode
+                  ? "Отключить режим разработчика"
+                  : "Включить режим разработчика"
+              }
             >
-              <AccountCircle />
-            </IconButton>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: 1,
+                  borderColor: developerMode
+                    ? theme.palette.warning.main
+                    : "divider",
+                  borderRadius: 1, // Убираем закругленные углы
+                  bgcolor: developerMode
+                    ? alpha(theme.palette.warning.main, 0.1)
+                    : "transparent",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={developerMode}
+                      onChange={onToggleDeveloperMode}
+                      color="warning"
+                      size="small"
+                    />
+                  }
+                  label={
+                    <DeveloperMode
+                      color={developerMode ? "warning" : "disabled"}
+                    />
+                  }
+                  sx={{ m: 0.5, mr: 1 }}
+                />
+              </Paper>
+            </Tooltip>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  {user?.full_name || "Пользователь"}
+                </Typography>
+                {isSuperadmin && (
+                  <Chip
+                    label="Суперадмин"
+                    size="small"
+                    color="primary"
+                    sx={{ height: 20, fontSize: "0.7rem", borderRadius: 2 }} // Убираем закругленные углы
+                  />
+                )}
+              </Box>
+            </Box>
+            <Tooltip title="Профиль и настройки">
+              <IconButton
+                size="large"
+                edge="end"
+                onClick={handleProfileMenuOpen}
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                  },
+                  borderRadius: 4, // Убираем закругленные углы
+                }}
+              >
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: theme.palette.primary.main,
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  {user?.full_name ? getInitials(user.full_name) : "U"}
+                </Avatar>
+              </IconButton>
+            </Tooltip>
           </Box>
         </Toolbar>
       </AppBar>
@@ -379,7 +591,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{
-          vertical: "top",
+          vertical: "bottom",
           horizontal: "right",
         }}
         keepMounted
@@ -389,6 +601,21 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         }}
         open={Boolean(anchorEl)}
         onClose={handleProfileMenuClose}
+        slotProps={{
+          paper: {
+            elevation: 8,
+            sx: {
+              mt: 1,
+              borderRadius: 0, // Убираем закругленные углы
+              minWidth: 200,
+              "& .MuiMenuItem-root": {
+                borderRadius: 0, // Убираем закругленные углы
+                mx: 1,
+                my: 0.5,
+              },
+            },
+          },
+        }}
       >
         <MenuItem
           onClick={() => {
@@ -399,13 +626,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <ListItemIcon>
             <Person fontSize="small" />
           </ListItemIcon>
-          Профиль
+          <ListItemText primary="Мой профиль" />
         </MenuItem>
-        <MenuItem onClick={handleLogout}>
+
+        <Divider sx={{ my: 1 }} />
+
+        <MenuItem
+          onClick={handleLogout}
+          sx={{ color: theme.palette.error.main }}
+        >
           <ListItemIcon>
-            <ExitToApp fontSize="small" />
+            <ExitToApp fontSize="small" color="error" />
           </ListItemIcon>
-          Выйти
+          <ListItemText primary="Выйти из системы" />
         </MenuItem>
       </Menu>
 
@@ -413,7 +646,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         <Box
           component="nav"
           sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-          aria-label="mailbox folders"
+          aria-label="navigation menu"
         >
           <Drawer
             variant="temporary"
@@ -427,6 +660,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               "& .MuiDrawer-paper": {
                 boxSizing: "border-box",
                 width: drawerWidth,
+                border: "none",
+                boxShadow: theme.shadows[8],
+                left: "2px",
+                // borderRadius: "16px",
+                borderRadius: 2,
+                top: "80px", // 70px (AppBar) + 10px дополнительного отступа
+                height: "calc(100% - 80px)", // Вычитаем отступ сверху
               },
             }}
           >
@@ -439,6 +679,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               "& .MuiDrawer-paper": {
                 boxSizing: "border-box",
                 width: drawerWidth,
+                border: "none",
+                borderRight: 1,
+                borderColor: "divider",
+                left: "2px",
+                borderRadius: "16px",
+                top: "80px", // 70px (AppBar) + 10px дополнительного отступа
+                height: "calc(100% - 80px)", // Вычитаем отступ сверху
               },
             }}
             open
@@ -452,9 +699,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         component="main"
         sx={{
           flexGrow: 1,
-          pt: 7,
+          pt: "90px",
           pb: 3,
           width: { sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)` },
+          minHeight: "100vh",
+          backgroundColor: alpha(theme.palette.grey[50], 0.3),
         }}
       >
         {children}

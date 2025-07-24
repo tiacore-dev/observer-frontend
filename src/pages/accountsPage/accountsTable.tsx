@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -6,21 +6,24 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Paper,
+  IconButton,
+  Tooltip,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 import { IAccount } from "../../api/accountsApi";
-import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
-import { SortableTableHeader } from "../../components/table/sortableTableHeader";
-
-type SortField = "account_name" | "username" | "created_at";
+import { EditAccountModal } from "./editAccountModal";
+import { useUpdateAccount } from "../../hooks/accounts/useAccountsQuery";
 
 interface AccountsTableProps {
   accounts: IAccount[];
-  developerMode: boolean;
-  sortField: SortField;
+  developerMode?: boolean;
+  sortField: "account_id" | "account_name" | "username" | "created_at";
   sortDirection: "asc" | "desc";
-  onSort: (field: SortField) => void;
-  isLoading?: boolean;
+  onSort: (
+    field: "account_id" | "account_name" | "username" | "created_at"
+  ) => void;
 }
 
 export const AccountsTable: React.FC<AccountsTableProps> = ({
@@ -29,74 +32,114 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   sortField,
   sortDirection,
   onSort,
-  isLoading = false,
 }) => {
-  if (isLoading) {
-    return (
-      <TableSkeleton
-        columns={2}
-        developerMode={developerMode}
-        additionalColumns={1}
-        rows={5}
-      />
-    );
-  }
+  const [editingAccount, setEditingAccount] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { mutate: updateAccount } = useUpdateAccount();
+
+  const handleEditClick = (account: IAccount) => {
+    setEditingAccount({
+      id: account.account_id.toString(),
+      name: account.account_name,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSave = (newName: string) => {
+    if (editingAccount) {
+      updateAccount({
+        account_id: editingAccount.id,
+        account_name: newName,
+      });
+    }
+  };
+
+  const formatDate = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="accounts table">
-        <TableHead>
-          <TableRow>
-            {developerMode && <TableCell>ID</TableCell>}
-            <SortableTableHeader<SortField>
-              field="account_name"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label="Название аккаунта"
-            />
-            <SortableTableHeader<SortField>
-              field="username"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label="Пользователь"
-            />
-            {developerMode && (
-              <SortableTableHeader<SortField>
-                field="created_at"
-                currentSortField={sortField}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                label="Дата создания"
-                defaultDirection="desc"
-              />
-            )}
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {accounts.map((account) => (
-            <TableRow
-              key={account.account_id}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              {developerMode && (
-                <TableCell component="th" scope="row">
-                  {account.account_id}
-                </TableCell>
-              )}
-              <TableCell>{account.account_name}</TableCell>
-              <TableCell>{account.username}</TableCell>
-              {developerMode && (
-                <TableCell>
-                  {new Date(account.created_at).toLocaleString()}
-                </TableCell>
-              )}
+    <>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <TableSortLabel
+                  active={sortField === "account_id"}
+                  direction={sortDirection}
+                  onClick={() => onSort("account_id")}
+                >
+                  ID
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={sortField === "account_name"}
+                  direction={sortDirection}
+                  onClick={() => onSort("account_name")}
+                >
+                  Имя аккаунта
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={sortField === "username"}
+                  direction={sortDirection}
+                  onClick={() => onSort("username")}
+                >
+                  Имя пользователя
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={sortField === "created_at"}
+                  direction={sortDirection}
+                  onClick={() => onSort("created_at")}
+                >
+                  Дата создания
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>Действия</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {accounts.map((account) => (
+              <TableRow key={account.account_id}>
+                <TableCell>{account.account_id}</TableCell>
+                <TableCell>{account.account_name}</TableCell>
+                <TableCell>{account.username || "Не указано"}</TableCell>
+                <TableCell>{formatDate(account.created_at)}</TableCell>
+                <TableCell>
+                  <Tooltip title="Редактировать имя">
+                    <IconButton
+                      onClick={() => handleEditClick(account)}
+                      size="small"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <EditAccountModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        accountName={editingAccount?.name || ""}
+        onSave={handleSave}
+      />
+    </>
   );
 };

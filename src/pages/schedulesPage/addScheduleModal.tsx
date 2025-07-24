@@ -17,7 +17,22 @@ import {
   Tooltip,
   TextField,
   Stack,
+  Alert,
+  Chip,
+  CircularProgress,
+  Collapse,
 } from "@mui/material";
+import {
+  Info as InfoIcon,
+  Schedule as ScheduleIcon,
+  Send as SendIcon,
+  Analytics as AnalyticsIcon,
+  ExpandMore,
+  ExpandLess,
+  Business as BusinessIcon,
+  Chat as ChatIcon,
+  Psychology as PsychologyIcon,
+} from "@mui/icons-material";
 import { useCreateSchedule } from "../../hooks/schedules/useScheduleMutations";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useBotMap } from "../../hooks/maps/useBotMap";
@@ -34,6 +49,7 @@ import {
   convertToServerTime,
   generateCronExpressionWithTimeConversion,
 } from "./helpers/scheduleUtils";
+import { InfoCard } from "../../components/infoCard";
 
 interface AddScheduleModalProps {
   open: boolean;
@@ -69,7 +85,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   });
 
   const [cronTime, setCronTime] = useState<string>("09:00");
-  const [selectedDays, setSelectedDays] = useState<number[]>([0, 1, 2, 3, 4]);
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [showHelp, setShowHelp] = useState(false);
 
   const createSchedule = useCreateSchedule();
   const { errors, validateFields, clearError, setError } =
@@ -220,7 +237,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       schedule_type: scheduleData.schedule_type,
       target_chats: scheduleData.target_chats,
       bot_id: scheduleData.bot_id,
-      // Добавляем поля стратегии отправки только для анализа
       ...(scheduleData.schedule_strategy === "analysis" && {
         send_strategy: scheduleData.send_strategy,
         time_to_send: scheduleData.time_to_send,
@@ -274,7 +290,6 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         enabled: scheduleData.enabled,
         bot_id: Number.parseInt(scheduleData.bot_id),
         target_chats: scheduleData.target_chats,
-        // Добавляем поля стратегии отправки только для анализа
         ...(scheduleData.schedule_strategy === "analysis" && {
           send_strategy: scheduleData.send_strategy,
           time_to_send:
@@ -310,7 +325,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         send_after_minutes: "",
       });
       setCronTime("09:00");
-      setSelectedDays([0, 1, 2, 3, 4]);
+      setSelectedDays([1, 2, 3, 4, 5]);
     } catch (error) {
       console.error("Error creating schedule:", error);
     }
@@ -323,13 +338,42 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Добавить новое расписание</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <ScheduleIcon color="primary" />
+          Создать автоматическое расписание
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="text"
+            onClick={() => setShowHelp(!showHelp)}
+            endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
+            size="small"
+          >
+            Что такое расписание?
+          </Button>
+        </Box>
+      </DialogTitle>
+
       <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+        <Collapse in={showHelp}>
+          <InfoCard
+            type="info"
+            title="Что такое расписание?"
+            description="Расписание позволяет автоматически выполнять анализ чатов или отправлять уведомления по заданному графику. Вы можете настроить регулярные отчеты, напоминания или другие автоматизированные задачи."
+          />
+        </Collapse>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
+          {/* Выбор компании для суперадмина */}
           {isSuperadmin && (
-            <FormControl fullWidth required error={!!errors.company_id}>
-              <InputLabel>Компания</InputLabel>
+            <FormControl fullWidth error={!!errors.company_id}>
+              <InputLabel>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <BusinessIcon fontSize="small" />
+                  Компания
+                </Box>
+              </InputLabel>
               <Select
                 name="company_id"
                 value={scheduleData.company_id}
@@ -338,7 +382,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               >
                 {Array.from(companyMap.entries()).map(([id, name]) => (
                   <MenuItem key={id} value={id}>
-                    {name}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {name}
+                    </Box>
                   </MenuItem>
                 ))}
               </Select>
@@ -350,40 +396,66 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             </FormControl>
           )}
 
+          {/* Выбор бота */}
           {isLoadingBotMap ? (
             <SelectSkeleton />
           ) : (
             renderWithTooltip(
-              <FormControl fullWidth required error={!!errors.bot_id}>
-                <InputLabel>Бот</InputLabel>
-                <Select
-                  name="bot_id"
-                  value={scheduleData.bot_id}
-                  label="Бот"
-                  onChange={handleSelectChange}
-                  disabled={!isCompanySelected}
+              <Box>
+                <FormControl fullWidth error={!!errors.bot_id}>
+                  <InputLabel>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <ChatIcon fontSize="small" />
+                      Telegram-бот
+                    </Box>
+                  </InputLabel>
+                  <Select
+                    name="bot_id"
+                    value={scheduleData.bot_id}
+                    label="Telegram-бот"
+                    onChange={handleSelectChange}
+                    disabled={!isCompanySelected}
+                  >
+                    {Array.from(botMap.entries()).map(([id, name]) => (
+                      <MenuItem key={id} value={id}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          {name}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.bot_id && (
+                    <Typography variant="caption" color="error">
+                      {errors.bot_id}
+                    </Typography>
+                  )}
+                </FormControl>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5, display: "block" }}
                 >
-                  {Array.from(botMap.entries()).map(([id, name]) => (
-                    <MenuItem key={id} value={id}>
-                      {name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.bot_id && (
-                  <Typography variant="caption" color="error">
-                    {errors.bot_id}
-                  </Typography>
-                )}
-              </FormControl>,
+                  Выберите бота, который будет отправлять сообщения
+                </Typography>
+              </Box>,
               !isCompanySelected,
               tooltipMessageCompany
             )
           )}
 
-          {/* Заменяем Select на Toggle для стратегии расписания */}
-          <FormControl fullWidth required>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              {/* <Typography>Стратегия расписания:</Typography> */}
+          {/* Тип задачи */}
+          <Box>
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ display: "flex", alignItems: "center", gap: 1 }}
+            >
+              <AnalyticsIcon fontSize="small" />
+              Что будем делать?
+            </Typography>
+            <Stack direction="row" spacing={2}>
               <Button
                 variant={
                   scheduleData.schedule_strategy === "analysis"
@@ -394,8 +466,10 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   handleToggleChange("schedule_strategy", "analysis")
                 }
                 disabled={!isCompanySelected}
+                startIcon={<AnalyticsIcon />}
+                sx={{ flex: 1 }}
               >
-                Анализ
+                Анализировать чаты
               </Button>
               <Button
                 variant={
@@ -407,117 +481,215 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   handleToggleChange("schedule_strategy", "notification")
                 }
                 disabled={!isCompanySelected}
+                startIcon={<SendIcon />}
+                sx={{ flex: 1 }}
               >
-                Уведомление
+                Отправлять уведомления
               </Button>
             </Stack>
-          </FormControl>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 1, display: "block" }}
+            >
+              {scheduleData.schedule_strategy === "analysis"
+                ? "Система будет анализировать сообщения в выбранном чате и отправлять результаты"
+                : "Система будет отправлять заранее написанные уведомления"}
+            </Typography>
+          </Box>
 
+          {/* Настройки для уведомлений */}
           {scheduleData.schedule_strategy === "notification" && (
-            <TextField
-              name="notification_text"
-              label="Текст уведомления"
-              value={scheduleData.notification_text}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={3}
-              required
-              error={!!errors.notification_text}
-              helperText={errors.notification_text}
-            />
+            <Box>
+              <TextField
+                name="notification_text"
+                label="Текст уведомления"
+                value={scheduleData.notification_text}
+                onChange={handleChange}
+                fullWidth
+                multiline
+                rows={4}
+                error={!!errors.notification_text}
+                helperText={
+                  errors.notification_text ||
+                  "Напишите текст, который будет отправляться по расписанию"
+                }
+                placeholder="Например: Напоминаем о еженедельном совещании в понедельник в 10:00"
+              />
+            </Box>
           )}
-          {scheduleData.schedule_strategy === "analysis" &&
-            (isLoadingChatsMap ? (
-              <SelectSkeleton />
-            ) : (
-              renderWithTooltip(
-                <FormControl fullWidth required error={!!errors.chat_id}>
-                  <InputLabel>Анализируемый чат</InputLabel>
-                  <Select
-                    name="chat_id"
-                    value={scheduleData.chat_id}
-                    label="Анализируемый чат"
-                    onChange={handleSelectChange}
-                    disabled={!isBotSelected}
-                  >
-                    {Array.from(chatMap.entries()).map(([id, name]) => (
-                      <MenuItem key={id} value={id.toString()}>
-                        {name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.chat_id && (
-                    <Typography variant="caption" color="error">
-                      {errors.chat_id}
-                    </Typography>
-                  )}
-                </FormControl>,
-                !isCompanySelected || !isBotSelected,
-                !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
-              )
-            ))}
 
-          {scheduleData.schedule_strategy === "analysis" &&
-            (isLoadingPromptMap ? (
-              <SelectSkeleton />
-            ) : (
-              renderWithTooltip(
-                <FormControl fullWidth required error={!!errors.prompt_id}>
-                  <InputLabel>Промпт</InputLabel>
-                  <Select
-                    name="prompt_id"
-                    value={scheduleData.prompt_id}
-                    label="Промпт"
-                    onChange={handleSelectChange}
-                    disabled={!isCompanySelected}
-                  >
-                    {Array.from(promptMap.entries()).map(([id, name]) => (
-                      <MenuItem key={id} value={id}>
-                        {name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.prompt_id && (
-                    <Typography variant="caption" color="error">
-                      {errors.prompt_id}
-                    </Typography>
-                  )}
-                </FormControl>,
-                !isCompanySelected,
-                tooltipMessageCompany
-              )
-            ))}
+          {/* Настройки для анализа */}
           {scheduleData.schedule_strategy === "analysis" && (
-            <TextField
-              name="message_intro"
-              label="Шапка сообщения"
-              value={scheduleData.message_intro}
-              onChange={handleChange}
-              fullWidth
-              multiline
-              rows={3}
-              inputProps={{ maxLength: 255 }}
-              helperText={`${scheduleData.message_intro.length}/255 символов`}
-              sx={{ mt: 2 }}
-            />
+            <>
+              {/* Выбор чата для анализа */}
+              {isLoadingChatsMap ? (
+                <SelectSkeleton />
+              ) : (
+                renderWithTooltip(
+                  <Box>
+                    <FormControl fullWidth error={!!errors.chat_id}>
+                      <InputLabel>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <ChatIcon fontSize="small" />
+                          Какой чат анализировать?
+                        </Box>
+                      </InputLabel>
+                      <Select
+                        name="chat_id"
+                        value={scheduleData.chat_id}
+                        label="Какой чат анализировать?"
+                        onChange={handleSelectChange}
+                        disabled={!isBotSelected}
+                      >
+                        {Array.from(chatMap.entries()).map(([id, name]) => (
+                          <MenuItem key={id} value={id.toString()}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {name}
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.chat_id && (
+                        <Typography variant="caption" color="error">
+                          {errors.chat_id}
+                        </Typography>
+                      )}
+                    </FormControl>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 0.5, display: "block" }}
+                    >
+                      Выберите чат, сообщения которого будут анализироваться
+                    </Typography>
+                  </Box>,
+                  !isCompanySelected || !isBotSelected,
+                  !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
+                )
+              )}
+
+              {/* Выбор промпта */}
+              {isLoadingPromptMap ? (
+                <SelectSkeleton />
+              ) : (
+                renderWithTooltip(
+                  <Box>
+                    <FormControl fullWidth error={!!errors.prompt_id}>
+                      <InputLabel>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <PsychologyIcon fontSize="small" />
+                          Как анализировать?
+                        </Box>
+                      </InputLabel>
+                      <Select
+                        name="prompt_id"
+                        value={scheduleData.prompt_id}
+                        label="Как анализировать?"
+                        onChange={handleSelectChange}
+                        disabled={!isCompanySelected}
+                      >
+                        {Array.from(promptMap.entries()).map(([id, name]) => (
+                          <MenuItem key={id} value={id}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {name}
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.prompt_id && (
+                        <Typography variant="caption" color="error">
+                          {errors.prompt_id}
+                        </Typography>
+                      )}
+                    </FormControl>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ mt: 0.5, display: "block" }}
+                    >
+                      Выберите промпт, который определяет, что именно искать в
+                      сообщениях
+                    </Typography>
+                  </Box>,
+                  !isCompanySelected,
+                  tooltipMessageCompany
+                )
+              )}
+
+              {/* Заголовок сообщения */}
+              <Box>
+                <TextField
+                  name="message_intro"
+                  label="Заголовок отчета (необязательно)"
+                  value={scheduleData.message_intro}
+                  onChange={handleChange}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  inputProps={{ maxLength: 255 }}
+                  helperText={`${scheduleData.message_intro.length}/255 символов. Этот текст будет добавлен в начало каждого отчета`}
+                  placeholder="Например: Еженедельный отчет по активности чата"
+                />
+              </Box>
+            </>
           )}
 
-          <TargetChatSelector
-            chatMap={chatMap}
-            selectedChats={scheduleData.target_chats}
-            onChatToggle={handleChatToggle}
-            disabled={!isCompanySelected || !isBotSelected}
-            error={errors.target_chats}
-            tooltipMessage={
-              !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
-            }
-          />
+          {/* Куда отправлять результаты */}
+          {isBotSelected && (
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                Куда отправлять результаты?
+              </Typography>
+              <TargetChatSelector
+                chatMap={chatMap}
+                selectedChats={scheduleData.target_chats}
+                onChatToggle={handleChatToggle}
+                disabled={!isCompanySelected || !isBotSelected}
+                error={errors.target_chats}
+                tooltipMessage={
+                  !isCompanySelected ? tooltipMessageCompany : tooltipMessageBot
+                }
+                showTitle={false}
+              />
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 1, display: "block" }}
+              >
+                Выберите чаты, в которые будут отправляться результаты анализа
+                или уведомления
+              </Typography>
+            </Box>
+          )}
 
-          {/* Заменяем Select на Toggle для типа расписания */}
-          <FormControl fullWidth>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              {/* <Typography>Тип расписания:</Typography> */}
+          {/* Когда запускать */}
+          <Box>
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ display: "flex", alignItems: "center", gap: 1 }}
+            >
+              <ScheduleIcon fontSize="small" />
+              Когда запускать?
+            </Typography>
+            <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
               <Button
                 variant={
                   scheduleData.schedule_type === "interval"
@@ -526,8 +698,9 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 }
                 onClick={() => handleToggleChange("schedule_type", "interval")}
                 disabled={!isCompanySelected}
+                sx={{ flex: 1 }}
               >
-                Интервал
+                Повторять каждые...
               </Button>
               <Button
                 variant={
@@ -537,57 +710,62 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 }
                 onClick={() => handleToggleChange("schedule_type", "cron")}
                 disabled={!isCompanySelected}
+                sx={{ flex: 1 }}
               >
                 По дням недели
               </Button>
             </Stack>
-          </FormControl>
 
-          <ScheduleTypeFields
-            scheduleType={scheduleData.schedule_type}
-            intervalHours={scheduleData.interval_hours}
-            intervalMinutes={scheduleData.interval_minutes}
-            cronTime={cronTime}
-            selectedDays={selectedDays}
-            errors={errors}
-            disabled={!isCompanySelected}
-            tooltipMessage={tooltipMessageCompany}
-            onFieldChange={handleChange}
-            onCronTimeChange={setCronTime}
-            onToggleDay={toggleDaySelection}
-          />
+            <ScheduleTypeFields
+              scheduleType={scheduleData.schedule_type}
+              intervalHours={scheduleData.interval_hours}
+              intervalMinutes={scheduleData.interval_minutes}
+              cronTime={cronTime}
+              selectedDays={selectedDays}
+              errors={errors}
+              disabled={!isCompanySelected}
+              tooltipMessage={tooltipMessageCompany}
+              onFieldChange={handleChange}
+              onCronTimeChange={setCronTime}
+              onToggleDay={toggleDaySelection}
+            />
+          </Box>
+
+          {/* Когда отправлять результаты (только для анализа) */}
           {scheduleData.schedule_strategy === "analysis" && (
-            <>
-              {/* Заменяем Select на Toggle для стратегии отправки */}
-              <FormControl fullWidth>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  {/* <Typography>Стратегия отправки:</Typography> */}
-                  <Button
-                    variant={
-                      scheduleData.send_strategy === "fixed"
-                        ? "contained"
-                        : "outlined"
-                    }
-                    onClick={() => handleToggleChange("send_strategy", "fixed")}
-                    disabled={!isCompanySelected}
-                  >
-                    Фиксированное время
-                  </Button>
-                  <Button
-                    variant={
-                      scheduleData.send_strategy === "relative"
-                        ? "contained"
-                        : "outlined"
-                    }
-                    onClick={() =>
-                      handleToggleChange("send_strategy", "relative")
-                    }
-                    disabled={!isCompanySelected}
-                  >
-                    Относительное времени
-                  </Button>
-                </Stack>
-              </FormControl>
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                Когда отправлять результаты?
+              </Typography>
+              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                <Button
+                  variant={
+                    scheduleData.send_strategy === "fixed"
+                      ? "contained"
+                      : "outlined"
+                  }
+                  onClick={() => handleToggleChange("send_strategy", "fixed")}
+                  disabled={!isCompanySelected}
+                  sx={{ flex: 1 }}
+                >
+                  В определенное время
+                </Button>
+                <Button
+                  variant={
+                    scheduleData.send_strategy === "relative"
+                      ? "contained"
+                      : "outlined"
+                  }
+                  onClick={() =>
+                    handleToggleChange("send_strategy", "relative")
+                  }
+                  disabled={!isCompanySelected}
+                  sx={{ flex: 1 }}
+                >
+                  После анализа
+                </Button>
+              </Stack>
+
               <SendStrategyFields
                 sendStrategy={scheduleData.send_strategy}
                 timeToSend={scheduleData.time_to_send}
@@ -596,17 +774,18 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 disabled={!isCompanySelected}
                 tooltipMessage={tooltipMessageCompany}
                 onFieldChange={handleChange}
-              />{" "}
-            </>
+              />
+            </Box>
           )}
-          {/* Оставляем Select для статуса, так как это бинарный выбор */}
-          {renderWithTooltip(
+
+          {/* Статус */}
+          <Box>
             <FormControl fullWidth>
-              <InputLabel>Статус</InputLabel>
+              <InputLabel>Статус расписания</InputLabel>
               <Select
                 name="enabled"
                 value={scheduleData.enabled ? "true" : "false"}
-                label="Статус"
+                label="Статус расписания"
                 onChange={(e) =>
                   setScheduleData((prev) => ({
                     ...prev,
@@ -615,17 +794,38 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                 }
                 disabled={!isCompanySelected}
               >
-                <MenuItem value="true">Включено</MenuItem>
-                <MenuItem value="false">Выключено</MenuItem>
+                <MenuItem value="true">
+                  <Typography color="text.secondary">
+                    <Chip
+                      label="Включено"
+                      color="success"
+                      size="small"
+                      sx={{ mr: 1 }}
+                    />
+                    Расписание будет работать
+                  </Typography>
+                </MenuItem>
+                <MenuItem value="false">
+                  <Typography color="text.secondary">
+                    <Chip
+                      label="Выключено"
+                      color="default"
+                      size="small"
+                      sx={{ mr: 1 }}
+                    />
+                    Расписание приостановлено
+                  </Typography>
+                </MenuItem>
               </Select>
-            </FormControl>,
-            !isCompanySelected,
-            tooltipMessageCompany
-          )}
+            </FormControl>
+          </Box>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Отмена</Button>
+
+      <DialogActions sx={{ px: 3, pb: 3 }}>
+        <Button onClick={onClose} size="large">
+          Отмена
+        </Button>
         <Tooltip title={!isCompanySelected ? tooltipMessageCompany : ""}>
           <span>
             <Button
@@ -633,8 +833,16 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               variant="contained"
               color="primary"
               disabled={!isCompanySelected}
+              size="large"
+              startIcon={
+                createSchedule.isPending ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <ScheduleIcon />
+                )
+              }
             >
-              Создать
+              {createSchedule.isPending ? "Создаем..." : "Создать расписание"}
             </Button>
           </span>
         </Tooltip>

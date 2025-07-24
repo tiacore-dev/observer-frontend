@@ -48,40 +48,40 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
 
   const tourSteps: TourStep[] = [
     {
-      title: "Добро пожаловать в Observer! 🎉",
+      title: "Добро пожаловать в Observer!",
       content:
         "Давайте проведем быстрый тур по системе. Это займет всего 2-3 минуты и поможет вам быстро освоиться.",
     },
     {
       title: "Шаг 1: Создание компании",
       content:
-        "Компания - это ваше рабочее пространство. Здесь вы будете управлять ботами, промптами и расписаниями. Начнем с создания первой компании.",
-      route: "/companies",
-      actionText: "Перейти к компаниям",
+        "Компания - это ваше рабочее пространство. Здесь вы будете управлять ботами, промптами и расписаниями. Начните с создания первой компании.",
+      // route: "/companies",
+      // actionText: "Перейти к компаниям",
     },
     {
       title: "Шаг 2: Добавление бота",
       content:
-        "Telegram-боты - это основа системы. Они отправляют сообщения по расписанию. Сначала создайте бота через @BotFather в Telegram.",
-      route: "/bots",
-      actionText: "Управление ботами",
+        "Telegram-боты - это основа системы. Они отправляют сообщения по расписанию. Создайте бота через @BotFather в Telegram и не забудьте добавить его в необходимые чаты.",
+      // route: "/bots",
+      // actionText: "Управление ботами",
     },
     {
       title: "Шаг 3: Создание промптов",
       content:
-        "Промпты - это шаблоны сообщений. Вы можете использовать переменные типа {date}, {time} и форматирование Markdown.",
-      route: "/prompts",
-      actionText: "Создать промпт",
+        "Промпт — это инструкция для ИИ, которая объясняет, как анализировать сообщения, какие данные искать. Чем точнее инструкция, тем лучше результат анализа.",
+      // route: "/prompts",
+      // actionText: "Создать промпт",
     },
     {
       title: "Шаг 4: Настройка расписаний",
       content:
-        "Расписания связывают ботов, промпты и чаты. Здесь вы настраиваете, когда и куда отправлять сообщения.",
-      route: "/schedules",
-      actionText: "Настроить расписание",
+        "Расписания связывают ботов, промпты и чаты. Здесь вы настраиваете, когда и куда отправлять результаты анализов чатов или напоминания.",
+      // route: "/schedules",
+      // actionText: "Настроить расписание",
     },
     {
-      title: "Готово! 🚀",
+      title: "Готово!",
       content:
         "Теперь вы знаете основы работы с Observer. Используйте раздел 'Справка' для получения подробной информации. Удачи!",
       route: "/help",
@@ -126,8 +126,8 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
       PaperProps={{
         sx: {
           borderRadius: 3,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
+          backgroundColor: "white",
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
         },
       }}
     >
@@ -140,10 +140,14 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
             mb: 3,
           }}
         >
-          <Typography variant="h5" component="h2" sx={{ fontWeight: "bold" }}>
+          <Typography
+            variant="h5"
+            component="h2"
+            sx={{ fontWeight: "bold", color: "text.primary" }}
+          >
             {tourSteps[activeStep].title}
           </Typography>
-          <IconButton onClick={onClose} sx={{ color: "white" }}>
+          <IconButton onClick={onClose} sx={{ color: "text.secondary" }}>
             <Close />
           </IconButton>
         </Box>
@@ -153,10 +157,10 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
             <Step key={index}>
               <StepLabel
                 sx={{
-                  "& .MuiStepLabel-label": { color: "rgba(255,255,255,0.7)" },
-                  "& .MuiStepLabel-label.Mui-active": { color: "white" },
-                  "& .MuiStepIcon-root": { color: "rgba(255,255,255,0.5)" },
-                  "& .MuiStepIcon-root.Mui-active": { color: "white" },
+                  "& .MuiStepLabel-label": { color: "text.secondary" },
+                  "& .MuiStepLabel-label.Mui-active": { color: "text.primary" },
+                  "& .MuiStepIcon-root": { color: "action.disabled" },
+                  "& .MuiStepIcon-root.Mui-active": { color: "primary.main" },
                 }}
               />
             </Step>
@@ -167,8 +171,10 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
           sx={{
             p: 3,
             mb: 3,
-            backgroundColor: "rgba(255,255,255,0.1)",
-            color: "white",
+            backgroundColor: "background.paper",
+            color: "text.primary",
+            border: "1px solid",
+            borderColor: "divider",
           }}
         >
           <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
@@ -183,9 +189,9 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
             onClick={handleStepAction}
             sx={{
               mb: 2,
-              backgroundColor: "rgba(255,255,255,0.2)",
-              color: "white",
-              "&:hover": { backgroundColor: "rgba(255,255,255,0.3)" },
+              backgroundColor: "primary.main",
+              color: "primary.contrastText",
+              "&:hover": { backgroundColor: "primary.dark" },
             }}
             fullWidth
           >
@@ -195,7 +201,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 0 }}>
-        <Button onClick={onClose} sx={{ color: "rgba(255,255,255,0.7)" }}>
+        <Button onClick={onClose} sx={{ color: "text.secondary" }}>
           Пропустить тур
         </Button>
         <Box sx={{ flexGrow: 1 }} />
@@ -203,7 +209,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
           onClick={handleBack}
           disabled={activeStep === 0}
           startIcon={<NavigateBefore />}
-          sx={{ color: "white" }}
+          sx={{ color: "text.secondary" }}
         >
           Назад
         </Button>
@@ -214,9 +220,9 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
             activeStep === tourSteps.length - 1 ? undefined : <NavigateNext />
           }
           sx={{
-            backgroundColor: "white",
-            color: "#667eea",
-            "&:hover": { backgroundColor: "rgba(255,255,255,0.9)" },
+            backgroundColor: "primary.main",
+            color: "primary.contrastText",
+            "&:hover": { backgroundColor: "primary.dark" },
           }}
         >
           {activeStep === tourSteps.length - 1 ? "Завершить" : "Далее"}

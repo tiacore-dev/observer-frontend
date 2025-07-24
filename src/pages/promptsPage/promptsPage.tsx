@@ -1,24 +1,33 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import type React from "react";
+import { useState, useEffect } from "react";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import {
   Typography,
   Box,
   Button,
   TextField,
-  Pagination,
   Tooltip,
   Autocomplete,
+  Collapse,
+  Paper,
+  Alert,
+  Chip,
+  Avatar,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import ClearIcon from "@mui/icons-material/Clear";
 import { AddPromptModal } from "./addPromptModal";
-import { PageProps } from "../../App";
+import type { PageProps } from "../../App";
 import { PromptsTable } from "./promptsTable";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useAuth } from "../../context/authContext";
 import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
 import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
 import { PaginationControls } from "../../components/table/paginationControls";
+import { HelpTooltip } from "../../components/helpTooltip";
+import { InfoCard } from "../../components/infoCard";
+import { ExpandMore, ExpandLess, Description } from "@mui/icons-material";
 
 export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const { isSuperadmin } = useAuth();
@@ -28,6 +37,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
     error: promptsError,
   } = usePromptsQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
@@ -94,7 +104,6 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
 
     filteredPrompts.sort((a, b) => {
-      // Для сортировки по компании используем названия компаний из companyMap
       if (sortField === "company_id") {
         const aCompany = companyMap.get(a.company_id) ?? a.company_id;
         const bCompany = companyMap.get(b.company_id) ?? b.company_id;
@@ -103,7 +112,6 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         return 0;
       }
 
-      // Для остальных полей используем нулевой coalescing оператор
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
 
@@ -152,111 +160,218 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   if (error) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
-        <Typography color="error">
-          Ошибка при загрузке данных: {(error as Error).message}
-        </Typography>
+        <Alert severity="error" sx={{ maxWidth: 600 }}>
+          <Typography variant="h6" gutterBottom>
+            Ошибка при загрузке промптов
+          </Typography>
+          <Typography variant="body2">
+            Произошла ошибка при загрузке данных: {(error as Error).message}
+          </Typography>
+        </Alert>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box
+    <Box sx={{ pl: 2, pr: 2, maxWidth: 1600, mx: "auto" }}>
+      {/* Заголовок страницы */}
+      <Paper
+        elevation={1}
         sx={{
-          display: "flex",
-          gap: 2,
-          mb: 3,
-          flexWrap: "wrap",
-          alignItems: "center",
-          width: "100%", // Добавлено для полной ширины
+          p: 3,
+          mb: 1,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          color: "white",
         }}
       >
-        <Autocomplete
-          freeSolo
-          options={promptNames}
-          value={nameSelectFilter || nameFilter}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Поиск по названию"
-              variant="outlined"
-              size="small"
-              onChange={(e) => {
-                setNameFilter(e.target.value);
-                setNameSelectFilter("");
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Description sx={{ fontSize: 40 }} />
+          <Box>
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              sx={{ mb: 1, fontWeight: 600 }}
+              color="white"
+            >
+              Промпты
+            </Typography>
+            <Typography variant="body1" sx={{ opacity: 0.9 }} color="white">
+              На этой странице вы можете создавать и редактировать промты,
+              которые будут использоваться в чатах.
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* Фильтры */}
+      <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          {/* Фильтр по названию */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Autocomplete
+              freeSolo
+              options={promptNames}
+              value={nameSelectFilter || nameFilter}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Поиск по названию"
+                  variant="outlined"
+                  size="small"
+                  onChange={(e) => {
+                    setNameFilter(e.target.value);
+                    setNameSelectFilter("");
+                  }}
+                  sx={{ width: 250 }}
+                />
+              )}
+              onChange={(_, value) => {
+                setNameSelectFilter(value || "");
+                setNameFilter("");
               }}
             />
-          )}
-          onChange={(_, value) => {
-            setNameSelectFilter(value || "");
-            setNameFilter("");
-          }}
-          sx={{ width: 250 }}
-        />
+          </Box>
 
-        <TextField
-          label="Поиск по тексту"
-          variant="outlined"
-          size="small"
-          value={textFilter}
-          onChange={(e) => setTextFilter(e.target.value)}
-          sx={{ width: 250 }}
-        />
+          {/* Фильтр по тексту */}
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <TextField
+              label="Поиск по тексту"
+              variant="outlined"
+              size="small"
+              value={textFilter}
+              onChange={(e) => setTextFilter(e.target.value)}
+              sx={{ width: 250 }}
+            />
+          </Box>
 
-        {isSuperadmin && (
-          <Autocomplete
-            freeSolo
-            options={Array.from(companyMap.values())}
-            value={companySelectFilter || companyFilter}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Поиск по компании"
-                variant="outlined"
-                size="small"
-                onChange={(e) => {
-                  setCompanyFilter(e.target.value);
-                  setCompanySelectFilter("");
+          {/* Фильтр по компании (только для суперадмина) */}
+          {isSuperadmin && (
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Autocomplete
+                freeSolo
+                options={Array.from(companyMap.values())}
+                value={companySelectFilter || companyFilter}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Поиск по компании"
+                    variant="outlined"
+                    size="small"
+                    onChange={(e) => {
+                      setCompanyFilter(e.target.value);
+                      setCompanySelectFilter("");
+                    }}
+                    sx={{ width: 250 }}
+                  />
+                )}
+                onChange={(_, value) => {
+                  setCompanySelectFilter(value || "");
+                  setCompanyFilter("");
                 }}
               />
-            )}
-            onChange={(_, value) => {
-              setCompanySelectFilter(value || "");
-              setCompanyFilter("");
-            }}
-            sx={{ width: 250 }}
+            </Box>
+          )}
+
+          <ResetFiltersButton onClick={resetAllFilters} />
+
+          <Box sx={{ flexGrow: 1 }} />
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setIsModalOpen(true)}
+            style={{ backgroundColor: "#7353ae" }}
+          >
+            Добавить промпт
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Справочная информация */}
+      {/* <Collapse in={showHelp}>
+        <Box sx={{ mb: 3 }}>
+          <InfoCard
+            type="info"
+            title="Что такое промпты?"
+            description="Промпты - это шаблоны текстовых сообщений, которые боты отправляют в чаты.."
           />
-        )}
 
-        <ResetFiltersButton onClick={resetAllFilters} />
-        <Box sx={{ flexGrow: 1 }} />
+          {promptsData?.prompts.length === 0 && (
+            <InfoCard
+              type="warning"
+              title="Ничего не найдено"
+              description="У вас пока нет промптов"
+              action={
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setIsModalOpen(true)}
+                  size="small"
+                  style={{ backgroundColor: "#7353ae" }}
+                >
+                  Создать первый промпт
+                </Button>
+              }
+            />
+          )}
+        </Box>
+      </Collapse> */}
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          Добавить промпт
-        </Button>
-      </Box>
-
-      <PromptsTable
-        prompts={paginatedPrompts}
-        companyMap={companyMap}
-        developerMode={developerMode}
-        isSuperadmin={isSuperadmin}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-      />
-
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <PaginationControls
-          count={totalPages}
-          page={page}
-          onPageChange={setPage}
+      {/* Таблица */}
+      <Paper elevation={1} sx={{ overflow: "hidden" }}>
+        <PromptsTable
+          prompts={paginatedPrompts}
+          companyMap={companyMap}
+          developerMode={developerMode}
+          isSuperadmin={isSuperadmin}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={handleSort}
         />
-      </Box>
+
+        {/* Пагинация */}
+        {totalPages > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mb: 3,
+              mt: 0,
+            }}
+          >
+            <PaginationControls
+              count={totalPages}
+              page={page}
+              onPageChange={setPage}
+            />
+          </Box>
+        )}
+      </Paper>
+
+      {/* Пустое состояние */}
+      {filteredPrompts.length === 0 && !isLoading && (
+        <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
+          <Description sx={{ fontSize: 64, color: "text.secondary", mt: 2 }} />
+          <Typography variant="h6" gutterBottom color="text.secondary">
+            {nameFilter || textFilter || companyFilter
+              ? "Промпты не найдены"
+              : "Нет доступных промптов"}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {nameFilter || textFilter || companyFilter
+              ? "Попробуйте изменить параметры поиска"
+              : "Создайте первый промпт, нажав на кнопку выше"}
+          </Typography>
+        </Paper>
+      )}
 
       <AddPromptModal
         open={isModalOpen}

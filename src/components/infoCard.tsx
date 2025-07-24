@@ -7,6 +7,7 @@ interface InfoCardProps {
   title: string;
   description: string;
   action?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const InfoCard: React.FC<InfoCardProps> = ({
@@ -14,6 +15,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   title,
   description,
   action,
+  children,
 }) => {
   const getIcon = () => {
     switch (type) {
@@ -94,6 +96,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
             >
               {description}
             </Typography>
+            {children && <Box sx={{ mt: 1 }}>{children}</Box>}
             {action && <Box sx={{ mt: 2 }}>{action}</Box>}
           </Box>
         </Box>

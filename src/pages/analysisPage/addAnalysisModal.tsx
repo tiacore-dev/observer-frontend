@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import type React from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +17,21 @@ import {
   Typography,
   TextField,
   Tooltip,
+  Alert,
+  Divider,
+  Collapse,
 } from "@mui/material";
+import {
+  Analytics as AnalyticsIcon,
+  Info as InfoIcon,
+  Business as BusinessIcon,
+  Chat as ChatIcon,
+  Psychology as PsychologyIcon,
+  Schedule as ScheduleIcon,
+  PlayArrow as PlayIcon,
+  ExpandMore,
+  ExpandLess,
+} from "@mui/icons-material";
 import { useCreateAnalys } from "../../hooks/analysis/useAnalysMutations";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useChatMap } from "../../hooks/maps/useChatMap";
@@ -22,6 +39,7 @@ import { usePromptMap } from "../../hooks/maps/usePromptMap";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { SelectSkeleton } from "../../components/skeleton/selectSkeleton";
 import { useAuth } from "../../context/authContext";
+import { InfoCard } from "../../components/infoCard";
 
 interface AddAnalysisModalProps {
   open: boolean;
@@ -40,6 +58,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
     date_to: "",
     company_id: "",
   });
+  const [showHelp, setShowHelp] = useState(false);
 
   // Автоматически устанавливаем company_id для обычных пользователей
   useEffect(() => {
@@ -63,6 +82,8 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
     prompt_id: "",
     chat_id: "",
     company_id: "",
+    date_from: "",
+    date_to: "",
   });
 
   const isCompanySelected = !!analysisData.company_id;
@@ -70,10 +91,21 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 
   const handleSubmit = async () => {
     const newErrors = {
-      prompt_id: !analysisData.prompt_id ? "Prompt обязателен" : "",
-      chat_id: !analysisData.chat_id ? "Chat обязателен" : "",
+      prompt_id: !analysisData.prompt_id ? "Выберите промпт" : "",
+      chat_id: !analysisData.chat_id ? "Выберите чат для анализа" : "",
       company_id: !analysisData.company_id ? "Выберите компанию" : "",
+      date_from: !analysisData.date_from ? "Укажите начало периода" : "",
+      date_to: !analysisData.date_to ? "Укажите конец периода" : "",
     };
+
+    // Проверка, что дата окончания не раньше даты начала
+    if (analysisData.date_from && analysisData.date_to) {
+      const fromDate = new Date(analysisData.date_from);
+      const toDate = new Date(analysisData.date_to);
+      if (fromDate > toDate) {
+        newErrors.date_to = "Дата окончания не может быть раньше даты начала";
+      }
+    }
 
     setErrors(newErrors);
 
@@ -83,12 +115,10 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
       await createAnalysis.mutateAsync({
         ...analysisData,
         chat_id: Number(analysisData.chat_id),
-        date_from: analysisData.date_from
-          ? Math.floor(new Date(analysisData.date_from).getTime() / 1000)
-          : 0,
-        date_to: analysisData.date_to
-          ? Math.floor(new Date(analysisData.date_to).getTime() / 1000)
-          : 0,
+        date_from: Math.floor(
+          new Date(analysisData.date_from).getTime() / 1000
+        ),
+        date_to: Math.floor(new Date(analysisData.date_to).getTime() / 1000),
         company_id: analysisData.company_id,
       });
       onClose();
@@ -114,19 +144,45 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 
   if (!open) return null;
 
-  // Полный скелетон при загрузке компаний
   if (isLoadingCompanyMap) {
     return <ModalSkeleton fieldCount={5} hasActions />;
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Добавить новый анализ</DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <AnalyticsIcon color="primary" />
+          Запустить новый анализ чата
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="text"
+            onClick={() => setShowHelp(!showHelp)}
+            endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
+            size="small"
+          >
+            Что такое анализ чата?
+          </Button>
+        </Box>
+      </DialogTitle>
       <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-          {isSuperadmin ? (
-            <FormControl fullWidth required error={!!errors.company_id}>
-              <InputLabel>Компания</InputLabel>
+        <Collapse in={showHelp}>
+          <InfoCard
+            type="info"
+            title="Что такое анализ чата?"
+            description="Анализ чата - это процесс изучения сообщений в Telegram чате с помощью искусственного интеллекта. Вы можете получить статистику, выявить тренды, проанализировать настроения участников и многое другое."
+          />
+        </Collapse>
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
+          {isSuperadmin && (
+            <FormControl fullWidth error={!!errors.company_id}>
+              <InputLabel>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <BusinessIcon fontSize="small" />
+                  Компания
+                </Box>
+              </InputLabel>
               <Select
                 name="company_id"
                 value={analysisData.company_id}
@@ -140,7 +196,10 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
               >
                 {Array.from(companyMap.entries()).map(([id, name]) => (
                   <MenuItem key={id} value={id}>
-                    {name}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <BusinessIcon fontSize="small" />
+                      {name}
+                    </Box>
                   </MenuItem>
                 ))}
               </Select>
@@ -150,14 +209,19 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                 </Typography>
               )}
             </FormControl>
-          ) : null}
+          )}
 
           {isLoadingPromptMap ? (
             <SelectSkeleton />
           ) : (
             renderWithTooltip(
-              <FormControl fullWidth required error={!!errors.prompt_id}>
-                <InputLabel>Промпт</InputLabel>
+              <FormControl fullWidth error={!!errors.prompt_id}>
+                <InputLabel>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <PsychologyIcon fontSize="small" />
+                    Промпт
+                  </Box>
+                </InputLabel>
                 <Select
                   name="prompt_id"
                   value={analysisData.prompt_id}
@@ -172,7 +236,11 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                 >
                   {Array.from(promptMap.entries()).map(([id, name]) => (
                     <MenuItem key={id} value={id}>
-                      {name}
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        {name}
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>
@@ -181,6 +249,14 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                     {errors.prompt_id}
                   </Typography>
                 )}
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  sx={{ mt: 1 }}
+                >
+                  Промт задаёт, какие данные искать и как анализировать
+                  сообщения в чатах.
+                </Typography>
               </FormControl>
             )
           )}
@@ -189,12 +265,17 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
             <SelectSkeleton />
           ) : (
             renderWithTooltip(
-              <FormControl fullWidth required error={!!errors.chat_id}>
-                <InputLabel>Чат</InputLabel>
+              <FormControl fullWidth error={!!errors.chat_id}>
+                <InputLabel>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <ChatIcon fontSize="small" />
+                    Telegram чат
+                  </Box>
+                </InputLabel>
                 <Select
                   name="chat_id"
                   value={analysisData.chat_id}
-                  label="Чат"
+                  label="Telegram чат"
                   onChange={(e) =>
                     setAnalysisData((prev) => ({
                       ...prev,
@@ -205,7 +286,11 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                 >
                   {Array.from(chatMap.entries()).map(([id, name]) => (
                     <MenuItem key={id} value={id.toString()}>
-                      {name}
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        {name}
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>
@@ -214,47 +299,98 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                     {errors.chat_id}
                   </Typography>
                 )}
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  sx={{ mt: 1 }}
+                >
+                  Выберите чат, сообщения которого нужно проанализировать
+                </Typography>
               </FormControl>
             )
           )}
 
-          {renderWithTooltip(
-            <TextField
-              label="Дата от"
-              type="datetime-local"
-              fullWidth
-              value={analysisData.date_from}
-              onChange={(e) =>
-                setAnalysisData({
-                  ...analysisData,
-                  date_from: e.target.value,
-                })
-              }
-              InputLabelProps={{
-                shrink: true,
-              }}
-              disabled={!isCompanySelected}
-            />
-          )}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              flexDirection: "row",
+              alignItems: "flex-start",
+            }}
+          >
+            {renderWithTooltip(
+              <FormControl
+                sx={{ flex: 1, minWidth: "250px" }}
+                error={!!errors.date_from}
+              >
+                <TextField
+                  fullWidth
+                  label="Начало периода"
+                  type="date"
+                  value={analysisData.date_from}
+                  onChange={(e) =>
+                    setAnalysisData({
+                      ...analysisData,
+                      date_from: e.target.value,
+                    })
+                  }
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  disabled={!isCompanySelected}
+                  error={!!errors.date_from}
+                  helperText={
+                    errors.date_from || "С какой даты анализировать сообщения"
+                  }
+                />
+              </FormControl>
+            )}
 
-          {renderWithTooltip(
-            <TextField
-              label="Дата до"
-              type="datetime-local"
-              fullWidth
-              value={analysisData.date_to}
-              onChange={(e) =>
-                setAnalysisData({ ...analysisData, date_to: e.target.value })
-              }
-              InputLabelProps={{
-                shrink: true,
-              }}
-              disabled={!isCompanySelected}
-            />
-          )}
+            {renderWithTooltip(
+              <FormControl
+                sx={{ flex: 1, minWidth: "250px" }}
+                error={!!errors.date_to}
+              >
+                <TextField
+                  fullWidth
+                  label="Конец периода"
+                  type="date"
+                  value={analysisData.date_to}
+                  onChange={(e) =>
+                    setAnalysisData({
+                      ...analysisData,
+                      date_to: e.target.value,
+                    })
+                  }
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  disabled={!isCompanySelected}
+                  error={!!errors.date_to}
+                  helperText={
+                    errors.date_to || "До какой даты анализировать сообщения"
+                  }
+                />
+              </FormControl>
+            )}
+          </Box>
+
+          <Alert severity="info" variant="outlined">
+            <Typography variant="body2">
+              После создания анализ начнётся автоматически. Вы сможете
+              посмотреть результаты в разделе "Анализы".
+            </Typography>
+          </Alert>
         </Box>
       </DialogContent>
-      <DialogActions>
+      <DialogActions
+        sx={{
+          paddingBottom: 3,
+          paddingTop: 0,
+          paddingRight: 3, // Добавляем отступ справа, сдвигая кнопки левее
+          justifyContent: "flex-end", // Сохраняем выравнивание по правому краю, но с отступом
+        }}
+      >
         <Button onClick={onClose}>Отмена</Button>
         <Tooltip title={!isCompanySelected ? tooltipMessage : ""}>
           <span>
@@ -264,14 +400,21 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
               disabled={
                 !analysisData.prompt_id ||
                 !analysisData.chat_id ||
-                !analysisData.company_id
+                !analysisData.company_id ||
+                !analysisData.date_from ||
+                !analysisData.date_to
+              }
+              startIcon={
+                createAnalysis.isPending ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <PlayIcon />
+                )
               }
             >
-              {createAnalysis.isPending ? (
-                <CircularProgress size={24} />
-              ) : (
-                "Создать"
-              )}
+              {createAnalysis.isPending
+                ? "Запуск анализа..."
+                : "Запустить анализ"}
             </Button>
           </span>
         </Tooltip>

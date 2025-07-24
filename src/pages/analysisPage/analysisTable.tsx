@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import type React from "react";
 import {
   Table,
   TableBody,
@@ -7,12 +9,25 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Typography,
+  Box,
+  Chip,
+  Avatar,
+  Tooltip,
 } from "@mui/material";
-import { IAnalys } from "../../api/analysisApi";
+import type { IAnalys } from "../../api/analysisApi";
 import { useNavigate } from "react-router-dom";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { useAuth } from "../../context/authContext";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+import {
+  Analytics,
+  CalendarMonth,
+  Chat,
+  Description,
+  Business,
+  Token,
+} from "@mui/icons-material";
 
 type SortField = keyof IAnalys;
 
@@ -28,6 +43,20 @@ interface AnalysisTableProps {
   onRowClick?: (analysisId: string) => void;
   isLoading?: boolean;
 }
+
+// Функция для генерации цвета на основе строки
+const stringToColor = (string: string) => {
+  let hash = 0;
+  for (let i = 0; i < string.length; i++) {
+    hash = string.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let color = "#";
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    color += `00${value.toString(16)}`.slice(-2);
+  }
+  return color;
+};
 
 export const AnalysisTable: React.FC<AnalysisTableProps> = ({
   analysis,
@@ -52,6 +81,18 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
     }
   };
 
+  // Функция для форматирования даты
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
   const formatResultText = (text?: string) => {
     if (!text) return "-";
     return text.length > 100 ? `${text.substring(0, 100)}...` : text;
@@ -68,30 +109,65 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
   }
 
   return (
-    <TableContainer component={Paper}>
+    <TableContainer
+      component={Paper}
+      elevation={2}
+      sx={{
+        borderRadius: 2,
+        overflow: "hidden",
+        mb: 4,
+      }}
+    >
       <Table
         sx={{
           minWidth: 650,
           tableLayout: "fixed", // Фиксированное распределение ширины
         }}
-        aria-label="analysis table"
+        aria-label="таблица анализов"
       >
         <TableHead>
           <TableRow>
-            {developerMode && <TableCell sx={{ width: "10%" }}>ID</TableCell>}
+            {/* {developerMode && (
+              <TableCell sx={{ width: "10%" }}>
+                <Typography variant="subtitle2">ID</Typography>
+              </TableCell>
+            )} */}
+            <SortableTableHeader<SortField>
+              field="created_at"
+              currentSortField={sortField}
+              sortDirection={sortDirection}
+              onSort={onSort}
+              label={
+                // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                //  <CalendarMonth fontSize="small" />
+                "Дата анализа"
+                // </Box>
+              }
+              defaultDirection="desc"
+            />
             <SortableTableHeader<SortField>
               field="chat_id"
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
-              label="Чат"
+              label={
+                // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                // <Chat fontSize="small" />
+                "Чат"
+                // </Box>
+              }
             />
             <SortableTableHeader<SortField>
               field="prompt_id"
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
-              label="Промпт"
+              label={
+                // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                //   <Description fontSize="small" />
+                "Промпт"
+                // </Box>
+              }
             />
             {isSuperadmin && (
               <SortableTableHeader<SortField>
@@ -99,19 +175,21 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                 currentSortField={sortField}
                 sortDirection={sortDirection}
                 onSort={onSort}
-                label="Компания"
+                label={
+                  // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  //   <Business fontSize="small" />
+                  "Компания"
+                  // </Box>
+                }
               />
             )}
-            {/* <TableCell sx={{ width: "15%" }}>Токены (in/out)</TableCell> */}
             {developerMode && (
-              <SortableTableHeader<SortField>
-                field="created_at"
-                currentSortField={sortField}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                label="Дата создания"
-                defaultDirection="desc"
-              />
+              <TableCell sx={{ width: "15%" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Token fontSize="small" />
+                  Токены (вход/выход)
+                </Box>
+              </TableCell>
             )}
           </TableRow>
         </TableHead>
@@ -124,31 +202,107 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               sx={{
                 "&:last-child td, &:last-child th": { border: 0 },
                 cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
+                  transition: "background-color 0.2s ease",
+                },
               }}
               onClick={() => handleRowClick(item.analysis_id)}
             >
-              {developerMode && (
+              {/* {developerMode && (
                 <TableCell component="th" scope="row" sx={{ width: "10%" }}>
-                  {item.analysis_id}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: "monospace",
+                      bgcolor: "grey.100",
+                      p: 0.5,
+                      borderRadius: 1,
+                    }}
+                  >
+                    {item.analysis_id.substring(0, 8)}...
+                  </Typography>
                 </TableCell>
-              )}
+              )} */}
               <TableCell sx={{ width: "20%" }}>
-                {chatMap.get(item.chat_id) || item.chat_id}
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <CalendarMonth
+                    fontSize="small"
+                    sx={{ mr: 1, color: "text.secondary" }}
+                  />
+                  <Typography variant="body2">
+                    {formatDate(item.created_at)}
+                  </Typography>
+                </Box>
               </TableCell>
               <TableCell sx={{ width: "20%" }}>
-                {promptMap.get(item.prompt_id) || item.prompt_id}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  {/* <Avatar
+                    sx={{
+                      bgcolor: stringToColor(
+                        chatMap.get(item.chat_id) || item.chat_id.toString()
+                      ),
+                      width: 36,
+                      height: 36,
+                    }}
+                  >
+                    <Chat fontSize="small" />
+                  </Avatar> */}
+                  <Typography variant="body2">
+                    {chatMap.get(item.chat_id) || (
+                      <Typography
+                        component="span"
+                        sx={{ fontFamily: "monospace" }}
+                      >
+                        {item.chat_id}
+                      </Typography>
+                    )}
+                  </Typography>
+                </Box>
+              </TableCell>
+              <TableCell sx={{ width: "20%" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  {/* <Avatar
+                    sx={{
+                      bgcolor: stringToColor(
+                        promptMap.get(item.prompt_id) || item.prompt_id
+                      ),
+                      width: 26,
+                      height: 26,
+                    }}
+                  >
+                    <Description fontSize="small" />
+                  </Avatar> */}
+                  <Typography variant="body2">
+                    {promptMap.get(item.prompt_id) || item.prompt_id}
+                  </Typography>
+                </Box>
               </TableCell>
               {isSuperadmin && (
                 <TableCell sx={{ width: "15%" }}>
-                  {companyMap.get(item.company_id) || item.company_id}
+                  <Chip
+                    icon={<Business fontSize="small" />}
+                    size="small"
+                    label={companyMap.get(item.company_id) || item.company_id}
+                    sx={{
+                      bgcolor: "primary.light",
+                      color: "primary.contrastText",
+                      fontWeight: 500,
+                    }}
+                  />
                 </TableCell>
               )}
-              <TableCell sx={{ width: "15%" }}>
-                {item.tokens_input}/{item.tokens_output}
-              </TableCell>
               {developerMode && (
-                <TableCell sx={{ width: "20%" }}>
-                  {new Date(item.created_at).toLocaleString()}
+                <TableCell sx={{ width: "15%" }}>
+                  <Tooltip title="Количество токенов на входе и выходе">
+                    <Chip
+                      icon={<Token fontSize="small" />}
+                      label={`${item.tokens_input} / ${item.tokens_output}`}
+                      variant="outlined"
+                      size="small"
+                      color="primary"
+                    />
+                  </Tooltip>
                 </TableCell>
               )}
             </TableRow>

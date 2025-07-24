@@ -19,7 +19,6 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
 }) => {
   return (
     <>
-      <Typography variant="subtitle2">Дни недели:</Typography>
       <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
         {daysOfWeek.map((day) => (
           <Tooltip

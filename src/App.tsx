@@ -110,10 +110,7 @@ const App: React.FC = () => {
                     path="/companies/:companyId"
                     element={<CompaniesPage developerMode={developerMode} />}
                   />
-                  <Route
-                    path="/help"
-                    element={<HelpPage developerMode={developerMode} />}
-                  />
+                  <Route path="/help" element={<HelpPage />} />
 
                   <Route path="/home" element={<HomePage />} />
                   <Route path="*" element={<Navigate to="/home" />} />

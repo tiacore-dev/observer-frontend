@@ -1,13 +1,24 @@
-import React from "react";
+"use client";
+
+import type React from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
+  Button,
+  Alert,
   Card,
   CardContent,
-  CardActions,
-  Button,
-  Container,
-  // WarningIcon,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Fab,
+  Zoom,
+  Paper,
+  Chip,
+  IconButton,
+  Divider,
 } from "@mui/material";
 import {
   SmartToy,
@@ -15,153 +26,388 @@ import {
   Schedule,
   Analytics,
   Business,
-  Group,
+  PlayArrow,
+  Help,
+  TipsAndUpdates,
+  ArrowForward,
+  Dashboard,
+  People,
+  Chat,
+  Settings,
+  Assessment,
   Info,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
-import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
+import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
+import { useSchedulesQuery } from "../../hooks/schedules/useSchedulesQuery";
+import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
+import { GuidedTour } from "../../components/guidedTour";
+import { SetupProgress } from "../../components/setupProgress";
+import ChatIcon from "@mui/icons-material/Chat";
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { isSuperadmin, availableCompanies } = useAuth();
+  const { user, isSuperadmin, availableCompanies } = useAuth();
+  const [showTour, setShowTour] = useState(false);
+  const [tourCompleted, setTourCompleted] = useState(() => {
+    return localStorage.getItem("tourCompleted") === "true";
+  });
 
-  // Проверка на отсутствие компаний у обычного пользователя
-  const hasNoCompanies = !isSuperadmin && availableCompanies.length === 0;
+  // Загружаем данные для анализа состояния системы
+  const { data: botsData } = useBotsQuery();
+  const { data: promptsData } = usePromptsQuery();
+  const { data: schedulesData } = useSchedulesQuery();
+  const { data: companiesData } = useCompaniesQuery();
 
-  const dashboardCards = [
+  const hasCompanies = isSuperadmin
+    ? (companiesData?.companies?.length || 0) > 0
+    : availableCompanies.length > 0;
+  const hasBots = (botsData?.bots?.length || 0) > 0;
+  const hasPrompts = (promptsData?.prompts?.length || 0) > 0;
+  const hasSchedules = (schedulesData?.schedules?.length || 0) > 0;
+  const isNewUser = !hasCompanies && !hasBots && !hasPrompts && !hasSchedules;
+
+  useEffect(() => {
+    if (isNewUser && !tourCompleted) {
+      const timer = setTimeout(() => setShowTour(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isNewUser, tourCompleted]);
+
+  const setupSteps = [
     {
-      title: "Боты",
-      description: "Управление Telegram ботами",
-      icon: <SmartToy sx={{ fontSize: 40 }} />,
-      path: "/bots",
+      id: "company",
+      title: "Создать компанию",
+      description: "Рабочее пространство для ваших проектов",
+      completed: hasCompanies,
+      action: () => navigate("/companies"),
+      actionText: "Создать",
     },
     {
-      title: "Промпты",
-      description: "Создание и редактирование промптов",
-      icon: <Psychology sx={{ fontSize: 40 }} />,
-      path: "/prompts",
+      id: "bot",
+      title: "Добавить бота",
+      description: "Telegram-бот для отправки сообщений",
+      completed: hasBots,
+      action: () => navigate("/bots"),
+      actionText: "Добавить",
     },
     {
-      title: "Расписания",
-      description: "Настройка автоматических задач",
-      icon: <Schedule sx={{ fontSize: 40 }} />,
-      path: "/schedules",
+      id: "prompt",
+      title: "Создать промпт",
+      description: "Шаблон анализа с переменными",
+      completed: hasPrompts,
+      action: () => navigate("/prompts"),
+      actionText: "Создать",
     },
     {
-      title: "Анализы",
-      description: "Просмотр результатов анализа чатов",
-      icon: <Analytics sx={{ fontSize: 40 }} />,
-      path: "/analysis",
-    },
-    {
-      title: "Компании",
-      description: "Управление компаниями",
-      icon: <Business sx={{ fontSize: 40 }} />,
-      path: "/companies",
-    },
-    {
-      title: "Аккаунты",
-      description: "Список Telegram аккаунтов",
-      icon: <Group sx={{ fontSize: 40 }} />,
-      path: "/accounts",
-    },
-    {
-      title: "Чаты",
-      description: "Список Telegram чатов",
-      icon: <QuestionAnswerIcon sx={{ fontSize: 40 }} />,
-      path: "/chats",
-    },
-    {
-      title: "Справка",
-      description: "",
-      icon: <Info sx={{ fontSize: 40 }} />,
-      path: "/help",
+      id: "schedule",
+      title: "Настроить расписание",
+      description: "Автоматическая отправка по времени",
+      completed: hasSchedules,
+      action: () => navigate("/schedules"),
+      actionText: "Настроить",
     },
   ];
 
-  return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography
-        variant="h4"
-        component="h1"
-        gutterBottom
-        sx={{ textAlign: "center" }}
-      >
-        Добро пожаловать в систему управления Observer
-      </Typography>
+  const completedSteps = setupSteps.filter((step) => step.completed).length;
+  const allStepsCompleted = completedSteps === setupSteps.length;
 
-      {hasNoCompanies && (
+  // Основные функции системы
+  const mainFeatures = [
+    {
+      title: "Компании",
+      description: "Управление рабочими пространствами",
+      icon: <Business />,
+      color: "#6366f1",
+      action: () => navigate("/companies"),
+      enabled: true,
+    },
+    {
+      title: "Telegram Боты",
+      description: "Управление ботами для отправки",
+      icon: <SmartToy />,
+      color: "#6366f1",
+      action: () => navigate("/bots"),
+      enabled: hasCompanies,
+    },
+    {
+      title: "Промпты",
+      description: "Промпты для обработки данных",
+      icon: <Psychology />,
+      color: "#6366f1",
+      action: () => navigate("/prompts"),
+      enabled: hasCompanies,
+    },
+    {
+      title: "Расписания",
+      description: "Автоматизация задач по времени",
+      icon: <Schedule />,
+      color: "#6366f1",
+      action: () => navigate("/schedules"),
+      enabled: hasCompanies && hasBots && hasPrompts,
+    },
+    {
+      title: "Анализ",
+      description: "Просмотр выполненных анализов",
+      icon: <Analytics />,
+      color: "#6366f1",
+      action: () => navigate("/analysis"),
+      enabled: hasCompanies && hasBots && hasPrompts,
+    },
+    {
+      title: "Аккаунты",
+      description: "Просмотр Telegram аккаунтов",
+      icon: <People />,
+      color: "#6366f1",
+      action: () => navigate("/accounts"),
+      enabled: hasCompanies && hasBots,
+    },
+    {
+      title: "Чаты",
+      description: "Просмотр Telegram чатов",
+      icon: <ChatIcon />,
+      color: "#6366f1",
+      action: () => navigate("/chats"),
+      enabled: hasCompanies && hasBots,
+    },
+    {
+      title: "Справка",
+      description: "Справочная информация",
+      icon: <Info />,
+      color: "#6366f1",
+      action: () => navigate("/help"),
+      enabled: true,
+    },
+  ];
+
+  const handleTourComplete = () => {
+    setTourCompleted(true);
+    localStorage.setItem("tourCompleted", "true");
+  };
+
+  return (
+    <Box sx={{ p: 3, maxWidth: 1600, mx: "auto", mt: -2 }}>
+      {/* Приветствие */}
+      <Paper
+        sx={{
+          p: 4,
+          mb: 2,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          color: "white",
+          borderRadius: 3,
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+        }}
+      >
         <Box
           sx={{
-            backgroundColor: "#e0eefb",
-            p: 2,
-            borderRadius: 2,
-            mb: 2,
-            textAlign: "center",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
           }}
         >
-          <Typography variant="body1">
-            Для доступа ко всем функциям необходимо
-          </Typography>
-          <Typography variant="body1">
-            создать новую компанию или получить доступ к существующей
-          </Typography>
+          <Box>
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              sx={{ fontWeight: 700, color: "white" }}
+            >
+              Добро пожаловать в систему управления Observer
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ opacity: 0.9, mb: 2, color: "white" }}
+            >
+              Система анализа Telegram-чатов
+            </Typography>
+          </Box>
+
+          {isNewUser && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => setShowTour(true)}
+              sx={{
+                backgroundColor: "white",
+                color: "#764ba2",
+                "&:hover": {
+                  backgroundColor: "#f0f0f0",
+                  backgroundImage: "none",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#764ba2",
+                },
+                backgroundImage: "none",
+                boxShadow: "none",
+                transition: "background-color 0.2s ease",
+              }}
+            >
+              Начать ознакомительный тур
+            </Button>
+          )}
+        </Box>
+      </Paper>
+
+      {/* Прогресс настройки (только для новых пользователей) */}
+      {isNewUser && (
+        <Box sx={{ mb: 2 }}>
+          <SetupProgress steps={setupSteps} />
         </Box>
       )}
 
+      {/* Основные функции */}
+
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, 1fr)",
-            md:
-              dashboardCards.length <= 4 ? "repeat(4, 1fr)" : "repeat(3, 1fr)",
-            lg:
-              dashboardCards.length <= 4 ? "repeat(4, 1fr)" : "repeat(3, 1fr)",
-          },
+          display: "flex",
+          flexWrap: "wrap",
           gap: 3,
+          mb: 2,
+          "& > *": {
+            flex: "1 1 280px",
+            maxWidth: "100%",
+          },
         }}
       >
-        {dashboardCards.map((card, index) => (
+        {mainFeatures.map((feature, index) => (
           <Card
             key={index}
             sx={{
               height: "100%",
               display: "flex",
               flexDirection: "column",
-              transition: "transform 0.2s",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: 3,
-              },
+              opacity: feature.enabled ? 1 : 0.6,
+              transition: "all 0.3s ease",
+              "&:hover": feature.enabled
+                ? {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 10px 20px rgba(0, 0, 0, 0.1)",
+                  }
+                : {},
             }}
+            onClick={feature.enabled ? feature.action : undefined}
           >
-            <CardContent sx={{ flexGrow: 1, textAlign: "center" }}>
-              <Box sx={{ mb: 2, color: "primary.main" }}>{card.icon}</Box>
-              <Typography variant="h6" component="h2" gutterBottom>
-                {card.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {card.description}
-              </Typography>
-            </CardContent>
-            <CardActions sx={{ justifyContent: "center", pb: 2 }}>
-              <Button
-                variant="contained"
-                onClick={() => navigate(card.path)}
-                disabled={hasNoCompanies && card.path !== "/companies"}
+            <CardContent sx={{ p: 3, flexGrow: 1 }}>
+              <Box
                 sx={{
-                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 2,
                 }}
               >
-                Перейти
-              </Button>
-            </CardActions>
+                <Box
+                  sx={{
+                    color: feature.enabled ? feature.color : "#94a3b8",
+                    mr: 2,
+                    fontSize: "2rem",
+                  }}
+                >
+                  {feature.icon}
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {feature.title}
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                {feature.description}
+              </Typography>
+              {feature.enabled && (
+                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                  <Button
+                    size="small"
+                    endIcon={<ArrowForward />}
+                    sx={{
+                      color: feature.color,
+                      "&:hover": {
+                        backgroundColor: "rgba(99, 102, 241, 0.08)",
+                      },
+                    }}
+                  >
+                    Перейти
+                  </Button>
+                </Box>
+              )}
+            </CardContent>
           </Card>
         ))}
       </Box>
-    </Container>
+
+      {/* Быстрые советы */}
+      <Card sx={{ mb: 2, borderRadius: 2 }}>
+        <CardContent>
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontWeight: 600,
+            }}
+          >
+            <TipsAndUpdates color="primary" sx={{ mr: 1 }} />
+            Советы по началу работы
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <List dense>
+            <ListItem sx={{ px: 0 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <PlayArrow color="primary" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Создайте компанию для начала работы"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
+            </ListItem>
+            <ListItem sx={{ px: 0 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <PlayArrow color="primary" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Добавьте Telegram-бота для подключения к системе"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
+            </ListItem>
+            <ListItem sx={{ px: 0 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <PlayArrow color="primary" fontSize="small" />
+              </ListItemIcon>
+              <ListItemText
+                primary="Создайте промпты для анализа сообщений"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+
+      {/* Кнопка помощи */}
+      <Zoom in={!showTour}>
+        <Fab
+          color="primary"
+          sx={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+            },
+          }}
+          onClick={() => navigate("/help")}
+        >
+          <Help />
+        </Fab>
+      </Zoom>
+
+      {/* Guided Tour */}
+      <GuidedTour
+        open={showTour}
+        onClose={() => setShowTour(false)}
+        onComplete={handleTourComplete}
+      />
+    </Box>
   );
 };

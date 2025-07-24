@@ -48,8 +48,8 @@ export const useScheduleValidation = () => {
         }
       } else if (data.send_strategy === "relative") {
         const minutes = Number(data.send_after_minutes) || 0;
-        if (minutes <= 0) {
-          newErrors.send_after_minutes = "Укажите положительное число минут";
+        if (minutes < 10) {
+          newErrors.send_after_minutes = "Минимум 10 минут";
         } else if (!Number.isInteger(minutes)) {
           newErrors.send_after_minutes = "Должно быть целым числом";
         }

@@ -28,3 +28,32 @@ export const fetchAccounts = async (
   });
   return response.data;
 };
+
+export const updateAccount = async (
+  account_id: string,
+  account_name: string,
+  isSuperadmin?: boolean,
+  selectedCompanyId?: string | null
+) => {
+  const url = process.env.REACT_APP_API_URL;
+  const accessToken = localStorage.getItem("access_token");
+  const params: any = {};
+
+  if (!isSuperadmin && selectedCompanyId) {
+    params.company_id = selectedCompanyId;
+  }
+
+  const response = await axiosInstance.patch(
+    `${url}/api/accounts/${account_id}`,
+    account_name,
+    {
+      params,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  return response.data;
+};

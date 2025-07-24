@@ -11,8 +11,14 @@ import {
   CircularProgress,
   Box,
   Skeleton,
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
 } from "@mui/material";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
+import { Psychology, Code, ExpandMore } from "@mui/icons-material";
 
 interface EditPromptModalProps {
   open: boolean;
@@ -43,14 +49,13 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        {isLoading ? (
-          <Skeleton variant="text" width="60%" />
-        ) : (
-          "Редактировать промпт"
-        )}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Psychology color="primary" />
+          Редактировать промпт
+        </Box>
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
           {isLoading ? (
             <>
               <Skeleton variant="rectangular" height={56} />
@@ -67,11 +72,11 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
                   onEditDataChange("prompt_name", e.target.value)
                 }
                 required
+                placeholder="Например: Анализ настроения клиентов"
               />
-
               <TextField
                 fullWidth
-                label="Текст промпта"
+                label="Инструкция для анализа"
                 name="text"
                 value={editData.text}
                 onChange={(e) => onEditDataChange("text", e.target.value)}
@@ -79,18 +84,36 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
                 minRows={8}
                 maxRows={20}
                 required
+                helperText={`${editData.text.length} символов. Опишите подробно, что должен делать ИИ при анализе сообщений`}
+                placeholder="Например: Проанализируй сообщения в чате и найди все упоминания проблем с продуктом. Классифицируй проблемы по категориям и предложи решения..."
                 sx={{
                   "& .MuiInputBase-root": {
-                    maxHeight: "60vh",
-                    overflow: "auto",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
                   },
                 }}
               />
+              {/* <Alert severity="info" variant="outlined">
+                <Typography variant="body2">
+                  💡 <strong>Советы для хорошего промпта:</strong>
+                  <br />• Будьте конкретны в инструкциях
+                  <br />• Укажите желаемый формат ответа
+                  <br />• Приведите примеры, если нужно
+                  <br />• Используйте простой и понятный язык
+                </Typography>
+              </Alert> */}
             </>
           )}
         </Box>
       </DialogContent>
-      <DialogActions>
+      <DialogActions
+        sx={{
+          paddingBottom: 3,
+          paddingTop: 0,
+          paddingRight: 3,
+          justifyContent: "flex-end",
+        }}
+      >
         {isLoading ? (
           <>
             <Skeleton variant="rectangular" width={64} height={36} />
@@ -103,8 +126,11 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
               onClick={onSubmit}
               variant="contained"
               disabled={isSubmitting}
+              startIcon={
+                isSubmitting ? <CircularProgress size={16} /> : <Psychology />
+              }
             >
-              {isSubmitting ? <CircularProgress size={24} /> : "Сохранить"}
+              {isSubmitting ? "Сохранение..." : "Сохранить промпт"}
             </Button>
           </>
         )}

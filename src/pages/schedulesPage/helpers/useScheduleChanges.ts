@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { ISchedule, IScheduleEdit } from "../../../api/schedulesApi";
+import { generateCronExpressionWithTimeConversion } from "./scheduleUtils";
 
 export const useScheduleChanges = (originalSchedule: ISchedule) => {
   const [currentData, setCurrentData] = useState<Partial<IScheduleEdit>>({});
@@ -11,6 +12,11 @@ export const useScheduleChanges = (originalSchedule: ISchedule) => {
   const [currentTargetChats, setCurrentTargetChats] = useState<number[]>([
     ...originalSchedule.target_chats,
   ]);
+  const [originalCronExpression] = useState<string>(
+    originalSchedule.cron_expression || ""
+  );
+  const [currentCronTime, setCurrentCronTime] = useState<string>("");
+  const [currentSelectedDays, setCurrentSelectedDays] = useState<number[]>([]);
 
   // Вычисляем изменения в чатах
   const chatChanges = useMemo(() => {
@@ -27,6 +33,23 @@ export const useScheduleChanges = (originalSchedule: ISchedule) => {
       hasChanges: addedChats.length > 0 || removedChats.length > 0,
     };
   }, [currentTargetChats, originalTargetChats]);
+
+  // Вычисляем изменения в cron-расписании
+  const cronChanges = useMemo(() => {
+    if (originalSchedule.schedule_type === "cron") {
+      const newCron = generateCronExpressionWithTimeConversion(
+        currentCronTime,
+        currentSelectedDays
+      );
+      return newCron !== originalCronExpression;
+    }
+    return false;
+  }, [
+    currentCronTime,
+    currentSelectedDays,
+    originalCronExpression,
+    originalSchedule.schedule_type,
+  ]);
 
   // Функция для обновления данных
   const updateField = (fieldName: string, value: any) => {
@@ -61,6 +84,16 @@ export const useScheduleChanges = (originalSchedule: ISchedule) => {
   // Функция для обновления чатов
   const updateTargetChats = (newChats: number[]) => {
     setCurrentTargetChats(newChats);
+  };
+
+  // Функция для обновления времени cron
+  const updateCronTime = (time: string) => {
+    setCurrentCronTime(time);
+  };
+
+  // Функция для обновления выбранных дней
+  const updateSelectedDays = (days: number[]) => {
+    setCurrentSelectedDays(days);
   };
 
   // Типобезопасные функции получения значений
@@ -111,15 +144,23 @@ export const useScheduleChanges = (originalSchedule: ISchedule) => {
 
   // Проверяем, есть ли вообще изменения
   const hasAnyChanges = useMemo(() => {
-    return Object.keys(currentData).length > 0 || chatChanges.hasChanges;
-  }, [currentData, chatChanges.hasChanges]);
+    return (
+      Object.keys(currentData).length > 0 ||
+      chatChanges.hasChanges ||
+      cronChanges
+    );
+  }, [currentData, chatChanges.hasChanges, cronChanges]);
 
   return {
     currentData,
     currentTargetChats,
+    currentCronTime,
+    currentSelectedDays,
     chatChanges,
     updateField,
     updateTargetChats,
+    setCurrentCronTime: updateCronTime,
+    setCurrentSelectedDays: updateSelectedDays,
     getCurrentValue,
     getCurrentStringValue,
     getCurrentNumberValue,

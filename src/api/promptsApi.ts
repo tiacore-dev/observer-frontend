@@ -104,10 +104,10 @@ export const updatePrompt = async (
   }
 
   // Добавляем логирование для отладки
-  console.log("API: Обновляемые данные:", {
-    ...updatedData,
-    textLength: updatedData.text?.length || 0,
-  });
+  // console.log("API: Обновляемые данные:", {
+  //   ...updatedData,
+  //   textLength: updatedData.text?.length || 0,
+  // });
 
   const response = await axiosInstance.patch(
     `${url}/api/prompts/${prompt_id}`,
@@ -121,7 +121,7 @@ export const updatePrompt = async (
     }
   );
 
-  console.log("API: Ответ сервера при обновлении:", response.data);
+  // console.log("API: Ответ сервера при обновлении:", response.data);
   return response.data;
 };
 

@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import type React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,13 +9,18 @@ import {
   Button,
   CircularProgress,
   Typography,
+  Box,
 } from "@mui/material";
+import { DeleteOutline, Close } from "@mui/icons-material";
 
 interface DeletePromptDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
   isDeleting: boolean;
+  title?: string;
+  message?: string;
+  itemName?: string;
 }
 
 export const DeleteDialog: React.FC<DeletePromptDialogProps> = ({
@@ -21,41 +28,114 @@ export const DeleteDialog: React.FC<DeletePromptDialogProps> = ({
   onClose,
   onConfirm,
   isDeleting,
+  title = "Удаление",
+  message = "Вы уверены, что хотите удалить этот элемент?",
+  itemName,
 }) => {
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm" // Устанавливаем максимальную ширину как 'sm' (600px)
-      fullWidth // Растягиваем на всю доступную ширину в пределах maxWidth
+      maxWidth="sm"
+      fullWidth
       PaperProps={{
-        style: {
-          minWidth: "400px", // Минимальная ширина
-          minHeight: "200px", // Минимальная высота
+        sx: {
+          borderRadius: "12px",
+          padding: "24px",
+          width: "440px",
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
         },
       }}
     >
-      <DialogTitle sx={{ fontSize: "1.2rem", padding: "20px 24px" }}>
-        Подтверждение удаления
+      {/* Заголовок */}
+      <DialogTitle
+        sx={{
+          p: 0,
+          mb: 2,
+          fontSize: "1.25rem",
+          fontWeight: 600,
+          color: "text.primary",
+          lineHeight: 1.5,
+        }}
+      >
+        {title}
       </DialogTitle>
-      <DialogContent sx={{ padding: "20px 24px" }}>
-        <Typography variant="body1">Вы уверены, что хотите удалить?</Typography>
+
+      {/* Содержимое */}
+      <DialogContent sx={{ p: 0, mb: 3 }}>
+        <Typography variant="body1" sx={{ mb: 2, color: "text.secondary" }}>
+          {message}
+        </Typography>
+
+        {itemName && (
+          <Box
+            sx={{
+              backgroundColor: "action.hover",
+              p: 2,
+              borderRadius: "8px",
+              mb: 2,
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{ color: "text.secondary", mb: 0.5 }}
+            >
+              Удаляемый элемент:
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+              {itemName}
+            </Typography>
+          </Box>
+        )}
+
+        <Typography
+          variant="body2"
+          sx={{ color: "error.main", fontSize: "0.875rem" }}
+        >
+          Это действие нельзя отменить
+        </Typography>
       </DialogContent>
-      <DialogActions sx={{ padding: "20px 24px" }}>
+
+      {/* Кнопки */}
+      <DialogActions sx={{ p: 0, gap: 2 }}>
         <Button
           onClick={onClose}
-          sx={{ fontSize: "0.9rem", padding: "8px 16px" }}
+          variant="outlined"
+          disabled={isDeleting}
+          startIcon={<Close />}
+          sx={{
+            flex: 1,
+            py: 1.5,
+            borderRadius: "8px",
+            borderColor: "divider",
+            textTransform: "none",
+            fontWeight: 500,
+          }}
         >
           Отмена
         </Button>
+
         <Button
           onClick={onConfirm}
           color="error"
           variant="contained"
           disabled={isDeleting}
-          sx={{ fontSize: "0.9rem", padding: "8px 16px" }}
+          startIcon={
+            isDeleting ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <DeleteOutline />
+            )
+          }
+          sx={{
+            flex: 1,
+            py: 1.5,
+            borderRadius: "8px",
+            textTransform: "none",
+            fontWeight: 500,
+          }}
         >
-          {isDeleting ? <CircularProgress size={24} /> : "Удалить"}
+          {isDeleting ? "Удаление..." : "Удалить"}
         </Button>
       </DialogActions>
     </Dialog>

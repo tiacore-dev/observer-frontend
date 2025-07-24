@@ -1,5 +1,8 @@
+"use client";
+
 import type React from "react";
-import { Box, TextField } from "@mui/material";
+import { Box, TextField, Alert, Typography } from "@mui/material";
+import { Schedule, Today } from "@mui/icons-material";
 import { DaySelector } from "./daySelector";
 
 interface ScheduleTypeFieldsProps {
@@ -85,66 +88,92 @@ export const ScheduleTypeFields: React.FC<ScheduleTypeFieldsProps> = ({
   switch (scheduleType) {
     case "interval":
       return renderWithTooltip(
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <TextField
-            fullWidth
-            label="Интервал (часы)"
-            name="interval_hours"
-            type="text"
-            value={intervalHours || ""}
-            onChange={handleNumberChange}
-            onKeyDown={handleKeyPress}
-            onPaste={handlePaste}
-            error={!!errors.interval || !!errors.interval_hours}
-            helperText={
-              errors.interval || errors.interval_hours
-              // "Только целые положительные числа"
-            }
-            inputProps={{
-              inputMode: "numeric",
-              pattern: "[0-9]*",
-            }}
-            disabled={disabled}
-          />
-          <TextField
-            fullWidth
-            label="Интервал (минуты)"
-            name="interval_minutes"
-            type="text"
-            value={intervalMinutes || ""}
-            onChange={handleNumberChange}
-            onKeyDown={handleKeyPress}
-            onPaste={handlePaste}
-            error={!!errors.interval_minutes}
-            helperText={errors.interval_minutes || "От 0 до 59 минут"}
-            inputProps={{
-              inputMode: "numeric",
-              pattern: "[0-9]*",
-            }}
-            disabled={disabled}
-          />
+        <Box>
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <TextField
+              fullWidth
+              label="Часы"
+              name="interval_hours"
+              type="text"
+              value={intervalHours || ""}
+              onChange={handleNumberChange}
+              onKeyDown={handleKeyPress}
+              onPaste={handlePaste}
+              error={!!errors.interval || !!errors.interval_hours}
+              helperText={
+                errors.interval ||
+                errors.interval_hours ||
+                "Каждые сколько часов"
+              }
+              inputProps={{
+                inputMode: "numeric",
+                pattern: "[0-9]*",
+              }}
+              disabled={disabled}
+              placeholder="0"
+              // InputProps={{
+              //   startAdornment: (
+              //     <Schedule sx={{ mr: 1, color: "text.secondary" }} />
+              //   ),
+              // }}
+            />
+            <TextField
+              fullWidth
+              label="Минуты"
+              name="interval_minutes"
+              type="text"
+              value={intervalMinutes || ""}
+              onChange={handleNumberChange}
+              onKeyDown={handleKeyPress}
+              onPaste={handlePaste}
+              error={!!errors.interval_minutes}
+              helperText={
+                errors.interval_minutes || "Дополнительные минуты (0-59)"
+              }
+              inputProps={{
+                inputMode: "numeric",
+                pattern: "[0-9]*",
+              }}
+              disabled={disabled}
+              placeholder="0"
+            />
+          </Box>
         </Box>
       );
 
     case "cron":
       return renderWithTooltip(
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <TextField
-            fullWidth
-            label="Время выполнения (HH:MM)"
-            type="time"
-            value={cronTime}
-            onChange={(e) => onCronTimeChange(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            disabled={disabled}
-          />
-          <DaySelector
-            selectedDays={selectedDays}
-            onToggleDay={onToggleDay}
-            disabled={disabled}
-            error={errors.cron_expression}
-            tooltipMessage={tooltipMessage}
-          />
+        <Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 2 }}>
+            <TextField
+              fullWidth
+              label="Время запуска"
+              type="time"
+              value={cronTime}
+              onChange={(e) => onCronTimeChange(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              disabled={disabled}
+              helperText="Во сколько запускать задачу в выбранные дни"
+              InputProps={{
+                startAdornment: (
+                  <Today sx={{ mr: 1, color: "text.secondary" }} />
+                ),
+              }}
+            />
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Дни недели:
+              </Typography>
+              <DaySelector
+                selectedDays={selectedDays}
+                onToggleDay={onToggleDay}
+                disabled={disabled}
+                error={errors.cron_expression}
+                tooltipMessage={tooltipMessage}
+              />
+            </Box>
+          </Box>
         </Box>
       );
 

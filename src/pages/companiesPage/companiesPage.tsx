@@ -2,19 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
   Paper,
-  CircularProgress,
   Typography,
   Box,
   Button,
-  Pagination,
-  Tooltip,
-  Autocomplete,
   TextField,
+  Alert,
+  Chip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import ClearIcon from "@mui/icons-material/Clear";
+import BusinessIcon from "@mui/icons-material/Business";
 import { AddCompanyModal } from "./addCompanyModal";
-import { PageProps } from "../../App";
+import type { PageProps } from "../../App";
 import { CompaniesTable } from "./companiesTable";
 import { useNavigate, useParams } from "react-router-dom";
 import { CompanyDetailsPage } from "./companyDetailsPage";
@@ -28,42 +26,32 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   const { data, isLoading, error } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [companyFilter, setCompanyFilter] = useState("");
-  const [companySelectFilter, setCompanySelectFilter] = useState("");
+  const [nameFilter, setNameFilter] = useState("");
   const [sortField, setSortField] = useState<"company_name" | "description">(
     "company_name"
   );
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const rowsPerPage = 10;
 
   const resetAllFilters = () => {
-    setCompanyFilter("");
-    setCompanySelectFilter("");
+    setNameFilter("");
     setSortField("company_name");
-    setSortDirection("asc");
+    setSortDirection("desc");
     setPage(1);
   };
-
-  const companyNames = Array.from(
-    new Set(data?.companies?.map((company) => company.company_name) || [])
-  );
 
   const getFilteredAndSortedCompanies = () => {
     if (!data?.companies) return [];
 
     let filteredCompanies = [...data.companies];
 
-    if (companyFilter || companySelectFilter) {
-      const companyFilterValue = companySelectFilter || companyFilter;
+    if (nameFilter) {
       filteredCompanies = filteredCompanies.filter((company) =>
-        company.company_name
-          .toLowerCase()
-          .includes(companyFilterValue.toLowerCase())
+        company.company_name.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
 
     filteredCompanies.sort((a, b) => {
-      // Используем нулевой coalescing оператор для обработки возможных undefined значений
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
 
@@ -93,7 +81,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   useEffect(() => {
     setPage(1);
-  }, [companyFilter, companySelectFilter, sortField, sortDirection]);
+  }, [nameFilter]);
 
   if (companyId) {
     return (
@@ -101,95 +89,145 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
     );
   }
 
-  if (isLoading) {
-    return <PageSkeleton filterCount={1} pagination hasAddButton={true} />;
-  }
-
   if (error) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
-        <Typography color="error">
-          Ошибка при загрузке данных: {(error as Error).message}
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (!data?.companies) {
-    return (
-      <Box display="flex" justifyContent="center" mt={4}>
-        <Typography>Нет данных о компаниях</Typography>
+        <Alert severity="error" sx={{ maxWidth: 600 }}>
+          <Typography variant="h6" gutterBottom>
+            Не удалось загрузить компании
+          </Typography>
+          <Typography variant="body2">
+            Произошла ошибка при загрузке данных: {(error as Error).message}
+          </Typography>
+        </Alert>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box
-        sx={{
-          display: "flex",
-          gap: 2,
-          mb: 3,
-          flexWrap: "wrap",
-          width: "100%", // Добавлено для полной ширины
-        }}
-      >
-        <Autocomplete
-          freeSolo
-          options={companyNames}
-          value={companySelectFilter || companyFilter}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Поиск по компании"
-              variant="outlined"
-              size="small"
-              onChange={(e) => {
-                setCompanyFilter(e.target.value);
-                setCompanySelectFilter("");
+    <Box sx={{ pl: 2, pr: 2, maxWidth: 1600, mx: "auto" }}>
+      {isLoading ? (
+        <PageSkeleton filterCount={1} pagination={true} hasAddButton={true} />
+      ) : (
+        <>
+          {/* Заголовок страницы */}
+          <Paper
+            elevation={1}
+            sx={{
+              p: 3,
+              mb: 1,
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              color: "white",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <BusinessIcon sx={{ fontSize: 40 }} />
+              <Box>
+                <Typography
+                  variant="h4"
+                  component="h1"
+                  gutterBottom
+                  sx={{ mb: 1, fontWeight: 600 }}
+                  color="white"
+                >
+                  Компании
+                </Typography>
+                <Typography variant="body1" sx={{ opacity: 0.9 }} color="white">
+                  Просмотр и управление компаниями. Используйте их, чтобы
+                  группировать чаты и отчёты по направлениям бизнеса, отделам
+                  или темам. Это поможет быстрее находить нужные данные.
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+
+          {/* Фильтры */}
+          <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                flexWrap: "wrap",
+                alignItems: "center",
               }}
+            >
+              <TextField
+                label="Поиск по названию компании"
+                variant="outlined"
+                size="small"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                placeholder="Например: My Company"
+                sx={{ minWidth: 300 }}
+              />
+
+              <ResetFiltersButton onClick={resetAllFilters} />
+
+              <Box sx={{ flexGrow: 1 }} />
+
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setIsModalOpen(true)}
+                style={{ backgroundColor: "#7353ae" }}
+              >
+                Добавить компанию
+              </Button>
+            </Box>
+          </Paper>
+
+          {/* Таблица */}
+          <Paper elevation={1} sx={{ overflow: "hidden" }}>
+            <CompaniesTable
+              companies={paginatedCompanies}
+              developerMode={developerMode}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
             />
+
+            {/* Пагинация */}
+            {totalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  mb: 3,
+                  mt: 0,
+                }}
+              >
+                <PaginationControls
+                  count={totalPages}
+                  page={page}
+                  onPageChange={setPage}
+                />
+              </Box>
+            )}
+          </Paper>
+
+          {/* Пустое состояние */}
+          {filteredCompanies.length === 0 && !isLoading && (
+            <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
+              <BusinessIcon
+                sx={{ fontSize: 64, color: "text.secondary", mt: 2 }}
+              />
+              <Typography variant="h6" gutterBottom color="text.secondary">
+                {nameFilter ? "Компании не найдены" : "Нет доступных компаний"}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {nameFilter
+                  ? "Попробуйте изменить параметры поиска"
+                  : "Добавьте первую компанию, нажав на кнопку выше"}
+              </Typography>
+            </Paper>
           )}
-          onChange={(_, value) => {
-            setCompanySelectFilter(value || "");
-            setCompanyFilter("");
-          }}
-          sx={{ width: 250 }}
-        />
 
-        <ResetFiltersButton onClick={resetAllFilters} />
-        <Box sx={{ flexGrow: 1 }} />
-
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          Добавить компанию
-        </Button>
-      </Box>
-
-      <CompaniesTable
-        companies={paginatedCompanies}
-        developerMode={developerMode}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-        // onRowClick={(companyId) => navigate(`/companies/${companyId}`)}
-      />
-
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-        <PaginationControls
-          count={totalPages}
-          page={page}
-          onPageChange={setPage}
-        />
-      </Box>
-
-      <AddCompanyModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+          <AddCompanyModal
+            open={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          />
+        </>
+      )}
     </Box>
   );
 };

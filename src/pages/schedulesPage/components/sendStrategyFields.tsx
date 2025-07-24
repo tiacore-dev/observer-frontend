@@ -1,13 +1,12 @@
-import React from "react";
-import { TextField, Typography } from "@mui/material";
-import {
-  convertToServerTime,
-  convertToLocalTime,
-} from "../helpers/scheduleUtils";
+"use client";
+
+import type React from "react";
+import { TextField, Typography, Box, Alert } from "@mui/material";
+import { AccessTime, Speed } from "@mui/icons-material";
 
 interface SendStrategyFieldsProps {
   sendStrategy: "fixed" | "relative";
-  timeToSend?: string; // В формате HH:MM (локальное время пользователя)
+  timeToSend?: string;
   sendAfterMinutes?: string;
   errors: Record<string, string>;
   disabled?: boolean;
@@ -24,17 +23,13 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
   tooltipMessage,
   onFieldChange,
 }) => {
-  // Обработчик изменений для числовых полей
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-
-    // Разрешаем только цифры или пустую строку
     if (value === "" || /^\d+$/.test(value)) {
       onFieldChange(e);
     }
   };
 
-  // Блокировка нечисловых символов
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const allowedKeys = [
       "Backspace",
@@ -59,7 +54,6 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
     }
   };
 
-  // Проверка вставляемого текста
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData("text");
     if (!/^\d*$/.test(pastedText)) {
@@ -69,51 +63,70 @@ export const SendStrategyFields: React.FC<SendStrategyFieldsProps> = ({
 
   if (sendStrategy === "fixed") {
     return (
-      <TextField
-        fullWidth
-        label="Время отправки (HH:MM)"
-        name="time_to_send"
-        type="time"
-        value={timeToSend || ""} // Отображаем как есть (локальное время)
-        onChange={onFieldChange}
-        error={!!errors.time_to_send}
-        helperText={
-          errors.time_to_send
-          // || "Локальное время пользователя"
-        }
-        required
-        InputLabelProps={{ shrink: true }}
-        disabled={disabled}
-        inputProps={{
-          step: 300, // 5 минут
-        }}
-      />
+      <Box>
+        <TextField
+          fullWidth
+          label="Время отправки"
+          name="time_to_send"
+          type="time"
+          value={timeToSend || ""}
+          onChange={onFieldChange}
+          error={!!errors.time_to_send}
+          helperText={
+            errors.time_to_send ||
+            "Укажите время, когда отправлять результаты каждый день"
+          }
+          required
+          InputLabelProps={{ shrink: true }}
+          disabled={disabled}
+          inputProps={{
+            step: 300, // 5 минут
+          }}
+          InputProps={{
+            startAdornment: (
+              <AccessTime sx={{ mr: 1, color: "text.secondary" }} />
+            ),
+          }}
+        />
+      </Box>
     );
   }
 
   if (sendStrategy === "relative") {
     return (
-      <TextField
-        fullWidth
-        label="Отправить через (минуты)"
-        name="send_after_minutes"
-        type="text"
-        value={sendAfterMinutes || ""}
-        onChange={handleNumberChange}
-        onKeyDown={handleKeyPress}
-        onPaste={handlePaste}
-        error={!!errors.send_after_minutes}
-        helperText={
-          errors.send_after_minutes
-          //  || "Только целые положительные числа"
-        }
-        required
-        inputProps={{
-          inputMode: "numeric",
-          pattern: "[0-9]*",
-        }}
-        disabled={disabled}
-      />
+      <Box>
+        <TextField
+          fullWidth
+          label="Задержка перед отправкой (минуты)"
+          name="send_after_minutes"
+          type="text"
+          value={sendAfterMinutes || ""}
+          onChange={handleNumberChange}
+          onKeyDown={handleKeyPress}
+          onPaste={handlePaste}
+          error={!!errors.send_after_minutes}
+          helperText={
+            errors.send_after_minutes ||
+            "Через сколько минут после начала анализа отправить результаты (минимум 10 минут, это позволит системе завершить обработку данных)"
+          }
+          required
+          inputProps={{
+            inputMode: "numeric",
+            pattern: "[0-9]*",
+            min: "10",
+          }}
+          disabled={disabled}
+          placeholder="10"
+          // InputProps={{
+          //   startAdornment: <Speed sx={{ mr: 1, color: "text.secondary" }} />,
+          // }}
+        />
+        {/* <Alert severity="info" sx={{ mt: 1 }}>
+          <Typography variant="caption">
+            💡 
+          </Typography>
+        </Alert> */}
+      </Box>
     );
   }
 

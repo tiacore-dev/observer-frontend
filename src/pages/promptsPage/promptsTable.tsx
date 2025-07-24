@@ -9,11 +9,21 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Typography,
+  Box,
+  Chip,
+  Avatar,
 } from "@mui/material";
 import type { IPrompt } from "../../api/promptsApi";
 import { useNavigate } from "react-router-dom";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+import {
+  Description,
+  CalendarMonth,
+  Business,
+  TextSnippet,
+} from "@mui/icons-material";
 
 type SortField = "prompt_name" | "company_id" | "created_at";
 
@@ -46,10 +56,22 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
     }
   };
 
+  // Функция для форматирования даты
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
   if (isLoading) {
     const columns = 2; // Основные колонки (Название, Текст)
     const additionalColumns =
-      (developerMode ? 1 : 0) + // Колонка ID если developerMode
+      // (developerMode ? 1 : 0) + // Колонка ID если developerMode
       (developerMode ? 1 : 0) + // Колонка даты если developerMode
       (isSuperadmin ? 1 : 0); // Колонка компании если isSuperadmin
 
@@ -63,11 +85,19 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="prompts table">
+    <TableContainer
+      component={Paper}
+      elevation={2}
+      sx={{
+        borderRadius: 2,
+        overflow: "hidden",
+        mb: 4,
+      }}
+    >
+      <Table sx={{ minWidth: 650 }} aria-label="таблица промптов">
         <TableHead>
           <TableRow>
-            {developerMode && <TableCell>ID</TableCell>}
+            {/* {developerMode && <TableCell>ID</TableCell>} */}
             <SortableTableHeader<SortField>
               field="prompt_name"
               currentSortField={sortField}
@@ -75,7 +105,12 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
               onSort={onSort}
               label="Название промпта"
             />
-            <TableCell>Текст</TableCell>
+            <TableCell>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <TextSnippet fontSize="small" />
+                Содержание промпта
+              </Box>
+            </TableCell>
             {developerMode && (
               <SortableTableHeader<SortField>
                 field="created_at"
@@ -105,31 +140,79 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
               sx={{
                 "&:last-child td, &:last-child th": { border: 0 },
                 "&:hover": {
-                  backgroundColor: "action.hover",
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
                   cursor: "pointer",
+                  transition: "background-color 0.2s ease",
                 },
               }}
               onClick={() => handleRowClick(prompt.prompt_id)}
             >
-              {developerMode && (
+              {/* {developerMode && (
                 <TableCell component="th" scope="row">
-                  {prompt.prompt_id}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontFamily: "monospace",
+                      bgcolor: "grey.100",
+                      p: 0.5,
+                      borderRadius: 1,
+                    }}
+                  >
+                    {prompt.prompt_id.substring(0, 8)}...
+                  </Typography>
                 </TableCell>
-              )}
-              <TableCell>{prompt.prompt_name}</TableCell>
+              )} */}
+              <TableCell>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Typography variant="body1" fontWeight={500}>
+                    {prompt.prompt_name}
+                  </Typography>
+                </Box>
+              </TableCell>
               <TableCell sx={{ maxWidth: 400, wordBreak: "break-word" }}>
-                {prompt.text.length > 200
-                  ? `${prompt.text.substring(0, 200)}...`
-                  : prompt.text}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "text.secondary",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    lineHeight: "1.5em",
+                    maxHeight: "3em",
+                  }}
+                >
+                  {prompt.text}
+                </Typography>
               </TableCell>
               {developerMode && (
                 <TableCell>
-                  {new Date(prompt.created_at).toLocaleString()}
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <CalendarMonth
+                      fontSize="small"
+                      sx={{ mr: 1, color: "text.secondary" }}
+                    />
+                    <Typography variant="body2">
+                      {formatDate(prompt.created_at)}
+                    </Typography>
+                  </Box>
                 </TableCell>
               )}
               {isSuperadmin && (
                 <TableCell>
-                  {companyMap.get(prompt.company_id) || prompt.company_id}
+                  <Chip
+                    // icon={<Business fontSize="small" />}
+                    size="small"
+                    label={
+                      companyMap.get(prompt.company_id) || prompt.company_id
+                    }
+                    sx={{
+                      bgcolor: "primary.light",
+                      color: "primary.contrastText",
+                      fontWeight: 500,
+                    }}
+                  />
                 </TableCell>
               )}
             </TableRow>

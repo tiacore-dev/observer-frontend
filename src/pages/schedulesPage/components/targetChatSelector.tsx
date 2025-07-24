@@ -18,6 +18,7 @@ interface TargetChatSelectorProps {
   disabled?: boolean;
   error?: string;
   tooltipMessage?: string;
+  showTitle?: boolean; // Добавляем новое свойство
 }
 
 export const TargetChatSelector: React.FC<TargetChatSelectorProps> = ({
@@ -27,12 +28,15 @@ export const TargetChatSelector: React.FC<TargetChatSelectorProps> = ({
   disabled = false,
   error,
   tooltipMessage,
+  showTitle = true, // Делаем true по умолчанию
 }) => {
   const content = (
     <FormControl fullWidth required error={!!error}>
-      <Typography variant="subtitle1" gutterBottom>
-        Выберите чаты для получения:
-      </Typography>
+      {showTitle && ( // Условный рендеринг заголовка
+        <Typography variant="subtitle1" gutterBottom>
+          Выберите чаты для получения:
+        </Typography>
+      )}
       <Box
         sx={{
           maxHeight: 200,
