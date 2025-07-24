@@ -225,7 +225,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton
           filterCount={isSuperadmin ? 3 : 2}

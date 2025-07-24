@@ -149,7 +149,7 @@ export const BotCard: React.FC<BotCardProps> = ({
   };
 
   return (
-    <Box sx={{ pl: 2, pr: 2, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
       {/* Заголовок с основной информацией */}
       <Paper
         sx={{

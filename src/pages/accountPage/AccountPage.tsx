@@ -87,7 +87,7 @@ export const AccountPage: React.FC = () => {
           textAlign: "center",
           p: 5,
           mx: "auto",
-          my: 4,
+          my: 2,
         }}
       >
         <PersonIcon sx={{ fontSize: 48, color: "action.disabled", mb: 2 }} />

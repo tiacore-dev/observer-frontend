@@ -188,7 +188,7 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1600, mx: "auto", mt: -2 }}>
+    <Box sx={{ p: 3, maxWidth: 1600, mx: "auto", mt: -3 }}>
       {/* Приветствие */}
       <Paper
         sx={{
@@ -196,7 +196,7 @@ export const HomePage: React.FC = () => {
           mb: 2,
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           color: "white",
-          borderRadius: 3,
+          borderRadius: 2,
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
         }}
       >

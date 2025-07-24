@@ -101,7 +101,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   const menuItems: AppMenuItem[] = useMemo(() => {
     const baseItems: AppMenuItem[] = [
-      { text: "Главная", icon: <Home />, path: "/home" },
+      // { text: "Главная", icon: <Home />, path: "/home" },
       { text: "Telegram Боты", icon: <SmartToy />, path: "/bots" },
       { text: "Промпты", icon: <Psychology />, path: "/prompts" },
       { text: "Расписания", icon: <Schedule />, path: "/schedules" },
@@ -499,45 +499,46 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 )}
               </>
             )}
-
-            <Tooltip
-              title={
-                developerMode
-                  ? "Отключить режим разработчика"
-                  : "Включить режим разработчика"
-              }
-            >
-              <Paper
-                elevation={0}
-                sx={{
-                  border: 1,
-                  borderColor: developerMode
-                    ? theme.palette.warning.main
-                    : "divider",
-                  borderRadius: 1, // Убираем закругленные углы
-                  bgcolor: developerMode
-                    ? alpha(theme.palette.warning.main, 0.1)
-                    : "transparent",
-                }}
+            {isSuperadmin && (
+              <Tooltip
+                title={
+                  developerMode
+                    ? "Отключить режим разработчика"
+                    : "Включить режим разработчика"
+                }
               >
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={developerMode}
-                      onChange={onToggleDeveloperMode}
-                      color="warning"
-                      size="small"
-                    />
-                  }
-                  label={
-                    <DeveloperMode
-                      color={developerMode ? "warning" : "disabled"}
-                    />
-                  }
-                  sx={{ m: 0.5, mr: 1 }}
-                />
-              </Paper>
-            </Tooltip>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    border: 1,
+                    borderColor: developerMode
+                      ? theme.palette.warning.main
+                      : "divider",
+                    borderRadius: 1, // Убираем закругленные углы
+                    bgcolor: developerMode
+                      ? alpha(theme.palette.warning.main, 0.1)
+                      : "transparent",
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={developerMode}
+                        onChange={onToggleDeveloperMode}
+                        color="warning"
+                        size="small"
+                      />
+                    }
+                    label={
+                      <DeveloperMode
+                        color={developerMode ? "warning" : "disabled"}
+                      />
+                    }
+                    sx={{ m: 0.5, mr: 1 }}
+                  />
+                </Paper>
+              </Tooltip>
+            )}
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -663,10 +664,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 border: "none",
                 boxShadow: theme.shadows[8],
                 left: "2px",
-                // borderRadius: "16px",
                 borderRadius: 2,
-                top: "80px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 80px)", // Вычитаем отступ сверху
+                top: "82px", // 70px (AppBar) + 10px дополнительного отступа
+                height: "calc(100% - 82px)", // Вычитаем отступ сверху
               },
             }}
           >
@@ -684,8 +684,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 borderColor: "divider",
                 left: "2px",
                 borderRadius: "16px",
-                top: "80px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 80px)", // Вычитаем отступ сверху
+                top: "82px", // 70px (AppBar) + 10px дополнительного отступа
+                height: "calc(100% - 82px)", // Вычитаем отступ сверху
               },
             }}
             open

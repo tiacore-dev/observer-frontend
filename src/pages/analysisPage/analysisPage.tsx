@@ -206,7 +206,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ru}>
-      <Box sx={{ pl: 2, pr: 2, maxWidth: 1600, mx: "auto" }}>
+      <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
         {isLoading ? (
           <PageSkeleton
             filterCount={isSuperadmin ? 5 : 4}
