@@ -525,9 +525,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                   multiline
                   rows={2}
                   inputProps={{ maxLength: 255 }}
-                  helperText={`${
-                    getCurrentStringValue("message_intro")?.length || 0
-                  }/255 символов. Этот текст будет добавлен в начало каждого отчета`}
+                  helperText={`Этот текст будет добавлен в начало каждого отчета`}
                   placeholder="Например: Еженедельный отчет по активности чата"
                 />
               </Box>

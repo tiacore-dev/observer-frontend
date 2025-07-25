@@ -13,15 +13,16 @@ import {
   Chip,
   Avatar,
   Box,
+  Tooltip,
 } from "@mui/material";
 import type { IBot } from "../../api/botsApi";
 import { useAuth } from "../../context/authContext";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
 import {
-  SmartToy,
   CheckCircle,
   Cancel,
   CalendarMonth,
+  // ContentCopy,
 } from "@mui/icons-material";
 
 type SortField =
@@ -42,20 +43,6 @@ interface BotsTableProps {
   onRowClick: (botId: string) => void;
 }
 
-// Функция для генерации цвета аватара на основе имени
-const stringToColor = (string: string) => {
-  let hash = 0;
-  for (let i = 0; i < string.length; i++) {
-    hash = string.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  let color = "#";
-  for (let i = 0; i < 3; i++) {
-    const value = (hash >> (i * 8)) & 0xff;
-    color += `00${value.toString(16)}`.slice(-2);
-  }
-  return color;
-};
-
 export const BotsTable: React.FC<BotsTableProps> = ({
   bots,
   companyMap,
@@ -67,17 +54,6 @@ export const BotsTable: React.FC<BotsTableProps> = ({
 }) => {
   const { isSuperadmin } = useAuth();
 
-  // Функция для получения инициалов из имени бота
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
-  // Функция для форматирования даты
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("ru-RU", {
@@ -87,6 +63,20 @@ export const BotsTable: React.FC<BotsTableProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     }).format(date);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      console.log("Скопировано:", text);
+    } catch (err) {
+      console.error("Ошибка при копировании:", err);
+    }
+  };
+
+  const handleCellClick = (e: React.MouseEvent, text: string) => {
+    e.stopPropagation();
+    copyToClipboard(text);
   };
 
   return (
@@ -103,7 +93,6 @@ export const BotsTable: React.FC<BotsTableProps> = ({
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>
-
             <SortableTableHeader<SortField>
               field="bot_username"
               currentSortField={sortField}
@@ -168,38 +157,46 @@ export const BotsTable: React.FC<BotsTableProps> = ({
               }}
               onClick={() => onRowClick(bot.bot_id)}
             >
-              <TableCell>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  {/* <Avatar
-                    sx={{
-                      bgcolor: stringToColor(
-                        bot.bot_first_name || bot.bot_username
-                      ),
-                      width: 40,
-                      height: 40,
-                      mr: 2,
-                    }}
-                  >
-                    {getInitials(bot.bot_first_name || bot.bot_username)}
-                  </Avatar> */}
-                  {/* {developerMode && ( */}
-                  <Typography
-                    variant="body2"
-                    component="span"
-                    sx={{
-                      fontFamily: "monospace",
-                      bgcolor: "grey.100",
-                      p: 0.5,
-                      borderRadius: 1,
-                    }}
-                  >
-                    {bot.bot_id}
-                  </Typography>
-                  {/* )} */}
-                </Box>
+              <TableCell onClick={(e) => handleCellClick(e, bot.bot_id)}>
+                <Tooltip title="Копировать ID" arrow>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {/* <ContentCopy fontSize="small" color="action" /> */}
+                    <Typography
+                      variant="body2"
+                      component="span"
+                      sx={{
+                        fontFamily: "monospace",
+                        bgcolor: "grey.100",
+                        p: 0.5,
+                        borderRadius: 1,
+                        "&:hover": {
+                          bgcolor: "grey.300",
+                        },
+                      }}
+                    >
+                      {bot.bot_id}
+                    </Typography>
+                  </Box>
+                </Tooltip>
               </TableCell>
-              <TableCell>
-                <Typography variant="body2">@{bot.bot_username}</Typography>
+              <TableCell
+                onClick={(e) => handleCellClick(e, `@${bot.bot_username}`)}
+              >
+                <Tooltip title="Копировать username" arrow>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {/* <ContentCopy fontSize="small" color="action" /> */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      @{bot.bot_username}
+                    </Typography>
+                  </Box>
+                </Tooltip>
               </TableCell>
               <TableCell>{bot.bot_first_name}</TableCell>
               {isSuperadmin && (

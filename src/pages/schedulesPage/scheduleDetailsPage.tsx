@@ -1,6 +1,5 @@
 "use client";
 
-// src/pages/schedules/scheduleDetailsPage.tsx
 import type React from "react";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -35,6 +34,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import HistoryIcon from "@mui/icons-material/History";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
+import PsychologyIcon from "@mui/icons-material/Psychology";
 import { useScheduleDetailsQuery } from "../../hooks/schedules/useSchedulesQuery";
 import {
   useUpdateSchedule,
@@ -275,7 +275,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
       {/* Заголовок с основной информацией */}
       <Paper
         sx={{
@@ -365,7 +365,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
               variant="contained"
               sx={{
                 backgroundColor: "#ffffff",
-                color: schedule.enabled ? "#dc2626" : "#059669", // "white",
+                color: schedule.enabled ? "#dc2626" : "#059669",
                 "&:hover": {
                   backgroundColor: "#ffffffec",
                   backgroundImage: "none",
@@ -411,7 +411,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
               variant="contained"
               sx={{
                 backgroundColor: "#ffffff",
-                color: "#dc2626", // "white",
+                color: "#dc2626",
                 "&:hover": {
                   backgroundColor: "#ffffffec",
                   backgroundImage: "none",
@@ -452,6 +452,23 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             >
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <CompactDetailItem
+                  icon={<BusinessIcon color="primary" fontSize="small" />}
+                  label="Компания"
+                  value={
+                    companyMap.get(schedule.company_id) || schedule.company_id
+                  }
+                />
+
+                <CompactDetailItem
+                  icon={<SmartToyIcon color="primary" fontSize="small" />}
+                  label="Telegram Бот"
+                  value={
+                    botMap.get(schedule.bot_id.toString()) || schedule.bot_id
+                  }
+                />
+              </Box>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <CompactDetailItem
                   icon={
                     schedule.schedule_strategy === "analysis" ? (
                       <AnalyticsIcon color="primary" fontSize="small" />
@@ -465,44 +482,15 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
                 <CompactDetailItem
                   icon={<AccessTimeIcon color="primary" fontSize="small" />}
-                  label="Когда выполнять"
+                  label="Тип расписания"
                   value={getScheduleTypeLabel(schedule.schedule_type)}
                 />
-              </Box>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <CompactDetailItem
-                  icon={<SmartToyIcon color="primary" fontSize="small" />}
-                  label="Telegram Бот"
-                  value={
-                    botMap.get(schedule.bot_id.toString()) || schedule.bot_id
-                  }
-                />
-
-                {developerMode && (
-                  <>
-                    <CompactDetailItem
-                      icon={
-                        <FingerprintIcon color="primary" fontSize="small" />
-                      }
-                      label="ID расписания"
-                      value={schedule.schedule_id}
-                    />
-                    <CompactDetailItem
-                      icon={<BusinessIcon color="primary" fontSize="small" />}
-                      label="Компания"
-                      value={
-                        companyMap.get(schedule.company_id) ||
-                        schedule.company_id
-                      }
-                    />
-                  </>
-                )}
               </Box>
             </Box>
           </CardContent>
         </Card>
 
-        {/* Детали задачи */}
+        {/* Настройки задачи */}
         <Card>
           <CardContent sx={{ p: 2 }}>
             <Typography
@@ -522,12 +510,14 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             <Divider sx={{ mb: 2 }} />
 
             {schedule.schedule_strategy === "notification" ? (
-              <CompactDetailItem
-                icon={<NotificationsIcon color="primary" fontSize="small" />}
-                label="Текст уведомления"
-                value={schedule.notification_text || "Не указан"}
-                multiline
-              />
+              <Box>
+                <CompactDetailItem
+                  icon={<NotificationsIcon color="primary" fontSize="small" />}
+                  label="Текст уведомления"
+                  value={schedule.notification_text || "Не указан"}
+                  multiline
+                />
+              </Box>
             ) : (
               <Box
                 sx={{
@@ -547,7 +537,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
                   {schedule.prompt_id && (
                     <CompactDetailItem
-                      icon={<AnalyticsIcon color="primary" fontSize="small" />}
+                      icon={<PsychologyIcon color="primary" fontSize="small" />}
                       label="Промпт"
                       value={
                         promptMap.get(schedule.prompt_id) || schedule.prompt_id
@@ -572,45 +562,6 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           </CardContent>
         </Card>
 
-        {/* Расписание выполнения */}
-        <Card>
-          <CardContent sx={{ p: 2 }}>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
-            >
-              <CalendarTodayIcon sx={{ mr: 1, color: "primary.main" }} />
-              Расписание выполнения
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            {schedule.schedule_type === "interval" ? (
-              <CompactDetailItem
-                icon={<AccessTimeIcon color="primary" fontSize="small" />}
-                label="Интервал выполнения"
-                value={`${
-                  schedule.interval_hours ? `${schedule.interval_hours} ч ` : ""
-                }${
-                  schedule.interval_minutes
-                    ? `${schedule.interval_minutes} мин`
-                    : ""
-                }`}
-              />
-            ) : (
-              schedule.cron_expression && (
-                <CompactDetailItem
-                  icon={<CalendarTodayIcon color="primary" fontSize="small" />}
-                  label="Дни и время"
-                  value={formatCronExpressionForDisplay(
-                    schedule.cron_expression
-                  )}
-                />
-              )
-            )}
-          </CardContent>
-        </Card>
-
         {/* Получатели */}
         <Card>
           <CardContent sx={{ p: 2 }}>
@@ -626,13 +577,6 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
             {schedule.target_chats && schedule.target_chats.length > 0 ? (
               <Box>
-                <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{ fontWeight: 600, fontSize: "0.875rem", mb: 1 }}
-                >
-                  Выбранные чаты:
-                </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
                   {schedule.target_chats.map((chatId: number) => (
                     <Chip
@@ -653,6 +597,49 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           </CardContent>
         </Card>
 
+        {/* Расписание выполнения */}
+        <Card>
+          <CardContent sx={{ p: 2 }}>
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ display: "flex", alignItems: "center" }}
+            >
+              <CalendarTodayIcon sx={{ mr: 1, color: "primary.main" }} />
+              Когда запускать
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            {schedule.schedule_type === "interval" ? (
+              <CompactDetailItem
+                icon={<AccessTimeIcon color="primary" fontSize="small" />}
+                label="Интервал выполнения"
+                value={`${
+                  schedule.interval_hours ? `${schedule.interval_hours} ч ` : ""
+                }${
+                  schedule.interval_minutes
+                    ? `${schedule.interval_minutes} мин`
+                    : ""
+                }`}
+              />
+            ) : (
+              schedule.cron_expression && (
+                <Box>
+                  <CompactDetailItem
+                    icon={
+                      <CalendarTodayIcon color="primary" fontSize="small" />
+                    }
+                    label="Дни и время"
+                    value={formatCronExpressionForDisplay(
+                      schedule.cron_expression
+                    )}
+                  />
+                </Box>
+              )
+            )}
+          </CardContent>
+        </Card>
+
         {/* Время отправки (только для анализа) */}
         {schedule.schedule_strategy === "analysis" && (
           <Card>
@@ -662,7 +649,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 gutterBottom
                 sx={{ display: "flex", alignItems: "center" }}
               >
-                <SendIcon sx={{ mr: 1, color: "primary.main" }} />
+                <AccessTimeIcon sx={{ mr: 1, color: "primary.main" }} />
                 Когда отправлять результаты
               </Typography>
               <Divider sx={{ mb: 2 }} />
@@ -708,6 +695,32 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             </CardContent>
           </Card>
         )}
+
+        {/* Статус */}
+        <Card>
+          <CardContent sx={{ p: 2 }}>
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ display: "flex", alignItems: "center" }}
+            >
+              <CheckCircleIcon sx={{ mr: 1, color: "primary.main" }} />
+              Статус расписания
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <CompactDetailItem
+              icon={
+                schedule.enabled ? (
+                  <CheckCircleIcon color="success" fontSize="small" />
+                ) : (
+                  <PauseCircleIcon color="error" fontSize="small" />
+                )
+              }
+              label="Статус"
+              value={schedule.enabled ? "Активно" : "Приостановлено"}
+            />
+          </CardContent>
+        </Card>
 
         {/* История выполнения */}
         {schedule.last_run_at && (

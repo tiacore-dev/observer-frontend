@@ -281,7 +281,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               {isSuperadmin && (
                 <TableCell sx={{ width: "15%" }}>
                   <Chip
-                    icon={<Business fontSize="small" />}
+                    // icon={<Business fontSize="small" />}
                     size="small"
                     label={companyMap.get(item.company_id) || item.company_id}
                     sx={{

@@ -125,20 +125,12 @@ export const HomePage: React.FC = () => {
       enabled: true,
     },
     {
-      title: "Telegram Боты",
-      description: "Управление ботами для отправки",
-      icon: <SmartToy />,
+      title: "Анализ",
+      description: "Просмотр выполненных анализов",
+      icon: <Analytics />,
       color: "#6366f1",
-      action: () => navigate("/bots"),
-      enabled: hasCompanies,
-    },
-    {
-      title: "Промпты",
-      description: "Промпты для обработки данных",
-      icon: <Psychology />,
-      color: "#6366f1",
-      action: () => navigate("/prompts"),
-      enabled: hasCompanies,
+      action: () => navigate("/analysis"),
+      enabled: hasCompanies && hasBots && hasPrompts,
     },
     {
       title: "Расписания",
@@ -149,12 +141,20 @@ export const HomePage: React.FC = () => {
       enabled: hasCompanies && hasBots && hasPrompts,
     },
     {
-      title: "Анализ",
-      description: "Просмотр выполненных анализов",
-      icon: <Analytics />,
+      title: "Промпты",
+      description: "Промпты для обработки данных",
+      icon: <Psychology />,
       color: "#6366f1",
-      action: () => navigate("/analysis"),
-      enabled: hasCompanies && hasBots && hasPrompts,
+      action: () => navigate("/prompts"),
+      enabled: hasCompanies,
+    },
+    {
+      title: "Telegram Боты",
+      description: "Управление ботами для отправки",
+      icon: <SmartToy />,
+      color: "#6366f1",
+      action: () => navigate("/bots"),
+      enabled: hasCompanies,
     },
     {
       title: "Аккаунты",
@@ -259,7 +259,6 @@ export const HomePage: React.FC = () => {
       )}
 
       {/* Основные функции */}
-
       <Box
         sx={{
           display: "flex",
@@ -267,8 +266,16 @@ export const HomePage: React.FC = () => {
           gap: 3,
           mb: 2,
           "& > *": {
-            flex: "1 1 280px",
-            maxWidth: "100%",
+            flex: "1 1 calc(100% - 24px)",
+            minWidth: 0,
+            height: "200px",
+
+            "@media (min-width: 600px)": {
+              flex: "1 1 calc(50% - 24px)",
+            },
+            "@media (min-width: 1200px)": {
+              flex: "1 1 calc(25% - 24px)",
+            },
           },
         }}
       >
@@ -290,7 +297,14 @@ export const HomePage: React.FC = () => {
             }}
             onClick={feature.enabled ? feature.action : undefined}
           >
-            <CardContent sx={{ p: 3, flexGrow: 1 }}>
+            <CardContent
+              sx={{
+                p: 3,
+                flexGrow: 1,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
               <Box
                 sx={{
                   display: "flex",
@@ -311,7 +325,11 @@ export const HomePage: React.FC = () => {
                   {feature.title}
                 </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 2, flexGrow: 1 }}
+              >
                 {feature.description}
               </Typography>
               {feature.enabled && (

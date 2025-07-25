@@ -10,12 +10,14 @@ import {
   Chip,
   Box,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import type { IChat } from "../../api/chatsApi";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
 import TagIcon from "@mui/icons-material/Tag";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import ContentCopy from "@mui/icons-material/ContentCopy";
 
 type SortField = "chat_id" | "chat_name" | "created_at";
 
@@ -68,13 +70,12 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
   };
 
   const getChatTypeColor = (chatId: string) => {
-    // Определяем тип чата по ID (упрощенная логика)
     if (chatId.startsWith("-100")) {
-      return "#4caf4fd7"; // Супергруппы/каналы - зеленый
+      return "#4caf4fd7";
     } else if (chatId.startsWith("-")) {
-      return "#2196f3d7"; // Обычные группы - синий
+      return "#2196f3d7";
     } else {
-      return "#ff9800d7"; // Личные чаты - оранжевый
+      return "#ff9800d7";
     }
   };
 
@@ -86,6 +87,20 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
     } else {
       return "Личный чат";
     }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      console.log("Скопировано:", text);
+    } catch (err) {
+      console.error("Ошибка при копировании:", err);
+    }
+  };
+
+  const handleCellClick = (e: React.MouseEvent, text: string) => {
+    e.stopPropagation();
+    copyToClipboard(text);
   };
 
   return (
@@ -107,7 +122,6 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
               onSort={onSort}
               label="ID"
             />
-            {/* {developerMode && ( */}
             <SortableTableHeader<SortField>
               field="created_at"
               currentSortField={sortField}
@@ -116,7 +130,6 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
               label="Дата добавления"
               defaultDirection="desc"
             />
-            {/* )} */}
           </TableRow>
         </TableHead>
 
@@ -134,7 +147,7 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Avatar
                     sx={{
-                      bgcolor: getChatTypeColor(chat.chat_id.toString()), // Преобразуем в строку
+                      bgcolor: getChatTypeColor(chat.chat_id.toString()),
                       width: 40,
                       height: 40,
                       fontSize: "0.9rem",
@@ -172,18 +185,29 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
                   </Box>
                 </Box>
               </TableCell>
-              <TableCell>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  {/* <TagIcon sx={{ color: "text.secondary", fontSize: 18 }} /> */}
-                  <Typography
-                    variant="body2"
-                    sx={{ fontFamily: "monospace", fontSize: "0.85rem" }}
-                  >
-                    {chat.chat_id}
-                  </Typography>
-                </Box>
+              <TableCell
+                onClick={(e) => handleCellClick(e, chat.chat_id.toString())}
+              >
+                <Tooltip title="Копировать ID чата" arrow>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontFamily: "monospace",
+                        fontSize: "0.85rem",
+                        bgcolor: "grey.100",
+                        p: 0.5,
+                        borderRadius: 1,
+                        "&:hover": {
+                          bgcolor: "grey.300",
+                        },
+                      }}
+                    >
+                      {chat.chat_id}
+                    </Typography>
+                  </Box>
+                </Tooltip>
               </TableCell>
-              {/* {developerMode && ( */}
               <TableCell>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CalendarTodayIcon
@@ -194,7 +218,6 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
                   </Typography>
                 </Box>
               </TableCell>
-              {/* )} */}
             </TableRow>
           ))}
         </TableBody>

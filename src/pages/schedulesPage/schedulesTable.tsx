@@ -29,6 +29,7 @@ import {
 import type { ISchedule } from "../../api/schedulesApi";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useBotMap } from "../../hooks/maps/useBotMap";
+import { useChatMap } from "../../hooks/maps/useChatMap";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
 
@@ -65,6 +66,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
   // Используем хуки для маппингов
   const companyMap = useCompanyMap().companyMap;
   const botMap = useBotMap().botMap;
+  const chatMap = useChatMap().chatMap;
 
   const getScheduleStrategyInfo = (strategy: string) => {
     switch (strategy) {
@@ -285,25 +287,44 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   </TableCell>
 
                   <TableCell>
-                    <Chip
-                      icon={strategyInfo.icon}
-                      label={strategyInfo.label}
-                      color={strategyInfo.color}
-                      variant="outlined"
-                      size="small"
-                      title={strategyInfo.description}
-                    />
+                    <Box sx={{ display: "grid", alignItems: "center", gap: 1 }}>
+                      <Chip
+                        icon={strategyInfo.icon}
+                        label={strategyInfo.label}
+                        color={strategyInfo.color}
+                        variant="outlined"
+                        size="small"
+                        title={strategyInfo.description}
+                      />
+                      {schedule.schedule_strategy === "analysis" && (
+                        <Chip
+                          label={chatMap.get(schedule.chat_id!)}
+                          // variant="outlined"
+                          color={"primary"}
+                        />
+                      )}
+                    </Box>
                   </TableCell>
 
                   <TableCell>
-                    <Chip
-                      icon={typeInfo.icon}
-                      label={typeInfo.label}
-                      color={typeInfo.color}
-                      variant="outlined"
-                      size="small"
-                      title={typeInfo.description}
-                    />
+                    <Box sx={{ display: "grid", alignItems: "center", gap: 1 }}>
+                      <Chip
+                        icon={typeInfo.icon}
+                        label={typeInfo.label}
+                        color={typeInfo.color}
+                        variant="outlined"
+                        size="small"
+                        title={typeInfo.description}
+                      />
+
+                      {schedule.schedule_strategy === "analysis" && (
+                        <Chip
+                          label={schedule.send_strategy}
+                          color={typeInfo.color}
+                          // variant="outlined"
+                        />
+                      )}
+                    </Box>
                   </TableCell>
 
                   <TableCell>

@@ -41,7 +41,7 @@ export const BotCard: React.FC<BotCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const updateBot = useUpdateBot();
+  const updateBot = useUpdateBot(bot.bot_id);
 
   const getBotInitials = (name: string) => {
     return name

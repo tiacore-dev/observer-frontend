@@ -10,8 +10,11 @@ import {
   Paper,
   IconButton,
   Tooltip,
+  Box,
+  Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+// import ddd from "@mui/icons-material/ddd";
 import { IAccount } from "../../api/accountsApi";
 import { EditAccountModal } from "./editAccountModal";
 import { useUpdateAccount } from "../../hooks/accounts/useAccountsQuery";
@@ -67,6 +70,20 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
     });
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      console.log("Скопировано:", text);
+    } catch (err) {
+      console.error("Ошибка при копировании:", err);
+    }
+  };
+
+  const handleCellClick = (e: React.MouseEvent, text: string) => {
+    e.stopPropagation();
+    copyToClipboard(text);
+  };
+
   return (
     <>
       <TableContainer component={Paper}>
@@ -109,13 +126,37 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                   Дата создания
                 </TableSortLabel>
               </TableCell>
-              <TableCell>Действия</TableCell>
+              <TableCell> </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {accounts.map((account) => (
               <TableRow key={account.account_id}>
-                <TableCell>{account.account_id}</TableCell>
+                <TableCell
+                  onClick={(e) =>
+                    handleCellClick(e, account.account_id.toString())
+                  }
+                >
+                  <Tooltip title="Копировать ID" arrow>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        sx={{
+                          fontFamily: "monospace",
+                          bgcolor: "grey.100",
+                          p: 0.5,
+                          borderRadius: 1,
+                          "&:hover": {
+                            bgcolor: "grey.300",
+                          },
+                        }}
+                      >
+                        {account.account_id}
+                      </Typography>
+                    </Box>
+                  </Tooltip>
+                </TableCell>
                 <TableCell>{account.account_name}</TableCell>
                 <TableCell>{account.username || "Не указано"}</TableCell>
                 <TableCell>{formatDate(account.created_at)}</TableCell>
@@ -125,7 +166,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                       onClick={() => handleEditClick(account)}
                       size="small"
                     >
-                      <EditIcon fontSize="small" />
+                      <EditIcon fontSize="small" sx={{ color: "#667eea" }} />
                     </IconButton>
                   </Tooltip>
                 </TableCell>

@@ -12,7 +12,6 @@ import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
 import ChatIcon from "@mui/icons-material/Chat";
 import SearchIcon from "@mui/icons-material/Search";
 import InfoIcon from "@mui/icons-material/Info";
-import GroupIcon from "@mui/icons-material/Group";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setNameFilter,
@@ -23,6 +22,7 @@ import {
   resetFilters,
 } from "../../redux/slice/chatsSlice";
 import type { RootState } from "../../redux/store";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 
 export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
   const dispatch = useDispatch();
@@ -109,7 +109,7 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton filterCount={2} pagination={true} hasAddButton={false} />
       ) : (
@@ -125,7 +125,8 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <GroupIcon sx={{ fontSize: 40 }} />
+              <QuestionAnswerIcon sx={{ fontSize: 40 }} />
+
               <Box>
                 <Typography
                   variant="h4"

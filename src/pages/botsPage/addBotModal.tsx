@@ -35,6 +35,7 @@ import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { useAuth } from "../../context/authContext";
 import { InfoCard } from "../../components/infoCard";
+import axios from "axios";
 
 interface AddBotModalProps {
   open: boolean;
@@ -49,6 +50,8 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     comment: "",
   });
   const [showHelp, setShowHelp] = useState(false);
+  const [isValidatingToken, setIsValidatingToken] = useState(false);
+  const [apiValidationError, setApiValidationError] = useState("");
   const createBot = useCreateBot();
 
   useEffect(() => {
@@ -65,6 +68,9 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setBotData((prev) => ({ ...prev, [name]: value }));
+    if (name === "token") {
+      setApiValidationError("");
+    }
   };
 
   const [errors, setErrors] = useState({
@@ -72,29 +78,47 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     company_id: "",
   });
 
-  const validateToken = (token: string) => {
-    const tokenRegex = /^\d+:[a-zA-Z0-9_-]+$/;
+  // Проверка формата токена
+  const validateTokenFormat = (token: string): boolean => {
+    const tokenRegex = /^\d{9,10}:[a-zA-Z0-9_-]{35}$/;
     return tokenRegex.test(token);
+  };
+
+  // Проверка токена через API Telegram
+  const validateTokenWithApi = async (token: string): Promise<boolean> => {
+    try {
+      const response = await axios.get(
+        `https://api.telegram.org/bot${token}/getMe`
+      );
+      return response.data?.ok === true;
+    } catch (error) {
+      console.error("Token validation error:", error);
+      return false;
+    }
   };
 
   const getTokenValidationStatus = (token: string) => {
     if (!token) return { status: "empty", message: "" };
-    if (!token.includes(":"))
+    if (!token.includes(":")) {
       return { status: "error", message: "Токен должен содержать символ ':'" };
-    if (token.split(":")[0]?.length < 8)
+    }
+    if (!validateTokenFormat(token)) {
       return { status: "error", message: "Неверный формат токена" };
-    if (!validateToken(token))
-      return { status: "error", message: "Неверный формат токена" };
+    }
+    if (apiValidationError) {
+      return { status: "error", message: apiValidationError };
+    }
     return { status: "success", message: "Токен выглядит корректно" };
   };
 
   const tokenStatus = getTokenValidationStatus(botData.token);
 
   const handleSubmit = async () => {
+    // Проверка обязательных полей
     const newErrors = {
       token: !botData.token
         ? "Токен обязателен"
-        : !validateToken(botData.token)
+        : !validateTokenFormat(botData.token)
         ? "Неверный формат токена"
         : "",
       company_id: !botData.company_id ? "Выберите компанию" : "",
@@ -104,12 +128,25 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
 
     if (Object.values(newErrors).some((e) => e)) return;
 
+    // Проверка токена через API Telegram
+    setIsValidatingToken(true);
     try {
+      const isValid = await validateTokenWithApi(botData.token);
+      if (!isValid) {
+        setApiValidationError("Токен недействителен или бот не найден");
+        return;
+      }
+
+      // Если токен валиден, создаем бота
       await createBot.mutateAsync(botData);
       onClose();
       setBotData({ token: "", company_id: "", comment: "" });
+      setApiValidationError("");
     } catch (error) {
       console.error("Error creating bot:", error);
+      setApiValidationError("Ошибка при создании бота");
+    } finally {
+      setIsValidatingToken(false);
     }
   };
 
@@ -237,21 +274,27 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
             name="token"
             value={botData.token}
             onChange={handleChange}
-            error={!!errors.token}
+            error={!!errors.token || !!apiValidationError}
             helperText={
               errors.token ||
+              apiValidationError ||
               tokenStatus.message ||
               "Вставьте токен, полученный от @BotFather"
             }
             required
             placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
             InputProps={{
-              endAdornment:
-                tokenStatus.status === "success" ? (
-                  <CheckCircle color="success" />
-                ) : tokenStatus.status === "error" ? (
-                  <Warning color="error" />
-                ) : null,
+              endAdornment: (
+                <>
+                  {isValidatingToken ? (
+                    <CircularProgress size={24} />
+                  ) : tokenStatus.status === "success" ? (
+                    <CheckCircle color="success" />
+                  ) : tokenStatus.status === "error" ? (
+                    <Warning color="error" />
+                  ) : null}
+                </>
+              ),
             }}
           />
 
@@ -290,13 +333,23 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
           disabled={
             !botData.token ||
             !botData.company_id ||
-            tokenStatus.status !== "success"
+            tokenStatus.status !== "success" ||
+            isValidatingToken ||
+            createBot.isPending
           }
           startIcon={
-            createBot.isPending ? <CircularProgress size={16} /> : <BotIcon />
+            createBot.isPending || isValidatingToken ? (
+              <CircularProgress size={16} />
+            ) : (
+              <BotIcon />
+            )
           }
         >
-          {createBot.isPending ? "Создание бота..." : "Создать бота"}
+          {createBot.isPending
+            ? "Создание бота..."
+            : isValidatingToken
+            ? "Проверка токена..."
+            : "Создать бота"}
         </Button>
       </DialogActions>
     </Dialog>

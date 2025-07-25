@@ -21,6 +21,7 @@ import {
   resetFilters,
 } from "../../redux/slice/accountsSlice";
 import type { RootState } from "../../redux/store";
+import GroupIcon from "@mui/icons-material/Group";
 
 export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   const dispatch = useDispatch();
@@ -118,7 +119,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton filterCount={3} pagination={true} hasAddButton={false} />
       ) : (
@@ -134,7 +135,9 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <AccountCircleIcon sx={{ fontSize: 40 }} />
+              {/* <AccountCircleIcon sx={{ fontSize: 40 }} /> */}
+              <GroupIcon sx={{ fontSize: 40 }} />
+
               <Box>
                 <Typography
                   variant="h4"

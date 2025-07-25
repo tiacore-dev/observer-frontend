@@ -644,7 +644,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   multiline
                   rows={2}
                   inputProps={{ maxLength: 255 }}
-                  helperText={`${scheduleData.message_intro.length}/255 символов. Этот текст будет добавлен в начало каждого отчета`}
+                  helperText={`Этот текст будет добавлен в начало каждого отчета`}
                   placeholder="Например: Еженедельный отчет по активности чата"
                 />
               </Box>

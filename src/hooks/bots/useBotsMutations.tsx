@@ -41,17 +41,17 @@ export const useDeleteBot = () => {
   });
 };
 
-export const useUpdateBot = () => {
+export const useUpdateBot = (bot_id: string) => {
   const queryClient = useQueryClient();
   const { isSuperadmin, selectedCompanyId } = useAuth();
 
   return useMutation({
     mutationFn: ({ bot_id, comment }: { bot_id: string; comment: string }) =>
       updateBot(bot_id, comment, isSuperadmin, selectedCompanyId),
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       // Инвалидируем все возможные варианты ключа
       queryClient.invalidateQueries({
-        queryKey: ["botDetails", variables.bot_id],
+        queryKey: ["botDetails", bot_id],
         exact: false, // Инвалидирует все подходящие ключи
       });
       enqueueSnackbar("Описание бота успешно обновлено", {

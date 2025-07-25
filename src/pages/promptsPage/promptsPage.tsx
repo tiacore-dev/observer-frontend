@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import {
   Typography,
@@ -27,10 +27,35 @@ import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
 import { PaginationControls } from "../../components/table/paginationControls";
 import { HelpTooltip } from "../../components/helpTooltip";
 import { InfoCard } from "../../components/infoCard";
-import { ExpandMore, ExpandLess, Description } from "@mui/icons-material";
+import { ExpandMore, ExpandLess, Psychology } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setNameFilter,
+  setNameSelectFilter,
+  setTextFilter,
+  setCompanyFilter,
+  setCompanySelectFilter,
+  setPage,
+  setSortField,
+  setSortDirection,
+  resetFilters,
+} from "../../redux/slice/promptsSlice";
+import type { RootState } from "../../redux/store";
 
 export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const { isSuperadmin } = useAuth();
+  const dispatch = useDispatch();
+  const {
+    nameFilter,
+    nameSelectFilter,
+    textFilter,
+    companyFilter,
+    companySelectFilter,
+    page,
+    sortField,
+    sortDirection,
+  } = useSelector((state: RootState) => state.prompts);
+
   const {
     data: promptsData,
     isLoading: promptsLoading,
@@ -43,29 +68,6 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const isLoading = promptsLoading || isLoadingCompanyMap;
   const error = promptsError;
-
-  const [nameFilter, setNameFilter] = useState("");
-  const [nameSelectFilter, setNameSelectFilter] = useState("");
-  const [textFilter, setTextFilter] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("");
-  const [companySelectFilter, setCompanySelectFilter] = useState("");
-  const [sortField, setSortField] = useState<
-    "prompt_name" | "company_id" | "created_at"
-  >("created_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 10;
-
-  const resetAllFilters = () => {
-    setNameFilter("");
-    setNameSelectFilter("");
-    setTextFilter("");
-    setCompanyFilter("");
-    setCompanySelectFilter("");
-    setSortField("created_at");
-    setSortDirection("desc");
-    setPage(1);
-  };
 
   const promptNames = Array.from(
     new Set(promptsData?.prompts.map((prompt) => prompt.prompt_name) || [])
@@ -125,31 +127,24 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const handleSort = (field: "prompt_name" | "company_id" | "created_at") => {
     if (sortField === field) {
-      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      dispatch(setSortDirection(sortDirection === "asc" ? "desc" : "asc"));
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      dispatch(setSortField(field));
+      dispatch(setSortDirection("asc"));
     }
   };
 
+  const resetAllFilters = () => {
+    dispatch(resetFilters());
+  };
+
   const filteredPrompts = getFilteredAndSortedPrompts();
+  const rowsPerPage = 10;
   const totalPages = Math.ceil(filteredPrompts.length / rowsPerPage);
   const paginatedPrompts = filteredPrompts.slice(
     (page - 1) * rowsPerPage,
     page * rowsPerPage
   );
-
-  useEffect(() => {
-    setPage(1);
-  }, [
-    nameFilter,
-    nameSelectFilter,
-    textFilter,
-    companyFilter,
-    companySelectFilter,
-    sortField,
-    sortDirection,
-  ]);
 
   if (isLoading) {
     return (
@@ -173,7 +168,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
       {/* Заголовок страницы */}
       <Paper
         elevation={1}
@@ -185,7 +180,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Description sx={{ fontSize: 40 }} />
+          <Psychology sx={{ fontSize: 40 }} />
           <Box>
             <Typography
               variant="h4"
@@ -227,15 +222,13 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
                   variant="outlined"
                   size="small"
                   onChange={(e) => {
-                    setNameFilter(e.target.value);
-                    setNameSelectFilter("");
+                    dispatch(setNameFilter(e.target.value));
                   }}
                   sx={{ width: 250 }}
                 />
               )}
               onChange={(_, value) => {
-                setNameSelectFilter(value || "");
-                setNameFilter("");
+                dispatch(setNameSelectFilter(value || ""));
               }}
             />
           </Box>
@@ -247,7 +240,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
               variant="outlined"
               size="small"
               value={textFilter}
-              onChange={(e) => setTextFilter(e.target.value)}
+              onChange={(e) => dispatch(setTextFilter(e.target.value))}
               sx={{ width: 250 }}
             />
           </Box>
@@ -266,15 +259,13 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
                     variant="outlined"
                     size="small"
                     onChange={(e) => {
-                      setCompanyFilter(e.target.value);
-                      setCompanySelectFilter("");
+                      dispatch(setCompanyFilter(e.target.value));
                     }}
                     sx={{ width: 250 }}
                   />
                 )}
                 onChange={(_, value) => {
-                  setCompanySelectFilter(value || "");
-                  setCompanyFilter("");
+                  dispatch(setCompanySelectFilter(value || ""));
                 }}
               />
             </Box>
@@ -294,36 +285,6 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
           </Button>
         </Box>
       </Paper>
-
-      {/* Справочная информация */}
-      {/* <Collapse in={showHelp}>
-        <Box sx={{ mb: 3 }}>
-          <InfoCard
-            type="info"
-            title="Что такое промпты?"
-            description="Промпты - это шаблоны текстовых сообщений, которые боты отправляют в чаты.."
-          />
-
-          {promptsData?.prompts.length === 0 && (
-            <InfoCard
-              type="warning"
-              title="Ничего не найдено"
-              description="У вас пока нет промптов"
-              action={
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setIsModalOpen(true)}
-                  size="small"
-                  style={{ backgroundColor: "#7353ae" }}
-                >
-                  Создать первый промпт
-                </Button>
-              }
-            />
-          )}
-        </Box>
-      </Collapse> */}
 
       {/* Таблица */}
       <Paper elevation={1} sx={{ overflow: "hidden" }}>
@@ -350,7 +311,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
             <PaginationControls
               count={totalPages}
               page={page}
-              onPageChange={setPage}
+              onPageChange={(newPage) => dispatch(setPage(newPage))}
             />
           </Box>
         )}
@@ -359,7 +320,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
       {/* Пустое состояние */}
       {filteredPrompts.length === 0 && !isLoading && (
         <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
-          <Description sx={{ fontSize: 64, color: "text.secondary", mt: 2 }} />
+          <Psychology sx={{ fontSize: 64, color: "text.secondary", mt: 2 }} />
           <Typography variant="h6" gutterBottom color="text.secondary">
             {nameFilter || textFilter || companyFilter
               ? "Промпты не найдены"

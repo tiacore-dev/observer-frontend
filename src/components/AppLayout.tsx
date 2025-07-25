@@ -54,6 +54,7 @@ import { AddCompanyModal } from "../pages/companiesPage/addCompanyModal";
 import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import GroupIcon from "@mui/icons-material/Group";
 
 const drawerWidth = 229;
 const LOGO_AVATAR_SIZE = 35;
@@ -102,12 +103,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const menuItems: AppMenuItem[] = useMemo(() => {
     const baseItems: AppMenuItem[] = [
       // { text: "Главная", icon: <Home />, path: "/home" },
-      { text: "Telegram Боты", icon: <SmartToy />, path: "/bots" },
-      { text: "Промпты", icon: <Psychology />, path: "/prompts" },
-      { text: "Расписания", icon: <Schedule />, path: "/schedules" },
-      { text: "Анализ чатов", icon: <Analytics />, path: "/analysis" },
       { text: "Компании", icon: <Business />, path: "/companies" },
-      { text: "Telegram аккаунты", icon: <Person />, path: "/accounts" },
+      { text: "Анализ чатов", icon: <Analytics />, path: "/analysis" },
+      { text: "Расписания", icon: <Schedule />, path: "/schedules" },
+      { text: "Промпты", icon: <Psychology />, path: "/prompts" },
+      { text: "Telegram Боты", icon: <SmartToy />, path: "/bots" },
+      { text: "Telegram аккаунты", icon: <GroupIcon />, path: "/accounts" },
       { text: "Чаты", icon: <QuestionAnswerIcon />, path: "/chats" },
       {
         text: "Справка",
@@ -118,7 +119,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
     if (!isSuperadmin && availableCompanies.length === 0) {
       return [
-        { text: "Главная", icon: <Home />, path: "/home" },
         { text: "Компании", icon: <Business />, path: "/companies" },
         { text: "Справка", icon: <Info />, path: "/help" },
       ];
@@ -665,8 +665,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 boxShadow: theme.shadows[8],
                 left: "2px",
                 borderRadius: 2,
+                bottom: "82px",
                 top: "82px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 82px)", // Вычитаем отступ сверху
+                height: "calc(100% - 98px)", // Вычитаем отступ сверху
               },
             }}
           >
@@ -684,8 +685,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 borderColor: "divider",
                 left: "2px",
                 borderRadius: "16px",
+                bottom: "82px",
                 top: "82px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 82px)", // Вычитаем отступ сверху
+                height: "calc(100% - 98px)", // Вычитаем отступ сверху
               },
             }}
             open

@@ -225,7 +225,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton
           filterCount={isSuperadmin ? 3 : 2}
@@ -359,25 +359,25 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
               onSort={handleSort}
               onRowClick={(botId) => navigate(`/bots/${botId}`)}
             />
-          </Paper>
 
-          {/* Пагинация */}
-          {totalPages > 1 && (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                mb: 3,
-                mt: -3,
-              }}
-            >
-              <PaginationControls
-                count={totalPages}
-                page={page}
-                onPageChange={(newPage) => dispatch(setPage(newPage))}
-              />
-            </Box>
-          )}
+            {/* Пагинация */}
+            {totalPages > 1 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  mb: 3,
+                  mt: -3,
+                }}
+              >
+                <PaginationControls
+                  count={totalPages}
+                  page={page}
+                  onPageChange={(newPage) => dispatch(setPage(newPage))}
+                />
+              </Box>
+            )}
+          </Paper>
 
           {/* Пустое состояние */}
           {filteredBots.length === 0 && !isLoading && (

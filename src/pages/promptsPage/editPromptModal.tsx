@@ -84,7 +84,7 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
                 minRows={8}
                 maxRows={20}
                 required
-                helperText={`${editData.text.length} символов. Опишите подробно, что должен делать ИИ при анализе сообщений`}
+                helperText={`Опишите подробно, что должен делать ИИ при анализе сообщений`}
                 placeholder="Например: Проанализируй сообщения в чате и найди все упоминания проблем с продуктом. Классифицируй проблемы по категориям и предложи решения..."
                 sx={{
                   "& .MuiInputBase-root": {
