@@ -196,7 +196,7 @@ export const HomePage: React.FC = () => {
           mb: 2,
           background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           color: "white",
-          borderRadius: 2,
+          borderRadius: 1,
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
         }}
       >
