@@ -84,7 +84,7 @@ export const BotsTable: React.FC<BotsTableProps> = ({
       component={Paper}
       elevation={2}
       sx={{
-        borderRadius: 2,
+        borderRadius: 1,
         overflow: "hidden",
         mb: 4,
       }}

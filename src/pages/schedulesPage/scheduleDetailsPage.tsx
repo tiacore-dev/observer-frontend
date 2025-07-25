@@ -11,7 +11,6 @@ import {
   Button,
   Chip,
   Stack,
-  Grid,
   CardContent,
   Card,
   Divider,
@@ -68,7 +67,6 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Используем хуки для маппинга
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { chatMap, isLoadingChatsMap } = useChatMap();
   const { promptMap, isLoadingPromptMap } = usePromptMap();
@@ -258,7 +256,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Typography color="error">
           Ошибка при загрузке данных: {(error as Error).message}
         </Typography>
@@ -268,14 +266,14 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   if (!schedule) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Typography>Расписание не найдено</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
       {/* Заголовок с основной информацией */}
       <Paper
         sx={{
@@ -430,87 +428,74 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
         </Box>
       </Paper>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {/* Основные параметры */}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        {/* Основная информация */}
         <Card>
-          <CardContent sx={{ p: 2 }}>
+          <CardContent sx={{ p: 3 }}>
             <Typography
               variant="h6"
               gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
+              sx={{ fontWeight: "bold", mb: 3 }}
             >
-              <ScheduleIcon sx={{ mr: 1, color: "primary.main" }} />
-              Основные параметры
+              Основная информация
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { sm: "1fr 1fr" },
-                gap: 3,
-              }}
-            >
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <CompactDetailItem
-                  icon={<BusinessIcon color="primary" fontSize="small" />}
-                  label="Компания"
-                  value={
-                    companyMap.get(schedule.company_id) || schedule.company_id
-                  }
-                />
 
-                <CompactDetailItem
-                  icon={<SmartToyIcon color="primary" fontSize="small" />}
-                  label="Telegram Бот"
-                  value={
-                    botMap.get(schedule.bot_id.toString()) || schedule.bot_id
-                  }
-                />
-              </Box>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <CompactDetailItem
-                  icon={
-                    schedule.schedule_strategy === "analysis" ? (
-                      <AnalyticsIcon color="primary" fontSize="small" />
-                    ) : (
-                      <NotificationsIcon color="primary" fontSize="small" />
-                    )
-                  }
-                  label="Тип задачи"
-                  value={getScheduleStrategyLabel(schedule.schedule_strategy)}
-                />
-
-                <CompactDetailItem
-                  icon={<AccessTimeIcon color="primary" fontSize="small" />}
-                  label="Тип расписания"
-                  value={getScheduleTypeLabel(schedule.schedule_type)}
-                />
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box sx={{ display: "flex", gap: 4 }}>
+                <Box sx={{ flex: 1 }}>
+                  <CompactDetailItem
+                    icon={<BusinessIcon color="primary" fontSize="small" />}
+                    label="Компания"
+                    value={
+                      companyMap.get(schedule.company_id) || schedule.company_id
+                    }
+                  />
+                  <CompactDetailItem
+                    icon={<SmartToyIcon color="primary" fontSize="small" />}
+                    label="Telegram Бот"
+                    value={
+                      botMap.get(schedule.bot_id.toString()) || schedule.bot_id
+                    }
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <CompactDetailItem
+                    icon={
+                      schedule.schedule_strategy === "analysis" ? (
+                        <AnalyticsIcon color="primary" fontSize="small" />
+                      ) : (
+                        <NotificationsIcon color="primary" fontSize="small" />
+                      )
+                    }
+                    label="Тип задачи"
+                    value={getScheduleStrategyLabel(schedule.schedule_strategy)}
+                  />
+                  <CompactDetailItem
+                    icon={<AccessTimeIcon color="primary" fontSize="small" />}
+                    label="Тип расписания"
+                    value={getScheduleTypeLabel(schedule.schedule_type)}
+                  />
+                </Box>
               </Box>
             </Box>
           </CardContent>
         </Card>
 
-        {/* Настройки задачи */}
+        {/* Детали задачи */}
         <Card>
-          <CardContent sx={{ p: 2 }}>
+          <CardContent sx={{ p: 3 }}>
             <Typography
               variant="h6"
               gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
+              sx={{ fontWeight: "bold", mb: 1 }}
             >
-              {schedule.schedule_strategy === "analysis" ? (
-                <AnalyticsIcon sx={{ mr: 1, color: "primary.main" }} />
-              ) : (
-                <NotificationsIcon sx={{ mr: 1, color: "primary.main" }} />
-              )}
-              {schedule.schedule_strategy === "analysis"
-                ? "Параметры анализа"
-                : "Параметры уведомления"}
+              {schedule.schedule_strategy === "notification"
+                ? "Детали уведомления"
+                : "Детали анализа"}
             </Typography>
-            <Divider sx={{ mb: 2 }} />
 
             {schedule.schedule_strategy === "notification" ? (
-              <Box>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <CompactDetailItem
                   icon={<NotificationsIcon color="primary" fontSize="small" />}
                   label="Текст уведомления"
@@ -519,76 +504,73 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 />
               </Box>
             ) : (
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { sm: "1fr 1fr" },
-                  gap: 3,
-                }}
-              >
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {schedule.chat_id && (
-                    <CompactDetailItem
-                      icon={<ChatIcon color="primary" fontSize="small" />}
-                      label="Анализируемый чат"
-                      value={chatMap.get(schedule.chat_id) || schedule.chat_id}
-                    />
-                  )}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box sx={{ display: "flex", gap: 4 }}>
+                  <Box sx={{ flex: 1 }}>
+                    {schedule.chat_id && (
+                      <CompactDetailItem
+                        icon={<ChatIcon color="primary" fontSize="small" />}
+                        label="Анализируемый чат"
+                        value={
+                          chatMap.get(schedule.chat_id) || schedule.chat_id
+                        }
+                      />
+                    )}
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    {schedule.prompt_id && (
+                      <CompactDetailItem
+                        icon={
+                          <PsychologyIcon color="primary" fontSize="small" />
+                        }
+                        label="Промпт"
+                        value={
+                          promptMap.get(schedule.prompt_id) ||
+                          schedule.prompt_id
+                        }
+                      />
+                    )}
+                  </Box>
+                </Box>
 
-                  {schedule.prompt_id && (
-                    <CompactDetailItem
-                      icon={<PsychologyIcon color="primary" fontSize="small" />}
-                      label="Промпт"
-                      value={
-                        promptMap.get(schedule.prompt_id) || schedule.prompt_id
-                      }
-                    />
-                  )}
-                </Box>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {schedule.message_intro && (
-                    <CompactDetailItem
-                      icon={
-                        <NotificationsIcon color="primary" fontSize="small" />
-                      }
-                      label="Заголовок сообщения"
-                      value={schedule.message_intro}
-                      multiline
-                    />
-                  )}
-                </Box>
+                {schedule.message_intro && (
+                  <CompactDetailItem
+                    icon={
+                      <NotificationsIcon color="primary" fontSize="small" />
+                    }
+                    label="Заголовок сообщения"
+                    value={schedule.message_intro}
+                    multiline
+                  />
+                )}
               </Box>
             )}
           </CardContent>
         </Card>
 
-        {/* Получатели */}
+        {/* Чаты для отправки */}
         <Card>
-          <CardContent sx={{ p: 2 }}>
+          <CardContent sx={{ p: 3 }}>
             <Typography
               variant="h6"
               gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
+              sx={{ fontWeight: "bold", mb: 1 }}
             >
-              <SendIcon sx={{ mr: 1, color: "primary.main" }} />
-              Куда отправлять результаты
+              Чаты для получения результатов
             </Typography>
-            <Divider sx={{ mb: 2 }} />
 
             {schedule.target_chats && schedule.target_chats.length > 0 ? (
-              <Box>
-                <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-                  {schedule.target_chats.map((chatId: number) => (
-                    <Chip
-                      key={chatId}
-                      label={chatMap.get(chatId) || chatId}
-                      variant="outlined"
-                      color="primary"
-                      size="small"
-                    />
-                  ))}
-                </Stack>
-              </Box>
+              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                {schedule.target_chats.map((chatId: number) => (
+                  <Chip
+                    key={chatId}
+                    label={chatMap.get(chatId) || chatId}
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                  />
+                ))}
+              </Stack>
             ) : (
               <Typography variant="body2" color="text.secondary">
                 Чаты для получения результатов не выбраны
@@ -597,34 +579,34 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
           </CardContent>
         </Card>
 
-        {/* Расписание выполнения */}
+        {/* Расписание */}
         <Card>
-          <CardContent sx={{ p: 2 }}>
+          <CardContent sx={{ p: 3 }}>
             <Typography
               variant="h6"
               gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
+              sx={{ fontWeight: "bold", mb: 1 }}
             >
-              <CalendarTodayIcon sx={{ mr: 1, color: "primary.main" }} />
-              Когда запускать
+              Настройки расписания
             </Typography>
-            <Divider sx={{ mb: 2 }} />
 
-            {schedule.schedule_type === "interval" ? (
-              <CompactDetailItem
-                icon={<AccessTimeIcon color="primary" fontSize="small" />}
-                label="Интервал выполнения"
-                value={`${
-                  schedule.interval_hours ? `${schedule.interval_hours} ч ` : ""
-                }${
-                  schedule.interval_minutes
-                    ? `${schedule.interval_minutes} мин`
-                    : ""
-                }`}
-              />
-            ) : (
-              schedule.cron_expression && (
-                <Box>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {schedule.schedule_type === "interval" ? (
+                <CompactDetailItem
+                  icon={<AccessTimeIcon color="primary" fontSize="small" />}
+                  label="Интервал выполнения"
+                  value={`${
+                    schedule.interval_hours
+                      ? `${schedule.interval_hours} ч `
+                      : ""
+                  }${
+                    schedule.interval_minutes
+                      ? `${schedule.interval_minutes} мин`
+                      : ""
+                  }`}
+                />
+              ) : (
+                schedule.cron_expression && (
                   <CompactDetailItem
                     icon={
                       <CalendarTodayIcon color="primary" fontSize="small" />
@@ -634,141 +616,99 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                       schedule.cron_expression
                     )}
                   />
+                )
+              )}
+
+              {/* Время отправки (только для анализа) */}
+              {schedule.schedule_strategy === "analysis" && (
+                <Box sx={{ display: "flex", gap: 4 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <CompactDetailItem
+                      icon={<AccessTimeIcon color="primary" fontSize="small" />}
+                      label="Способ отправки"
+                      value={getSendStrategyLabel(schedule.send_strategy || "")}
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    {schedule.send_strategy === "fixed" &&
+                      schedule.time_to_send && (
+                        <CompactDetailItem
+                          icon={
+                            <AccessTimeIcon color="primary" fontSize="small" />
+                          }
+                          label="Время отправки"
+                          value={formatTimeDisplay(schedule.time_to_send)}
+                        />
+                      )}
+
+                    {schedule.send_strategy === "relative" &&
+                      schedule.send_after_minutes && (
+                        <CompactDetailItem
+                          icon={
+                            <AccessTimeIcon color="primary" fontSize="small" />
+                          }
+                          label="Отправить через"
+                          value={`${schedule.send_after_minutes} минут после анализа`}
+                        />
+                      )}
+                  </Box>
                 </Box>
-              )
-            )}
+              )}
+            </Box>
           </CardContent>
         </Card>
 
-        {/* Время отправки (только для анализа) */}
-        {schedule.schedule_strategy === "analysis" && (
-          <Card>
-            <CardContent sx={{ p: 2 }}>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ display: "flex", alignItems: "center" }}
-              >
-                <AccessTimeIcon sx={{ mr: 1, color: "primary.main" }} />
-                Когда отправлять результаты
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { sm: "1fr 1fr" },
-                  gap: 3,
-                }}
-              >
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  <CompactDetailItem
-                    icon={<AccessTimeIcon color="primary" fontSize="small" />}
-                    label="Способ отправки"
-                    value={getSendStrategyLabel(schedule.send_strategy || "")}
-                  />
-                </Box>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {schedule.send_strategy === "fixed" &&
-                    schedule.time_to_send && (
-                      <CompactDetailItem
-                        icon={
-                          <AccessTimeIcon color="primary" fontSize="small" />
-                        }
-                        label="Время отправки"
-                        value={formatTimeDisplay(schedule.time_to_send)}
-                      />
-                    )}
-
-                  {schedule.send_strategy === "relative" &&
-                    schedule.send_after_minutes && (
-                      <CompactDetailItem
-                        icon={
-                          <AccessTimeIcon color="primary" fontSize="small" />
-                        }
-                        label="Отправить через"
-                        value={`${schedule.send_after_minutes} минут после анализа`}
-                      />
-                    )}
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Статус */}
+        {/* Статус и история */}
         <Card>
-          <CardContent sx={{ p: 2 }}>
+          <CardContent sx={{ p: 3 }}>
             <Typography
               variant="h6"
               gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
+              sx={{ fontWeight: "bold", mb: 1 }}
             >
-              <CheckCircleIcon sx={{ mr: 1, color: "primary.main" }} />
-              Статус расписания
+              Статус и история
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <CompactDetailItem
-              icon={
-                schedule.enabled ? (
-                  <CheckCircleIcon color="success" fontSize="small" />
-                ) : (
-                  <PauseCircleIcon color="error" fontSize="small" />
-                )
-              }
-              label="Статус"
-              value={schedule.enabled ? "Активно" : "Приостановлено"}
-            />
-          </CardContent>
-        </Card>
 
-        {/* История выполнения */}
-        {schedule.last_run_at && (
-          <Card>
-            <CardContent sx={{ p: 2 }}>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ display: "flex", alignItems: "center" }}
-              >
-                <HistoryIcon sx={{ mr: 1, color: "primary.main" }} />
-                История выполнения
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <CompactDetailItem
+                icon={
+                  schedule.enabled ? (
+                    <CheckCircleIcon color="success" fontSize="small" />
+                  ) : (
+                    <PauseCircleIcon color="error" fontSize="small" />
+                  )
+                }
+                label="Статус"
+                value={schedule.enabled ? "Активно" : "Приостановлено"}
+              />
 
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { sm: "1fr 1fr" },
-                  gap: 3,
-                }}
-              >
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  <CompactDetailItem
-                    icon={
-                      <CalendarTodayIcon color="primary" fontSize="small" />
-                    }
-                    label="Последний запуск"
-                    value={formatDateTimeDisplay(schedule.last_run_at)}
-                  />
-                </Box>
-                {developerMode && schedule.created_at && (
-                  <Box
-                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
-                  >
+              {schedule.last_run_at && (
+                <Box sx={{ display: "flex", gap: 4 }}>
+                  <Box sx={{ flex: 1 }}>
                     <CompactDetailItem
                       icon={
                         <CalendarTodayIcon color="primary" fontSize="small" />
                       }
-                      label="Дата создания"
-                      value={formatDateTimeDisplay(schedule.created_at)}
+                      label="Последний запуск"
+                      value={formatDateTimeDisplay(schedule.last_run_at)}
                     />
                   </Box>
-                )}
-              </Box>
-            </CardContent>
-          </Card>
-        )}
+                  {developerMode && schedule.created_at && (
+                    <Box sx={{ flex: 1 }}>
+                      <CompactDetailItem
+                        icon={
+                          <CalendarTodayIcon color="primary" fontSize="small" />
+                        }
+                        label="Дата создания"
+                        value={formatDateTimeDisplay(schedule.created_at)}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
       </Box>
 
       <EditScheduleModal

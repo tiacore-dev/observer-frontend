@@ -25,11 +25,18 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import type { IBot } from "../../api/botsApi";
 import { useNavigate } from "react-router-dom";
-import { useUpdateBot } from "../../hooks/bots/useBotsMutations";
+import { useUpdateBot, useDeleteBot } from "../../hooks/bots/useBotsMutations";
 import { EditBotDescriptionModal } from "./editBotDescriptionModal";
 import { useQueryClient } from "@tanstack/react-query";
+import { DeleteDialog } from "../../components/deleteDialog";
+import {
+  useSetWebhookMutation,
+  useDeleteWebhookMutation,
+} from "../../hooks/webhook/useWebhookMutations";
 
 interface BotDetailsPageProps {
   botId: string;
@@ -40,17 +47,22 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
   botId,
   developerMode,
 }) => {
-  const { data: bot, isLoading, error } = useBotDetailsQuery(botId);
+  const { data: bot, isLoading, error, refetch } = useBotDetailsQuery(botId);
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const updateBot = useUpdateBot(botId);
+  const deleteBotMutation = useDeleteBot();
   const queryClient = useQueryClient();
   const selectedCompanyId = localStorage.getItem("selected_company_id");
 
+  const setWebhookMutation = useSetWebhookMutation();
+  const deleteWebhookMutation = useDeleteWebhookMutation();
+
   if (isLoading || isLoadingCompanyMap) {
     return (
-      <DetailsPageSkeleton developerMode={developerMode} buttonCount={2} />
+      <DetailsPageSkeleton developerMode={developerMode} buttonCount={3} />
     );
   }
 
@@ -81,6 +93,43 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteBotMutation.mutateAsync(bot.bot_id);
+      navigate("/bots");
+    } catch (error) {
+      console.error("Error deleting bot:", error);
+    }
+  };
+
+  const handleToggleWebhook = async () => {
+    try {
+      if (bot.is_active) {
+        await deleteWebhookMutation.mutateAsync(bot.bot_id, {
+          onSuccess: () => {
+            // Принудительно обновляем данные бота после успешного удаления вебхука
+            queryClient.invalidateQueries({
+              queryKey: ["botDetails", bot.bot_id],
+            });
+            refetch();
+          },
+        });
+      } else {
+        await setWebhookMutation.mutateAsync(bot.bot_id, {
+          onSuccess: () => {
+            // Принудительно обновляем данные бота после успешной установки вебхука
+            queryClient.invalidateQueries({
+              queryKey: ["botDetails", bot.bot_id],
+            });
+            refetch();
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling webhook:", error);
+    }
   };
 
   const handleSaveDescription = async (newDescription: string) => {
@@ -164,7 +213,7 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
   );
 
   return (
-    <MuiBox sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
+    <MuiBox sx={{ pl: 2, pr: 1, mt: -1, maxWidth: 1600, mx: "auto" }}>
       {/* Заголовок с основной информацией */}
       <Paper
         sx={{
@@ -223,31 +272,87 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
             </MuiBox>
           </MuiBox>
 
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate(-1)}
-            variant="contained"
-            sx={{
-              backgroundColor: "white",
-              color: "#764ba2",
-              "&:hover": {
-                backgroundColor: "#ffffffec",
-                backgroundImage: "none",
-              },
-              "& .MuiSvgIcon-root": {
+          <Stack direction="row" spacing={1}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate(-1)}
+              variant="contained"
+              sx={{
+                backgroundColor: "white",
                 color: "#764ba2",
-              },
-              backgroundImage: "none",
-              boxShadow: "none",
-              transition: "background-color 0.2s ease",
-            }}
-          >
-            Назад
-          </Button>
+                "&:hover": {
+                  backgroundColor: "#ffffffec",
+                  backgroundImage: "none",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#764ba2",
+                },
+                backgroundImage: "none",
+                boxShadow: "none",
+                transition: "background-color 0.2s ease",
+              }}
+            >
+              Назад
+            </Button>
+            <Button
+              startIcon={<PowerSettingsNewIcon />}
+              onClick={handleToggleWebhook}
+              variant="contained"
+              sx={{
+                backgroundColor: "#ffffff",
+                color: bot.is_active ? "#dc2626" : "#059669",
+                "&:hover": {
+                  backgroundColor: "#ffffffec",
+                  backgroundImage: "none",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: bot.is_active ? "#dc2626" : "#059669",
+                },
+                backgroundImage: "none",
+                boxShadow: "none",
+                transition: "background-color 0.2s ease",
+              }}
+              disabled={
+                setWebhookMutation.isPending || deleteWebhookMutation.isPending
+              }
+            >
+              {bot.is_active ? "Запустить" : "Остановить"}
+              {(setWebhookMutation.isPending ||
+                deleteWebhookMutation.isPending) && (
+                <CircularProgress size={20} sx={{ ml: 1, color: "white" }} />
+              )}
+            </Button>
+
+            <Button
+              startIcon={<DeleteIcon />}
+              onClick={() => setIsDeleteDialogOpen(true)}
+              variant="contained"
+              sx={{
+                backgroundColor: "#ffffff",
+                color: "#dc2626",
+                "&:hover": {
+                  backgroundColor: "#ffffffec",
+                  backgroundImage: "none",
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#dc2626",
+                },
+                backgroundImage: "none",
+                boxShadow: "none",
+                transition: "background-color 0.2s ease",
+              }}
+              disabled={deleteBotMutation.isPending}
+            >
+              Удалить
+              {deleteBotMutation.isPending && (
+                <CircularProgress size={20} sx={{ ml: 1, color: "white" }} />
+              )}
+            </Button>
+          </Stack>
         </MuiBox>
       </Paper>
 
-      <MuiBox sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <MuiBox sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {/* Основная информация о боте */}
         <Card>
           <CardContent sx={{ p: 2 }}>
@@ -345,8 +450,13 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
         onSave={handleSaveDescription}
         isLoading={updateBot.isPending}
       />
+
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDelete}
+        isDeleting={deleteBotMutation.isPending}
+      />
     </MuiBox>
   );
 };
-
-// export default BotDetailsPage;

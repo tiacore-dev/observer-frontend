@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Typography, Box, TextField, Paper, Alert, Chip } from "@mui/material";
 import type { PageProps } from "../../App";
@@ -16,6 +16,7 @@ import {
   setUsernameFilter,
   setIdFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,
@@ -30,6 +31,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     usernameFilter,
     idFilter,
     page,
+    rowsPerPage,
     sortField,
     sortDirection,
   } = useSelector((state: RootState) => state.accounts);
@@ -47,38 +49,58 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     dispatch(resetFilters());
   };
 
-  const getFilteredAndSortedAccounts = () => {
+  const filteredAccounts = useMemo(() => {
     if (!accountsData?.accounts) return [];
 
-    let filteredAccounts = [...accountsData.accounts];
+    let filtered = [...accountsData.accounts];
 
     if (nameFilter) {
-      filteredAccounts = filteredAccounts.filter((account) =>
+      filtered = filtered.filter((account) =>
         account.account_name?.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
     if (usernameFilter) {
-      filteredAccounts = filteredAccounts.filter((account) =>
+      filtered = filtered.filter((account) =>
         account.username?.toLowerCase().includes(usernameFilter.toLowerCase())
       );
     }
     if (idFilter) {
-      filteredAccounts = filteredAccounts.filter((account) =>
+      filtered = filtered.filter((account) =>
         account.account_id.toString().includes(idFilter)
       );
     }
 
-    filteredAccounts.sort((a, b) => {
-      const aValue = a[sortField] ?? "";
-      const bValue = b[sortField] ?? "";
-
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
+    return filtered.sort((a, b) => {
+      const aValue = a[sortField].toString() ?? "";
+      const bValue = b[sortField].toString() ?? "";
+      return sortDirection === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
     });
+  }, [
+    accountsData,
+    nameFilter,
+    usernameFilter,
+    idFilter,
+    sortField,
+    sortDirection,
+  ]);
 
-    return filteredAccounts;
-  };
+  const totalItems = filteredAccounts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const paginatedAccounts = useMemo(() => {
+    return filteredAccounts.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredAccounts, currentPage, rowsPerPage]);
+
+  useEffect(() => {
+    if (page !== currentPage) {
+      dispatch(setPage(currentPage));
+    }
+  }, [page, currentPage, dispatch]);
 
   const handleSort = (
     field: "account_id" | "account_name" | "username" | "created_at"
@@ -91,21 +113,19 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
   };
 
-  const filteredAccounts = getFilteredAndSortedAccounts();
-  const rowsPerPage = 10;
-  const totalPages = Math.ceil(filteredAccounts.length / rowsPerPage);
-  const paginatedChats = filteredAccounts.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const handlePageChange = (newPage: number) => {
+    dispatch(setPage(Math.max(1, Math.min(newPage, totalPages))));
+  };
 
-  useEffect(() => {
-    dispatch(setPage(1));
-  }, [nameFilter, usernameFilter, idFilter, dispatch]);
+  const handleRowsPerPageChange = (newRowsPerPage: number) => {
+    const newTotalPages = Math.max(1, Math.ceil(totalItems / newRowsPerPage));
+    dispatch(setRowsPerPage(newRowsPerPage));
+    dispatch(setPage(Math.min(currentPage, newTotalPages)));
+  };
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Alert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="h6" gutterBottom>
             Не удалось загрузить аккаунты
@@ -119,12 +139,11 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton filterCount={3} pagination={true} hasAddButton={false} />
       ) : (
         <>
-          {/* Заголовок страницы */}
           <Paper
             elevation={1}
             sx={{
@@ -135,9 +154,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              {/* <AccountCircleIcon sx={{ fontSize: 40 }} /> */}
               <GroupIcon sx={{ fontSize: 40 }} />
-
               <Box>
                 <Typography
                   variant="h4"
@@ -157,7 +174,6 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Фильтры */}
           <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
             <Box
               sx={{
@@ -199,36 +215,25 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Таблица */}
           <Paper elevation={1} sx={{ overflow: "hidden" }}>
             <AccountsTable
-              accounts={paginatedChats}
+              accounts={paginatedAccounts}
               developerMode={developerMode}
               sortField={sortField}
               sortDirection={sortDirection}
               onSort={handleSort}
             />
 
-            {/* Пагинация */}
-            {totalPages > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  mb: 3,
-                  mt: 0,
-                }}
-              >
-                <PaginationControls
-                  count={totalPages}
-                  page={page}
-                  onPageChange={(newPage) => dispatch(setPage(newPage))}
-                />
-              </Box>
-            )}
+            <PaginationControls
+              count={totalPages}
+              page={currentPage}
+              onPageChange={handlePageChange}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              totalItems={totalItems}
+            />
           </Paper>
 
-          {/* Пустое состояние */}
           {filteredAccounts.length === 0 && !isLoading && (
             <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
               <AccountCircleIcon

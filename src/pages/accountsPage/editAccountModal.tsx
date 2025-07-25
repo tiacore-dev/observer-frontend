@@ -52,7 +52,7 @@ export const EditAccountModal: React.FC<EditAccountModalProps> = ({
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <EditIcon color="primary" />
-          Редактировать отображаемое имя аккаунта
+          Редактировать отображаемое имя пользователя
         </Box>
       </DialogTitle>
 

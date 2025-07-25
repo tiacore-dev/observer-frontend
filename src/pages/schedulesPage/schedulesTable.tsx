@@ -14,6 +14,7 @@ import {
   Chip,
   Box,
   Avatar,
+  Tooltip,
 } from "@mui/material";
 import {
   Schedule as ScheduleIcon,
@@ -25,6 +26,10 @@ import {
   Cancel as DisabledIcon,
   Business as CompanyIcon,
   CalendarToday as CalendarIcon,
+  CheckCircle,
+  PauseCircleFilled,
+  ScheduleSend as FixedStrategyIcon,
+  TrendingFlat as RelativeStrategyIcon,
 } from "@mui/icons-material";
 import type { ISchedule } from "../../api/schedulesApi";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
@@ -63,7 +68,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Используем хуки для маппингов
   const companyMap = useCompanyMap().companyMap;
   const botMap = useBotMap().botMap;
   const chatMap = useChatMap().chatMap;
@@ -100,14 +104,14 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
         return {
           label: "По интервалу",
           icon: <TimeIcon sx={{ fontSize: 16 }} />,
-          color: "info" as const,
+          color: "warning" as const,
           description: "Выполняется через определенные промежутки времени",
         };
       case "cron":
         return {
           label: "По расписанию",
           icon: <CalendarIcon sx={{ fontSize: 16 }} />,
-          color: "default" as const,
+          color: "info" as const,
           description: "Выполняется в определенные дни и время",
         };
       case "once":
@@ -134,6 +138,29 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
     }
   };
 
+  const getSendStrategyInfo = (strategy: string) => {
+    switch (strategy) {
+      case "fixed":
+        return {
+          label: "В определенное время",
+          icon: <FixedStrategyIcon sx={{ fontSize: 16 }} />,
+          color: "default" as const,
+        };
+      case "relative":
+        return {
+          label: "После выполнения",
+          icon: <RelativeStrategyIcon sx={{ fontSize: 16 }} />,
+          color: "default" as const,
+        };
+      default:
+        return {
+          label: strategy,
+          icon: <ScheduleIcon sx={{ fontSize: 16 }} />,
+          color: "default" as const,
+        };
+    }
+  };
+
   const getBotAvatar = (botName: string) => {
     const initials = botName
       .split(" ")
@@ -156,12 +183,33 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
     );
   };
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+        <Typography variant="body2" fontWeight={500}>
+          {date.toLocaleDateString("ru-RU", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {date.toLocaleTimeString("ru-RU", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </Typography>
+      </Box>
+    );
+  };
+
   if (isLoading) {
-    const columns = 5; // Основные колонки
+    const columns = 5;
     const additionalColumns =
-      (developerMode ? 1 : 0) + // Колонка ID если developerMode
-      (isSuperadmin ? 1 : 0) + // Колонка компании если isSuperadmin
-      (developerMode ? 1 : 0); // Колонка даты если developerMode
+      (developerMode ? 1 : 0) +
+      (isSuperadmin ? 1 : 0) +
+      (developerMode ? 1 : 0);
 
     return (
       <TableSkeleton
@@ -173,14 +221,15 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
   }
 
   return (
-    <Paper elevation={2} sx={{ overflow: "hidden" }}>
-      {/* Заголовок таблицы */}
+    <Paper elevation={2} sx={{ overflow: "hidden", borderRadius: 2 }}>
       <TableContainer>
         <Table sx={{ minWidth: 650 }} aria-label="schedules table">
           <TableHead>
             <TableRow sx={{ bgcolor: "grey.50" }}>
               {developerMode && (
-                <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: "80px" }}>
+                  ID
+                </TableCell>
               )}
               <SortableTableHeader<SortField>
                 field="bot_id"
@@ -188,6 +237,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Telegram Бот"
+                // sx={{ minWidth: "180px" }}
               />
               <SortableTableHeader<SortField>
                 field="schedule_strategy"
@@ -195,6 +245,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Тип задачи"
+                // sx={{ minWidth: "180px" }}
               />
               <SortableTableHeader<SortField>
                 field="schedule_type"
@@ -202,6 +253,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Когда выполнять"
+                // sx={{ minWidth: "180px" }}
               />
               <SortableTableHeader<SortField>
                 field="enabled"
@@ -209,6 +261,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Статус"
+                // sx={{ width: "140px" }}
               />
               {isSuperadmin && (
                 <SortableTableHeader<SortField>
@@ -217,6 +270,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   sortDirection={sortDirection}
                   onSort={onSort}
                   label="Компания"
+                  // sx={{ minWidth: "150px" }}
                 />
               )}
               <SortableTableHeader<SortField>
@@ -226,6 +280,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 onSort={onSort}
                 label="Последнее выполнение"
                 defaultDirection="desc"
+                // sx={{ minWidth: "160px" }}
               />
               {developerMode && (
                 <SortableTableHeader<SortField>
@@ -235,6 +290,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   onSort={onSort}
                   label="Дата создания"
                   defaultDirection="desc"
+                  // sx={{ minWidth: "160px" }}
                 />
               )}
             </TableRow>
@@ -246,6 +302,10 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 schedule.schedule_strategy
               );
               const typeInfo = getScheduleTypeInfo(schedule.schedule_type);
+              const sendStrategyInfo =
+                schedule.schedule_strategy === "analysis"
+                  ? getSendStrategyInfo(schedule.send_strategy!)
+                  : null;
               const botName =
                 botMap.get(schedule.bot_id.toString()) ||
                 `Бот ${schedule.bot_id}`;
@@ -270,7 +330,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                         fontFamily="monospace"
                         color="text.secondary"
                       >
-                        {schedule.schedule_id}
+                        #{schedule.schedule_id}
                       </Typography>
                     </TableCell>
                   )}
@@ -282,67 +342,94 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                         <Typography variant="body2" fontWeight={500}>
                           {botName}
                         </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          ID: {schedule.bot_id}
+                        </Typography>
                       </Box>
                     </Box>
                   </TableCell>
 
                   <TableCell>
-                    <Box sx={{ display: "grid", alignItems: "center", gap: 1 }}>
-                      <Chip
-                        icon={strategyInfo.icon}
-                        label={strategyInfo.label}
-                        color={strategyInfo.color}
-                        variant="outlined"
-                        size="small"
-                        title={strategyInfo.description}
-                      />
-                      {schedule.schedule_strategy === "analysis" && (
+                    <Box sx={{ display: "grid", gap: 1 }}>
+                      <Tooltip title={strategyInfo.description}>
                         <Chip
-                          label={chatMap.get(schedule.chat_id!)}
-                          // variant="outlined"
-                          color={"primary"}
+                          icon={strategyInfo.icon}
+                          label={strategyInfo.label}
+                          color={strategyInfo.color}
+                          variant="outlined"
+                          size="small"
+                          sx={{ width: "fit-content" }}
                         />
+                      </Tooltip>
+                      {schedule.schedule_strategy === "analysis" && (
+                        <Tooltip title="Чат для анализа">
+                          <Chip
+                            label={
+                              chatMap.get(schedule.chat_id!) ||
+                              `Чат ${schedule.chat_id}`
+                            }
+                            variant="outlined"
+                            color="default"
+                            size="small"
+                            sx={{ width: "fit-content" }}
+                          />
+                        </Tooltip>
                       )}
                     </Box>
                   </TableCell>
 
                   <TableCell>
-                    <Box sx={{ display: "grid", alignItems: "center", gap: 1 }}>
-                      <Chip
-                        icon={typeInfo.icon}
-                        label={typeInfo.label}
-                        color={typeInfo.color}
-                        variant="outlined"
-                        size="small"
-                        title={typeInfo.description}
-                      />
-
-                      {schedule.schedule_strategy === "analysis" && (
+                    <Box sx={{ display: "grid", gap: 1 }}>
+                      <Tooltip title={typeInfo.description}>
                         <Chip
-                          label={schedule.send_strategy}
+                          icon={typeInfo.icon}
+                          label={typeInfo.label}
                           color={typeInfo.color}
-                          // variant="outlined"
+                          variant="outlined"
+                          size="small"
+                          sx={{ width: "fit-content" }}
                         />
+                      </Tooltip>
+                      {sendStrategyInfo && (
+                        <Tooltip title="Стратегия отправки">
+                          <Chip
+                            icon={sendStrategyInfo.icon}
+                            label={sendStrategyInfo.label}
+                            color={sendStrategyInfo.color}
+                            variant="outlined"
+                            size="small"
+                            sx={{ width: "fit-content" }}
+                          />
+                        </Tooltip>
                       )}
                     </Box>
                   </TableCell>
 
                   <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 1,
+                      }}
+                    >
                       {schedule.enabled ? (
-                        <>
-                          <EnabledIcon color="success" sx={{ fontSize: 20 }} />
-                          <Typography color="success.main" fontWeight={500}>
-                            Активно
-                          </Typography>
-                        </>
+                        <Chip
+                          icon={<CheckCircle fontSize="small" />}
+                          label="Активно"
+                          color="success"
+                          variant="outlined"
+                          size="small"
+                        />
                       ) : (
-                        <>
-                          <DisabledIcon color="error" sx={{ fontSize: 20 }} />
-                          <Typography color="error.main" fontWeight={500}>
-                            Приостановлено
-                          </Typography>
-                        </>
+                        <Chip
+                          icon={<PauseCircleFilled fontSize="small" />}
+                          label="Приостановлено"
+                          color="error"
+                          variant="outlined"
+                          size="small"
+                        />
                       )}
                     </Box>
                   </TableCell>
@@ -352,10 +439,10 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        <CompanyIcon color="action" sx={{ fontSize: 16 }} />
+                        <CompanyIcon color="action" fontSize="small" />
                         <Typography variant="body2">
                           {companyMap.get(schedule.company_id) ||
-                            schedule.company_id}
+                            `Компания ${schedule.company_id}`}
                         </Typography>
                       </Box>
                     </TableCell>
@@ -363,22 +450,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
 
                   <TableCell>
                     {schedule.last_run_at ? (
-                      <Box>
-                        <Typography variant="body2">
-                          {new Date(schedule.last_run_at).toLocaleDateString(
-                            "ru-RU"
-                          )}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(schedule.last_run_at).toLocaleTimeString(
-                            "ru-RU",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </Typography>
-                      </Box>
+                      formatDateTime(schedule.last_run_at)
                     ) : (
                       <Typography
                         variant="body2"
@@ -391,24 +463,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   </TableCell>
 
                   {developerMode && (
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2">
-                          {new Date(schedule.created_at).toLocaleDateString(
-                            "ru-RU"
-                          )}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(schedule.created_at).toLocaleTimeString(
-                            "ru-RU",
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </Typography>
-                      </Box>
-                    </TableCell>
+                    <TableCell>{formatDateTime(schedule.created_at)}</TableCell>
                   )}
                 </TableRow>
               );

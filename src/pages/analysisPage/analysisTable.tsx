@@ -113,7 +113,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
       component={Paper}
       elevation={2}
       sx={{
-        borderRadius: 2,
+        borderRadius: 1,
         overflow: "hidden",
         mb: 4,
       }}
@@ -175,12 +175,7 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                 currentSortField={sortField}
                 sortDirection={sortDirection}
                 onSort={onSort}
-                label={
-                  // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  //   <Business fontSize="small" />
-                  "Компания"
-                  // </Box>
-                }
+                label={"Компания"}
               />
             )}
             {developerMode && (

@@ -10,6 +10,7 @@ interface BotsState {
   companySelectFilter: string;
   statusFilter: boolean | "all";
   page: number;
+  rowsPerPage: number;
   sortField: keyof IBot;
   sortDirection: "asc" | "desc";
 }
@@ -22,6 +23,7 @@ const initialState: BotsState = {
   companySelectFilter: "",
   statusFilter: "all",
   page: 1,
+  rowsPerPage: 10,
   sortField: "created_at",
   sortDirection: "desc",
 };
@@ -61,11 +63,17 @@ const botsSlice = createSlice({
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
+    setRowsPerPage: (state, action: PayloadAction<number>) => {
+      state.rowsPerPage = action.payload;
+      state.page = 1;
+    },
     setSortField: (state, action: PayloadAction<keyof IBot>) => {
       state.sortField = action.payload;
+      state.page = 1;
     },
     setSortDirection: (state, action: PayloadAction<"asc" | "desc">) => {
       state.sortDirection = action.payload;
+      state.page = 1;
     },
     resetFilters: (state) => {
       state.botIdFilter = "";
@@ -74,9 +82,9 @@ const botsSlice = createSlice({
       state.companyFilter = "";
       state.companySelectFilter = "";
       state.statusFilter = "all";
-      state.page = 1;
       state.sortField = "created_at";
       state.sortDirection = "desc";
+      state.page = 1;
     },
   },
 });
@@ -89,6 +97,7 @@ export const {
   setCompanySelectFilter,
   setStatusFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,

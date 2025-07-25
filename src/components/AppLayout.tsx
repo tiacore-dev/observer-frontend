@@ -194,7 +194,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         item.children && navigate(item.children[0].path || "/")
                       }
                       sx={{
-                        borderRadius: 2,
+                        borderRadius: 1,
                         mx: 1,
                         "&.Mui-selected": {
                           backgroundColor: alpha(
@@ -216,7 +216,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
+                      <ListItemIcon sx={{ color: "#7f7f9f", minWidth: 40 }}>
                         {item.icon}
                       </ListItemIcon>
                       <ListItemText
@@ -239,7 +239,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         )}
                         onClick={() => navigate(child.path || "/")}
                         sx={{
-                          borderRadius: 2,
+                          borderRadius: 1,
                           mx: 2,
                           py: 1,
                           "&.Mui-selected": {
@@ -262,7 +262,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                           },
                         }}
                       >
-                        <ListItemIcon sx={{ minWidth: 32, color: "inherit" }}>
+                        <ListItemIcon sx={{ minWidth: 32, color: "#7f7f9f" }}>
                           {child.icon}
                         </ListItemIcon>
                         <ListItemText
@@ -285,7 +285,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     selected={location.pathname.startsWith(item.path || "")}
                     onClick={() => navigate(item.path || "/")}
                     sx={{
-                      borderRadius: 2,
+                      borderRadius: 1,
                       mx: 1,
                       "&.Mui-selected": {
                         backgroundColor: alpha(theme.palette.primary.main, 0.1),
@@ -304,7 +304,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>
+                    <ListItemIcon sx={{ color: "#7f7f9f", minWidth: 40 }}>
                       {item.badge ? (
                         <Badge badgeContent={item.badge} color="error">
                           {item.icon}
@@ -549,7 +549,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     label="Суперадмин"
                     size="small"
                     color="primary"
-                    sx={{ height: 20, fontSize: "0.7rem", borderRadius: 2 }} // Убираем закругленные углы
+                    sx={{ height: 20, fontSize: "0.7rem", borderRadius: 1 }} // Убираем закругленные углы
                   />
                 )}
               </Box>
@@ -607,7 +607,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             elevation: 8,
             sx: {
               mt: 1,
-              borderRadius: 2, // Убираем закругленные углы
+              borderRadius: 1, // Убираем закругленные углы
               minWidth: 200,
               "& .MuiMenuItem-root": {
                 borderRadius: 1, // Убираем закругленные углы
@@ -663,11 +663,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 width: drawerWidth,
                 border: "none",
                 boxShadow: theme.shadows[8],
-                left: "2px",
-                borderRadius: 2,
-                bottom: "82px",
+                left: "8px",
+                borderRadius: 1,
+                // bottom: "78px",
                 top: "82px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 98px)", // Вычитаем отступ сверху
+                height: "calc(100% - 90px)", // Вычитаем отступ сверху
               },
             }}
           >
@@ -683,11 +683,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 border: "none",
                 borderRight: 1,
                 borderColor: "divider",
-                left: "2px",
+                left: "8px",
                 borderRadius: "16px",
-                bottom: "82px",
+                // bottom: "78px",
                 top: "82px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 98px)", // Вычитаем отступ сверху
+                height: "calc(100% - 90px)", // Вычитаем отступ сверху
               },
             }}
             open

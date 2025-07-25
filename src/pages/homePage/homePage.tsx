@@ -263,7 +263,7 @@ export const HomePage: React.FC = () => {
         sx={{
           display: "flex",
           flexWrap: "wrap",
-          gap: 3,
+          gap: 2,
           mb: 2,
           "& > *": {
             flex: "1 1 calc(100% - 24px)",
@@ -354,7 +354,7 @@ export const HomePage: React.FC = () => {
       </Box>
 
       {/* Быстрые советы */}
-      <Card sx={{ mb: 2, borderRadius: 2 }}>
+      <Card sx={{ mb: 2, borderRadius: 1 }}>
         <CardContent>
           <Typography
             variant="h6"

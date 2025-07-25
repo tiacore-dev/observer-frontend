@@ -46,7 +46,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   const handleEditClick = (account: IAccount) => {
     setEditingAccount({
       id: account.account_id.toString(),
-      name: account.account_name,
+      name: account.username,
     });
     setIsModalOpen(true);
   };
@@ -143,6 +143,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                         variant="body2"
                         component="span"
                         sx={{
+                          cursor: "pointer",
                           fontFamily: "monospace",
                           bgcolor: "grey.100",
                           p: 0.5,
@@ -157,7 +158,35 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
                     </Box>
                   </Tooltip>
                 </TableCell>
-                <TableCell>{account.account_name}</TableCell>
+                <TableCell
+                  onClick={(e) =>
+                    account.account_name &&
+                    handleCellClick(e, `@${account.account_name}`)
+                  }
+                >
+                  {account.account_name ? (
+                    <Tooltip title="Копировать ID" arrow>
+                      <Box
+                        sx={{
+                          cursor: "pointer",
+
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          "&:hover": {
+                            textDecoration: "underline",
+                          },
+                        }}
+                      >
+                        @{account.account_name}
+                      </Box>
+                    </Tooltip>
+                  ) : (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="body2">Не указано</Typography>
+                    </Box>
+                  )}
+                </TableCell>
                 <TableCell>{account.username || "Не указано"}</TableCell>
                 <TableCell>{formatDate(account.created_at)}</TableCell>
                 <TableCell>

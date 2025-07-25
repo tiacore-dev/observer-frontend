@@ -125,7 +125,7 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Typography color="error">
           Ошибка при загрузке данных: {(error as Error).message}
         </Typography>
@@ -135,14 +135,14 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   if (!analysis) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Typography>Анализ не найден</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
       {/* Заголовок с основной информацией */}
       <Paper
         sx={{

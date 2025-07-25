@@ -6,6 +6,7 @@ interface AccountsState {
   usernameFilter: string;
   idFilter: string;
   page: number;
+  rowsPerPage: number;
   sortField: "account_id" | "account_name" | "username" | "created_at";
   sortDirection: "asc" | "desc";
 }
@@ -15,6 +16,7 @@ const initialState: AccountsState = {
   usernameFilter: "",
   idFilter: "",
   page: 1,
+  rowsPerPage: 10,
   sortField: "created_at",
   sortDirection: "desc",
 };
@@ -25,7 +27,7 @@ const accountsSlice = createSlice({
   reducers: {
     setNameFilter: (state, action: PayloadAction<string>) => {
       state.nameFilter = action.payload;
-      state.page = 1; // Сбрасываем страницу при изменении фильтра
+      state.page = 1;
     },
     setUsernameFilter: (state, action: PayloadAction<string>) => {
       state.usernameFilter = action.payload;
@@ -38,6 +40,10 @@ const accountsSlice = createSlice({
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
+    setRowsPerPage: (state, action: PayloadAction<number>) => {
+      state.rowsPerPage = action.payload;
+      state.page = 1;
+    },
     setSortField: (
       state,
       action: PayloadAction<
@@ -45,17 +51,19 @@ const accountsSlice = createSlice({
       >
     ) => {
       state.sortField = action.payload;
+      state.page = 1;
     },
     setSortDirection: (state, action: PayloadAction<"asc" | "desc">) => {
       state.sortDirection = action.payload;
+      state.page = 1;
     },
     resetFilters: (state) => {
       state.nameFilter = "";
       state.usernameFilter = "";
       state.idFilter = "";
-      state.page = 1;
       state.sortField = "created_at";
       state.sortDirection = "desc";
+      state.page = 1;
     },
   },
 });
@@ -65,6 +73,7 @@ export const {
   setUsernameFilter,
   setIdFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,

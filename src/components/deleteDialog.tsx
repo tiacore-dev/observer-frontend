@@ -40,7 +40,7 @@ export const DeleteDialog: React.FC<DeletePromptDialogProps> = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: "12px",
+          borderRadius: 1,
           padding: "24px",
           width: "440px",
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
@@ -72,7 +72,7 @@ export const DeleteDialog: React.FC<DeletePromptDialogProps> = ({
             sx={{
               backgroundColor: "action.hover",
               p: 2,
-              borderRadius: "8px",
+              borderRadius: 1,
               mb: 2,
             }}
           >
@@ -106,7 +106,7 @@ export const DeleteDialog: React.FC<DeletePromptDialogProps> = ({
           sx={{
             flex: 1,
             py: 1.5,
-            borderRadius: "8px",
+            borderRadius: 1,
             borderColor: "divider",
             textTransform: "none",
             fontWeight: 500,
@@ -130,7 +130,7 @@ export const DeleteDialog: React.FC<DeletePromptDialogProps> = ({
           sx={{
             flex: 1,
             py: 1.5,
-            borderRadius: "8px",
+            borderRadius: 1,
             textTransform: "none",
             fontWeight: 500,
           }}

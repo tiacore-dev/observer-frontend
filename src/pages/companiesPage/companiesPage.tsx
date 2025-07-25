@@ -1,7 +1,7 @@
 // companiesPage.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
   Paper,
@@ -10,7 +10,6 @@ import {
   Button,
   TextField,
   Alert,
-  Chip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -27,6 +26,7 @@ import type { RootState } from "../../redux/store";
 import {
   setNameFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,
@@ -39,38 +39,48 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dispatch = useDispatch();
 
-  const { nameFilter, page, sortField, sortDirection } = useSelector(
-    (state: RootState) => state.companies
-  );
-
-  const rowsPerPage = 10;
+  const { nameFilter, page, rowsPerPage, sortField, sortDirection } =
+    useSelector((state: RootState) => state.companies);
 
   const resetAllFilters = () => {
     dispatch(resetFilters());
   };
 
-  const getFilteredAndSortedCompanies = () => {
+  const filteredCompanies = useMemo(() => {
     if (!data?.companies) return [];
 
-    let filteredCompanies = [...data.companies];
+    let filtered = [...data.companies];
 
     if (nameFilter) {
-      filteredCompanies = filteredCompanies.filter((company) =>
+      filtered = filtered.filter((company) =>
         company.company_name.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
 
-    filteredCompanies.sort((a, b) => {
+    return filtered.sort((a, b) => {
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
-
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
+      return sortDirection === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
     });
+  }, [data, nameFilter, sortField, sortDirection]);
 
-    return filteredCompanies;
-  };
+  const totalItems = filteredCompanies.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const paginatedCompanies = useMemo(() => {
+    return filteredCompanies.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredCompanies, currentPage, rowsPerPage]);
+
+  useEffect(() => {
+    if (page !== currentPage) {
+      dispatch(setPage(currentPage));
+    }
+  }, [page, currentPage, dispatch]);
 
   const handleSort = (field: "company_name" | "description") => {
     if (sortField === field) {
@@ -81,16 +91,15 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
     }
   };
 
-  const filteredCompanies = getFilteredAndSortedCompanies();
-  const totalPages = Math.ceil(filteredCompanies.length / rowsPerPage);
-  const paginatedCompanies = filteredCompanies.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const handlePageChange = (newPage: number) => {
+    dispatch(setPage(Math.max(1, Math.min(newPage, totalPages))));
+  };
 
-  useEffect(() => {
-    dispatch(setPage(1));
-  }, [nameFilter, dispatch]);
+  const handleRowsPerPageChange = (newRowsPerPage: number) => {
+    const newTotalPages = Math.max(1, Math.ceil(totalItems / newRowsPerPage));
+    dispatch(setRowsPerPage(newRowsPerPage));
+    dispatch(setPage(Math.min(currentPage, newTotalPages)));
+  };
 
   if (companyId) {
     return (
@@ -100,7 +109,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Alert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="h6" gutterBottom>
             Не удалось загрузить компании
@@ -114,7 +123,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton filterCount={1} pagination={true} hasAddButton={true} />
       ) : (
@@ -192,22 +201,14 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
               onSort={handleSort}
             />
 
-            {totalPages > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  mb: 3,
-                  mt: 0,
-                }}
-              >
-                <PaginationControls
-                  count={totalPages}
-                  page={page}
-                  onPageChange={(newPage) => dispatch(setPage(newPage))}
-                />
-              </Box>
-            )}
+            <PaginationControls
+              count={totalPages}
+              page={currentPage}
+              onPageChange={handlePageChange}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              totalItems={totalItems}
+            />
           </Paper>
 
           {filteredCompanies.length === 0 && !isLoading && (

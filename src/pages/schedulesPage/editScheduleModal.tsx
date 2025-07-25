@@ -45,6 +45,7 @@ import { TargetChatSelector } from "./components/targetChatSelector";
 import { useScheduleValidation } from "./helpers/useScheduleValidation";
 import { useScheduleChanges } from "./helpers/useScheduleChanges";
 import {
+  convertToLocalTime,
   convertToServerTime,
   generateCronExpressionWithTimeConversion,
   parseCronExpression,
@@ -118,7 +119,11 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     }
 
     if (schedule.time_to_send) {
-      updateField("time_to_send", convertToServerTime(schedule.time_to_send));
+      // Конвертируем серверное время в локальное для отображения
+      const localTime = convertToLocalTime(
+        schedule.time_to_send.split(":").slice(0, 2).join(":")
+      );
+      updateField("time_to_send", localTime);
     }
   }, [schedule]);
 

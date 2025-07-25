@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePromptsQuery } from "../../hooks/prompts/usePromptsQuery";
 import {
   Typography,
@@ -36,6 +36,7 @@ import {
   setCompanyFilter,
   setCompanySelectFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,
@@ -52,6 +53,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
     companyFilter,
     companySelectFilter,
     page,
+    rowsPerPage,
     sortField,
     sortDirection,
   } = useSelector((state: RootState) => state.prompts);
@@ -69,31 +71,35 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const isLoading = promptsLoading || isLoadingCompanyMap;
   const error = promptsError;
 
-  const promptNames = Array.from(
-    new Set(promptsData?.prompts.map((prompt) => prompt.prompt_name) || [])
+  const promptNames = useMemo(
+    () =>
+      Array.from(
+        new Set(promptsData?.prompts.map((prompt) => prompt.prompt_name) || [])
+      ),
+    [promptsData]
   );
 
-  const getFilteredAndSortedPrompts = () => {
+  const filteredPrompts = useMemo(() => {
     if (!promptsData?.prompts) return [];
 
-    let filteredPrompts = [...promptsData.prompts];
+    let filtered = [...promptsData.prompts];
 
     if (nameFilter || nameSelectFilter) {
       const nameFilterValue = nameSelectFilter || nameFilter;
-      filteredPrompts = filteredPrompts.filter((prompt) =>
+      filtered = filtered.filter((prompt) =>
         prompt.prompt_name.toLowerCase().includes(nameFilterValue.toLowerCase())
       );
     }
 
     if (textFilter) {
-      filteredPrompts = filteredPrompts.filter((prompt) =>
+      filtered = filtered.filter((prompt) =>
         prompt.text.toLowerCase().includes(textFilter.toLowerCase())
       );
     }
 
     if (isSuperadmin && (companyFilter || companySelectFilter)) {
       const companyFilterValue = companySelectFilter || companyFilter;
-      filteredPrompts = filteredPrompts.filter(
+      filtered = filtered.filter(
         (prompt) =>
           companyMap
             .get(prompt.company_id)
@@ -105,25 +111,49 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
       );
     }
 
-    filteredPrompts.sort((a, b) => {
+    return filtered.sort((a, b) => {
       if (sortField === "company_id") {
         const aCompany = companyMap.get(a.company_id) ?? a.company_id;
         const bCompany = companyMap.get(b.company_id) ?? b.company_id;
-        if (aCompany < bCompany) return sortDirection === "asc" ? -1 : 1;
-        if (aCompany > bCompany) return sortDirection === "asc" ? 1 : -1;
-        return 0;
+        return sortDirection === "asc"
+          ? aCompany.localeCompare(bCompany)
+          : bCompany.localeCompare(aCompany);
       }
 
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
-
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
+      return sortDirection === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
     });
+  }, [
+    promptsData,
+    nameFilter,
+    nameSelectFilter,
+    textFilter,
+    companyFilter,
+    companySelectFilter,
+    sortField,
+    sortDirection,
+    companyMap,
+    isSuperadmin,
+  ]);
 
-    return filteredPrompts;
-  };
+  const totalItems = filteredPrompts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const paginatedPrompts = useMemo(() => {
+    return filteredPrompts.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredPrompts, currentPage, rowsPerPage]);
+
+  useEffect(() => {
+    if (page !== currentPage) {
+      dispatch(setPage(currentPage));
+    }
+  }, [page, currentPage, dispatch]);
 
   const handleSort = (field: "prompt_name" | "company_id" | "created_at") => {
     if (sortField === field) {
@@ -134,17 +164,19 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    dispatch(setPage(Math.max(1, Math.min(newPage, totalPages))));
+  };
+
+  const handleRowsPerPageChange = (newRowsPerPage: number) => {
+    const newTotalPages = Math.max(1, Math.ceil(totalItems / newRowsPerPage));
+    dispatch(setRowsPerPage(newRowsPerPage));
+    dispatch(setPage(Math.min(currentPage, newTotalPages)));
+  };
+
   const resetAllFilters = () => {
     dispatch(resetFilters());
   };
-
-  const filteredPrompts = getFilteredAndSortedPrompts();
-  const rowsPerPage = 10;
-  const totalPages = Math.ceil(filteredPrompts.length / rowsPerPage);
-  const paginatedPrompts = filteredPrompts.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
 
   if (isLoading) {
     return (
@@ -154,7 +186,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Alert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="h6" gutterBottom>
             Ошибка при загрузке промптов
@@ -168,8 +200,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
-      {/* Заголовок страницы */}
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
       <Paper
         elevation={1}
         sx={{
@@ -199,7 +230,6 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         </Box>
       </Paper>
 
-      {/* Фильтры */}
       <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
         <Box
           sx={{
@@ -209,66 +239,57 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
             alignItems: "center",
           }}
         >
-          {/* Фильтр по названию */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Autocomplete
+            freeSolo
+            options={promptNames}
+            value={nameSelectFilter || nameFilter}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Поиск по названию"
+                variant="outlined"
+                size="small"
+                onChange={(e) => {
+                  dispatch(setNameFilter(e.target.value));
+                }}
+                sx={{ width: 250 }}
+              />
+            )}
+            onChange={(_, value) => {
+              dispatch(setNameSelectFilter(value || ""));
+            }}
+          />
+
+          <TextField
+            label="Поиск по тексту"
+            variant="outlined"
+            size="small"
+            value={textFilter}
+            onChange={(e) => dispatch(setTextFilter(e.target.value))}
+            sx={{ width: 250 }}
+          />
+
+          {isSuperadmin && (
             <Autocomplete
               freeSolo
-              options={promptNames}
-              value={nameSelectFilter || nameFilter}
+              options={Array.from(companyMap.values())}
+              value={companySelectFilter || companyFilter}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Поиск по названию"
+                  label="Поиск по компании"
                   variant="outlined"
                   size="small"
                   onChange={(e) => {
-                    dispatch(setNameFilter(e.target.value));
+                    dispatch(setCompanyFilter(e.target.value));
                   }}
                   sx={{ width: 250 }}
                 />
               )}
               onChange={(_, value) => {
-                dispatch(setNameSelectFilter(value || ""));
+                dispatch(setCompanySelectFilter(value || ""));
               }}
             />
-          </Box>
-
-          {/* Фильтр по тексту */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <TextField
-              label="Поиск по тексту"
-              variant="outlined"
-              size="small"
-              value={textFilter}
-              onChange={(e) => dispatch(setTextFilter(e.target.value))}
-              sx={{ width: 250 }}
-            />
-          </Box>
-
-          {/* Фильтр по компании (только для суперадмина) */}
-          {isSuperadmin && (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Autocomplete
-                freeSolo
-                options={Array.from(companyMap.values())}
-                value={companySelectFilter || companyFilter}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Поиск по компании"
-                    variant="outlined"
-                    size="small"
-                    onChange={(e) => {
-                      dispatch(setCompanyFilter(e.target.value));
-                    }}
-                    sx={{ width: 250 }}
-                  />
-                )}
-                onChange={(_, value) => {
-                  dispatch(setCompanySelectFilter(value || ""));
-                }}
-              />
-            </Box>
           )}
 
           <ResetFiltersButton onClick={resetAllFilters} />
@@ -286,7 +307,6 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         </Box>
       </Paper>
 
-      {/* Таблица */}
       <Paper elevation={1} sx={{ overflow: "hidden" }}>
         <PromptsTable
           prompts={paginatedPrompts}
@@ -298,26 +318,16 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
           onSort={handleSort}
         />
 
-        {/* Пагинация */}
-        {totalPages > 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mb: 3,
-              mt: 0,
-            }}
-          >
-            <PaginationControls
-              count={totalPages}
-              page={page}
-              onPageChange={(newPage) => dispatch(setPage(newPage))}
-            />
-          </Box>
-        )}
+        <PaginationControls
+          count={totalPages}
+          page={currentPage}
+          onPageChange={handlePageChange}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+          totalItems={totalItems}
+        />
       </Paper>
 
-      {/* Пустое состояние */}
       {filteredPrompts.length === 0 && !isLoading && (
         <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
           <Psychology sx={{ fontSize: 64, color: "text.secondary", mt: 2 }} />

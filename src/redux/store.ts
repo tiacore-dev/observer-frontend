@@ -5,7 +5,8 @@ import analysisReducer from "./slice/analysisSlice";
 import botsReducer from "./slice/botsSlice";
 import chatsReducer from "./slice/chatsSlice";
 import companiesReducer from "./slice/companiesSlice";
-import promptsReducer from "./slice/promptsSlice"; // Добавляем импорт
+import promptsReducer from "./slice/promptsSlice";
+import schedulesReducer from "./slice/schedulesSlice"; // Добавляем импорт
 
 export const store = configureStore({
   reducer: {
@@ -14,7 +15,8 @@ export const store = configureStore({
     bots: botsReducer,
     chats: chatsReducer,
     companies: companiesReducer,
-    prompts: promptsReducer, // Добавляем редюсер
+    prompts: promptsReducer,
+    schedules: schedulesReducer, // Добавляем редюсер
   },
 });
 

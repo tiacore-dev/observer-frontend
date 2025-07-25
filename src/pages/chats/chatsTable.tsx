@@ -193,6 +193,8 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
                     <Typography
                       variant="body2"
                       sx={{
+                        cursor: "pointer",
+
                         fontFamily: "monospace",
                         fontSize: "0.85rem",
                         bgcolor: "grey.100",

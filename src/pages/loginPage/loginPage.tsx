@@ -94,7 +94,7 @@ export const LoginPage: React.FC = () => {
           padding: 4,
           width: "100%",
           maxWidth: 400,
-          borderRadius: 2,
+          borderRadius: 1,
         }}
       >
         {showResendLink && (
@@ -105,7 +105,7 @@ export const LoginPage: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: "#fff0f0",
-              borderRadius: 2,
+              borderRadius: 1,
             }}
           >
             <Typography

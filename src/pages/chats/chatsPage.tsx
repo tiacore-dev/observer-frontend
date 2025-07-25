@@ -17,6 +17,7 @@ import {
   setNameFilter,
   setIdFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,
@@ -26,9 +27,8 @@ import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 
 export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
   const dispatch = useDispatch();
-  const { nameFilter, idFilter, page, sortField, sortDirection } = useSelector(
-    (state: RootState) => state.chats
-  );
+  const { nameFilter, idFilter, page, rowsPerPage, sortField, sortDirection } =
+    useSelector((state: RootState) => state.chats);
 
   const {
     data: chatsData,
@@ -38,7 +38,6 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   const isLoading = chatsLoading;
   const error = chatsError;
-  const rowsPerPage = 10;
 
   const resetAllFilters = () => {
     dispatch(resetFilters());
@@ -83,19 +82,35 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
   };
 
   const filteredChats = getFilteredAndSortedChats();
-  const totalPages = Math.ceil(filteredChats.length / rowsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredChats.length / rowsPerPage));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
   const paginatedChats = filteredChats.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
   );
 
   useEffect(() => {
-    dispatch(setPage(1));
-  }, [nameFilter, idFilter]);
+    if (page !== currentPage) {
+      dispatch(setPage(currentPage));
+    }
+  }, [page, currentPage, dispatch]);
+
+  const handlePageChange = (newPage: number) => {
+    dispatch(setPage(Math.max(1, Math.min(newPage, totalPages))));
+  };
+
+  const handleRowsPerPageChange = (newRowsPerPage: number) => {
+    const newTotalPages = Math.max(
+      1,
+      Math.ceil(filteredChats.length / newRowsPerPage)
+    );
+    dispatch(setRowsPerPage(newRowsPerPage));
+    dispatch(setPage(Math.min(currentPage, newTotalPages)));
+  };
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Alert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="h6" gutterBottom>
             Не удалось загрузить чаты
@@ -109,12 +124,11 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton filterCount={2} pagination={true} hasAddButton={false} />
       ) : (
         <>
-          {/* Заголовок страницы */}
           <Paper
             elevation={1}
             sx={{
@@ -145,7 +159,6 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Фильтры */}
           <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
             <Box
               sx={{
@@ -179,7 +192,6 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Таблица */}
           <Paper elevation={1} sx={{ overflow: "hidden" }}>
             <ChatsTable
               chats={paginatedChats}
@@ -189,26 +201,16 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
               onSort={handleSort}
             />
 
-            {/* Пагинация */}
-            {totalPages > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  mb: 3,
-                  mt: 0,
-                }}
-              >
-                <PaginationControls
-                  count={totalPages}
-                  page={page}
-                  onPageChange={(newPage) => dispatch(setPage(newPage))}
-                />
-              </Box>
-            )}
+            <PaginationControls
+              count={totalPages}
+              page={currentPage}
+              onPageChange={handlePageChange}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              totalItems={filteredChats.length}
+            />
           </Paper>
 
-          {/* Пустое состояние */}
           {filteredChats.length === 0 && !isLoading && (
             <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
               <ChatIcon sx={{ fontSize: 64, color: "text.secondary", mt: 2 }} />

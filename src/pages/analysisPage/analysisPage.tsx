@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAnalysisQuery } from "../../hooks/analysis/useAnalysisQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { useChatsSelectQuery } from "../../hooks/chats/useChatsQuery";
@@ -44,6 +44,7 @@ import {
   setDateFrom,
   setDateTo,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,
@@ -63,6 +64,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     dateFrom,
     dateTo,
     page,
+    rowsPerPage,
     sortField,
     sortDirection,
   } = useSelector((state: RootState) => state.analysis);
@@ -90,13 +92,15 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { chatMap, isLoadingChatsMap } = useChatMap();
   const { promptMap, isLoadingPromptMap } = usePromptMap();
-  const rowsPerPage = 10;
+
   const isLoading =
     analysisLoading ||
     companiesLoading ||
     chatsLoading ||
     promptsLoading ||
-    isLoadingCompanyMap;
+    isLoadingCompanyMap ||
+    isLoadingChatsMap ||
+    isLoadingPromptMap;
   const error = analysisError || companiesError || chatsError || promptsError;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,14 +109,14 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     dispatch(resetFilters());
   };
 
-  const getFilteredAndSortedAnalysis = () => {
+  const filteredAnalysis = useMemo(() => {
     if (!analysisData?.analysis) return [];
 
-    let filteredAnalysis = [...analysisData.analysis];
+    let filtered = [...analysisData.analysis];
 
     if (chatFilter || chatSelectFilter) {
       const chatFilterValue = chatSelectFilter || chatFilter;
-      filteredAnalysis = filteredAnalysis.filter(
+      filtered = filtered.filter(
         (item) =>
           chatMap
             .get(item.chat_id)
@@ -124,7 +128,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (promptFilter || promptSelectFilter) {
       const promptFilterValue = promptSelectFilter || promptFilter;
-      filteredAnalysis = filteredAnalysis.filter(
+      filtered = filtered.filter(
         (item) =>
           promptMap
             .get(item.prompt_id)
@@ -136,7 +140,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (isSuperadmin && (companyFilter || companySelectFilter)) {
       const companyFilterValue = companySelectFilter || companyFilter;
-      filteredAnalysis = filteredAnalysis.filter(
+      filtered = filtered.filter(
         (item) =>
           companyMap
             .get(item.company_id)
@@ -149,7 +153,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     }
 
     if (dateFrom) {
-      filteredAnalysis = filteredAnalysis.filter(
+      filtered = filtered.filter(
         (item) => new Date(item.created_at) >= dateFrom
       );
     }
@@ -157,21 +161,51 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     if (dateTo) {
       const endOfDay = new Date(dateTo);
       endOfDay.setHours(23, 59, 59, 999);
-      filteredAnalysis = filteredAnalysis.filter(
+      filtered = filtered.filter(
         (item) => new Date(item.created_at) <= endOfDay
       );
     }
 
-    filteredAnalysis.sort((a, b) => {
-      const aValue = a[sortField] ?? "";
-      const bValue = b[sortField] ?? "";
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
+    return filtered.sort((a, b) => {
+      const aValue = a[sortField]?.toString() ?? "";
+      const bValue = b[sortField]?.toString() ?? "";
+      return sortDirection === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
     });
+  }, [
+    analysisData,
+    chatFilter,
+    chatSelectFilter,
+    promptFilter,
+    promptSelectFilter,
+    companyFilter,
+    companySelectFilter,
+    dateFrom,
+    dateTo,
+    sortField,
+    sortDirection,
+    chatMap,
+    promptMap,
+    companyMap,
+    isSuperadmin,
+  ]);
 
-    return filteredAnalysis;
-  };
+  const totalItems = filteredAnalysis.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const paginatedAnalysis = useMemo(() => {
+    return filteredAnalysis.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredAnalysis, currentPage, rowsPerPage]);
+
+  useEffect(() => {
+    if (page !== currentPage) {
+      dispatch(setPage(currentPage));
+    }
+  }, [page, currentPage, dispatch]);
 
   const handleSort = (field: keyof IAnalys) => {
     if (sortField === field) {
@@ -182,16 +216,19 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     }
   };
 
-  const filteredAnalysis = getFilteredAndSortedAnalysis();
-  const totalPages = Math.ceil(filteredAnalysis.length / rowsPerPage);
-  const paginatedAnalysis = filteredAnalysis.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const handlePageChange = (newPage: number) => {
+    dispatch(setPage(Math.max(1, Math.min(newPage, totalPages))));
+  };
+
+  const handleRowsPerPageChange = (newRowsPerPage: number) => {
+    const newTotalPages = Math.max(1, Math.ceil(totalItems / newRowsPerPage));
+    dispatch(setRowsPerPage(newRowsPerPage));
+    dispatch(setPage(Math.min(currentPage, newTotalPages)));
+  };
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Alert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="h6" gutterBottom>
             Не удалось загрузить анализы
@@ -206,7 +243,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ru}>
-      <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
+      <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
         {isLoading ? (
           <PageSkeleton
             filterCount={isSuperadmin ? 5 : 4}
@@ -242,10 +279,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                     color="white"
                   >
                     На этой странице вы можете просмотреть, какие анализы были
-                    выполнены ранее, а также запустить новый анализ. Для нового
-                    анализа выберите промт, период и чат, затем нажмите
-                    «Запустить». Если данных за выбранный период нет —
-                    попробуйте выбрать другой интервал или чат.
+                    выполнены ранее, а также запустить новый анализ.
                   </Typography>
                 </Box>
               </Box>
@@ -260,75 +294,69 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                   alignItems: "center",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Autocomplete
-                    freeSolo
-                    options={Array.from(chatMap.values())}
-                    value={chatSelectFilter || chatFilter}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Поиск по чату"
-                        variant="outlined"
-                        size="small"
-                        sx={{ width: 250 }}
-                        onChange={(e) => {
-                          dispatch(setChatFilter(e.target.value));
-                        }}
-                      />
-                    )}
-                    onChange={(_, value) => {
-                      dispatch(setChatSelectFilter(value || ""));
-                    }}
-                  />
-                </Box>
-
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Autocomplete
-                    freeSolo
-                    options={Array.from(promptMap.values())}
-                    value={promptSelectFilter || promptFilter}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Поиск по промпту"
-                        variant="outlined"
-                        size="small"
-                        sx={{ width: 250 }}
-                        onChange={(e) => {
-                          dispatch(setPromptFilter(e.target.value));
-                        }}
-                      />
-                    )}
-                    onChange={(_, value) => {
-                      dispatch(setPromptSelectFilter(value || ""));
-                    }}
-                  />
-                </Box>
-
-                {isSuperadmin && (
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Autocomplete
-                      freeSolo
-                      options={Array.from(companyMap.values())}
-                      value={companySelectFilter || companyFilter}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Поиск по компании"
-                          variant="outlined"
-                          size="small"
-                          sx={{ width: 250 }}
-                          onChange={(e) => {
-                            dispatch(setCompanyFilter(e.target.value));
-                          }}
-                        />
-                      )}
-                      onChange={(_, value) => {
-                        dispatch(setCompanySelectFilter(value || ""));
+                <Autocomplete
+                  freeSolo
+                  options={Array.from(chatMap.values())}
+                  value={chatSelectFilter || chatFilter}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Поиск по чату"
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: 250 }}
+                      onChange={(e) => {
+                        dispatch(setChatFilter(e.target.value));
                       }}
                     />
-                  </Box>
+                  )}
+                  onChange={(_, value) => {
+                    dispatch(setChatSelectFilter(value || ""));
+                  }}
+                />
+
+                <Autocomplete
+                  freeSolo
+                  options={Array.from(promptMap.values())}
+                  value={promptSelectFilter || promptFilter}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Поиск по промпту"
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: 250 }}
+                      onChange={(e) => {
+                        dispatch(setPromptFilter(e.target.value));
+                      }}
+                    />
+                  )}
+                  onChange={(_, value) => {
+                    dispatch(setPromptSelectFilter(value || ""));
+                  }}
+                />
+
+                {isSuperadmin && (
+                  <Autocomplete
+                    freeSolo
+                    options={Array.from(companyMap.values())}
+                    value={companySelectFilter || companyFilter}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Поиск по компании"
+                        variant="outlined"
+                        size="small"
+                        sx={{ width: 250 }}
+                        onChange={(e) => {
+                          dispatch(setCompanyFilter(e.target.value));
+                        }}
+                      />
+                    )}
+                    onChange={(_, value) => {
+                      dispatch(setCompanySelectFilter(value || ""));
+                    }}
+                  />
                 )}
 
                 <DatePicker
@@ -390,22 +418,14 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                 }
               />
 
-              {totalPages > 1 && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    mb: 3,
-                    mt: -3,
-                  }}
-                >
-                  <PaginationControls
-                    count={totalPages}
-                    page={page}
-                    onPageChange={(newPage) => dispatch(setPage(newPage))}
-                  />
-                </Box>
-              )}
+              <PaginationControls
+                count={totalPages}
+                page={currentPage}
+                onPageChange={handlePageChange}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                totalItems={totalItems}
+              />
             </Paper>
 
             {filteredAnalysis.length === 0 && !isLoading && (

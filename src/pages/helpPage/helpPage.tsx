@@ -400,7 +400,7 @@ export const HelpPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -3, maxWidth: 1600, mx: "auto" }}>
       <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
         <Typography variant="h3" component="h1" gutterBottom>
           Справочная система

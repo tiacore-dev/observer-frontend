@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useBotsQuery } from "../../hooks/bots/useBotsQuery";
 import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import {
@@ -37,13 +37,13 @@ import {
   setCompanySelectFilter,
   setStatusFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,
 } from "../../redux/slice/botsSlice";
 import type { RootState } from "../../redux/store";
 
-// Определяем тип SortField в соответствии с BotsTable
 type SortField =
   | "bot_username"
   | "bot_first_name"
@@ -58,7 +58,6 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const { isSuperadmin } = useAuth();
   const dispatch = useDispatch();
 
-  // Получаем состояние из Redux store
   const {
     botIdFilter,
     botNameFilter,
@@ -67,6 +66,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
     companySelectFilter,
     statusFilter,
     page,
+    rowsPerPage,
     sortField,
     sortDirection,
   } = useSelector((state: RootState) => state.bots);
@@ -89,39 +89,43 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const isLoading = botsLoading || companiesLoading || isLoadingCompanyMap;
   const error = botsError || companiesError;
 
-  const rowsPerPage = 10;
-
   const resetAllFilters = () => {
     dispatch(resetFilters());
   };
 
-  const companies = Array.from(
-    new Set(
-      botsData?.bots.map((bot) => ({
-        id: bot.company_id,
-        name: companyMap.get(bot.company_id) || bot.company_id,
-      })) || []
-    )
+  const companies = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          botsData?.bots.map((bot) => ({
+            id: bot.company_id,
+            name: companyMap.get(bot.company_id) || bot.company_id,
+          })) || []
+        )
+      ),
+    [botsData, companyMap]
   );
 
-  const botNames = Array.from(
-    new Set(botsData?.bots.map((bot) => bot.bot_username) || [])
+  const botNames = useMemo(
+    () =>
+      Array.from(new Set(botsData?.bots.map((bot) => bot.bot_username) || [])),
+    [botsData]
   );
 
-  const getFilteredAndSortedBots = () => {
+  const filteredBots = useMemo(() => {
     if (!botsData?.bots) return [];
 
-    let filteredBots = [...botsData.bots];
+    let filtered = [...botsData.bots];
 
     if (botIdFilter) {
-      filteredBots = filteredBots.filter((bot) =>
+      filtered = filtered.filter((bot) =>
         String(bot.bot_id).toLowerCase().includes(botIdFilter.toLowerCase())
       );
     }
 
     if (botNameFilter || botNameSelectFilter) {
       const botNameFilterValue = botNameSelectFilter || botNameFilter;
-      filteredBots = filteredBots.filter((bot) =>
+      filtered = filtered.filter((bot) =>
         bot.bot_username
           .toLowerCase()
           .includes(botNameFilterValue.toLowerCase())
@@ -130,7 +134,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
 
     if (isSuperadmin && (companyFilter || companySelectFilter)) {
       const companyFilterValue = companySelectFilter || companyFilter;
-      filteredBots = filteredBots.filter(
+      filtered = filtered.filter(
         (bot) =>
           companyMap
             .get(bot.company_id)
@@ -143,38 +147,64 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
 
     if (statusFilter !== "all") {
-      filteredBots = filteredBots.filter(
-        (bot) => bot.is_active === statusFilter
-      );
+      filtered = filtered.filter((bot) => bot.is_active === statusFilter);
     }
 
-    filteredBots.sort((a, b) => {
+    return filtered.sort((a, b) => {
       if (sortField === "is_active") {
         if (a.is_active === b.is_active) return 0;
-        if (sortDirection === "asc") {
-          return a.is_active ? -1 : 1;
-        } else {
-          return a.is_active ? 1 : -1;
-        }
+        return sortDirection === "asc"
+          ? a.is_active
+            ? -1
+            : 1
+          : a.is_active
+          ? 1
+          : -1;
       }
 
       if (sortField === "company_id") {
         const aCompany = companyMap.get(a.company_id) ?? String(a.company_id);
         const bCompany = companyMap.get(b.company_id) ?? String(b.company_id);
-        if (aCompany < bCompany) return sortDirection === "asc" ? -1 : 1;
-        if (aCompany > bCompany) return sortDirection === "asc" ? 1 : -1;
-        return 0;
+        return sortDirection === "asc"
+          ? aCompany.localeCompare(bCompany)
+          : bCompany.localeCompare(aCompany);
       }
 
       const aValue = a[sortField] ?? "";
       const bValue = b[sortField] ?? "";
-
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
+      return sortDirection === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
     });
-    return filteredBots;
-  };
+  }, [
+    botsData,
+    botIdFilter,
+    botNameFilter,
+    botNameSelectFilter,
+    companyFilter,
+    companySelectFilter,
+    statusFilter,
+    sortField,
+    sortDirection,
+    companyMap,
+    isSuperadmin,
+  ]);
+
+  const totalItems = filteredBots.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const paginatedBots = useMemo(() => {
+    return filteredBots.slice(
+      (currentPage - 1) * rowsPerPage,
+      currentPage * rowsPerPage
+    );
+  }, [filteredBots, currentPage, rowsPerPage]);
+
+  useEffect(() => {
+    if (page !== currentPage) {
+      dispatch(setPage(currentPage));
+    }
+  }, [page, currentPage, dispatch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -185,25 +215,15 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
     }
   };
 
-  const filteredBots = getFilteredAndSortedBots();
-  const totalPages = Math.ceil(filteredBots.length / rowsPerPage);
-  const paginatedBots = filteredBots.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const handlePageChange = (newPage: number) => {
+    dispatch(setPage(Math.max(1, Math.min(newPage, totalPages))));
+  };
 
-  useEffect(() => {
-    dispatch(setPage(1));
-  }, [
-    botIdFilter,
-    botNameFilter,
-    botNameSelectFilter,
-    companyFilter,
-    companySelectFilter,
-    statusFilter,
-    sortField,
-    sortDirection,
-  ]);
+  const handleRowsPerPageChange = (newRowsPerPage: number) => {
+    const newTotalPages = Math.max(1, Math.ceil(totalItems / newRowsPerPage));
+    dispatch(setRowsPerPage(newRowsPerPage));
+    dispatch(setPage(Math.min(currentPage, newTotalPages)));
+  };
 
   if (botId) {
     return <BotDetailsPage botId={botId} developerMode={developerMode} />;
@@ -211,7 +231,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" mt={4}>
+      <Box display="flex" justifyContent="center" mt={-1}>
         <Alert severity="error" sx={{ maxWidth: 600 }}>
           <Typography variant="h6" gutterBottom>
             Не удалось загрузить ботов
@@ -225,7 +245,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 2, mt: -1, mb: -1, maxWidth: 1600, mx: "auto" }}>
+    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
       {isLoading ? (
         <PageSkeleton
           filterCount={isSuperadmin ? 3 : 2}
@@ -234,7 +254,6 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
         />
       ) : (
         <>
-          {/* Заголовок страницы */}
           <Paper
             elevation={1}
             sx={{
@@ -264,7 +283,6 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Справочная информация */}
           <Collapse in={showHelp}>
             <Box sx={{ mb: 2 }}>
               <InfoCard
@@ -291,7 +309,6 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Collapse>
 
-          {/* Фильтры */}
           <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
             <Box
               sx={{
@@ -348,7 +365,6 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Paper>
 
-          {/* Таблица */}
           <Paper elevation={1} sx={{ overflow: "hidden" }}>
             <BotsTable
               bots={paginatedBots}
@@ -360,26 +376,16 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
               onRowClick={(botId) => navigate(`/bots/${botId}`)}
             />
 
-            {/* Пагинация */}
-            {totalPages > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  mb: 3,
-                  mt: -3,
-                }}
-              >
-                <PaginationControls
-                  count={totalPages}
-                  page={page}
-                  onPageChange={(newPage) => dispatch(setPage(newPage))}
-                />
-              </Box>
-            )}
+            <PaginationControls
+              count={totalPages}
+              page={currentPage}
+              onPageChange={handlePageChange}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              totalItems={totalItems}
+            />
           </Paper>
 
-          {/* Пустое состояние */}
           {filteredBots.length === 0 && !isLoading && (
             <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
               <SmartToyIcon

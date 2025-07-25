@@ -12,6 +12,7 @@ interface AnalysisState {
   dateFrom: Date | null;
   dateTo: Date | null;
   page: number;
+  rowsPerPage: number;
   sortField: keyof IAnalys;
   sortDirection: "asc" | "desc";
 }
@@ -26,6 +27,7 @@ const initialState: AnalysisState = {
   dateFrom: null,
   dateTo: null,
   page: 1,
+  rowsPerPage: 10,
   sortField: "created_at",
   sortDirection: "desc",
 };
@@ -75,11 +77,17 @@ const analysisSlice = createSlice({
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
+    setRowsPerPage: (state, action: PayloadAction<number>) => {
+      state.rowsPerPage = action.payload;
+      state.page = 1;
+    },
     setSortField: (state, action: PayloadAction<keyof IAnalys>) => {
       state.sortField = action.payload;
+      state.page = 1;
     },
     setSortDirection: (state, action: PayloadAction<"asc" | "desc">) => {
       state.sortDirection = action.payload;
+      state.page = 1;
     },
     resetFilters: (state) => {
       state.chatFilter = "";
@@ -91,8 +99,10 @@ const analysisSlice = createSlice({
       state.dateFrom = null;
       state.dateTo = null;
       state.page = 1;
+      state.rowsPerPage = 10;
       state.sortField = "created_at";
       state.sortDirection = "desc";
+      state.page = 1;
     },
   },
 });
@@ -107,6 +117,7 @@ export const {
   setDateFrom,
   setDateTo,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,

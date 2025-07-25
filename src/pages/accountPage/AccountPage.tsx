@@ -87,10 +87,10 @@ export const AccountPage: React.FC = () => {
           textAlign: "center",
           p: 5,
           mx: "auto",
-          my: 2,
+          my: 1,
         }}
       >
-        <PersonIcon sx={{ fontSize: 48, color: "action.disabled", mb: 2 }} />
+        <PersonIcon sx={{ fontSize: 48, color: "action.disabled", mb: 1 }} />
         <Typography variant="h6" color="text.secondary" gutterBottom>
           Информация о пользователе недоступна
         </Typography>
@@ -108,7 +108,7 @@ export const AccountPage: React.FC = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 3,
+          mb: 2,
         }}
       >
         <Typography variant="h4" gutterBottom>

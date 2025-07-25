@@ -40,9 +40,9 @@ const theme = createTheme({
       dark: "#059669",
     },
     warning: {
-      main: "#f59e0b",
+      // main: "#f59e0b",
       light: "#fbbf24",
-      dark: "#d97706",
+      main: "#d97706",
     },
     error: {
       main: "#ef4444",

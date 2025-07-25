@@ -9,6 +9,7 @@ interface PromptsState {
   companyFilter: string;
   companySelectFilter: string;
   page: number;
+  rowsPerPage: number;
   sortField: "prompt_name" | "company_id" | "created_at";
   sortDirection: "asc" | "desc";
 }
@@ -20,6 +21,7 @@ const initialState: PromptsState = {
   companyFilter: "",
   companySelectFilter: "",
   page: 1,
+  rowsPerPage: 10,
   sortField: "created_at",
   sortDirection: "desc",
 };
@@ -55,14 +57,20 @@ const promptsSlice = createSlice({
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
+    setRowsPerPage: (state, action: PayloadAction<number>) => {
+      state.rowsPerPage = action.payload;
+      state.page = 1;
+    },
     setSortField: (
       state,
       action: PayloadAction<"prompt_name" | "company_id" | "created_at">
     ) => {
       state.sortField = action.payload;
+      state.page = 1;
     },
     setSortDirection: (state, action: PayloadAction<"asc" | "desc">) => {
       state.sortDirection = action.payload;
+      state.page = 1;
     },
     resetFilters: (state) => {
       state.nameFilter = "";
@@ -84,6 +92,7 @@ export const {
   setCompanyFilter,
   setCompanySelectFilter,
   setPage,
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,
