@@ -375,15 +375,16 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
               onSort={handleSort}
               onRowClick={(botId) => navigate(`/bots/${botId}`)}
             />
-
-            <PaginationControls
-              count={totalPages}
-              page={currentPage}
-              onPageChange={handlePageChange}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              totalItems={totalItems}
-            />
+            {totalPages > 1 && (
+              <PaginationControls
+                count={totalPages}
+                page={currentPage}
+                onPageChange={handlePageChange}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                totalItems={totalItems}
+              />
+            )}
           </Paper>
 
           {filteredBots.length === 0 && !isLoading && (

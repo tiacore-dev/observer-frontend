@@ -317,15 +317,16 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
           sortDirection={sortDirection}
           onSort={handleSort}
         />
-
-        <PaginationControls
-          count={totalPages}
-          page={currentPage}
-          onPageChange={handlePageChange}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleRowsPerPageChange}
-          totalItems={totalItems}
-        />
+        {totalPages > 1 && (
+          <PaginationControls
+            count={totalPages}
+            page={currentPage}
+            onPageChange={handlePageChange}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            totalItems={totalItems}
+          />
+        )}
       </Paper>
 
       {filteredPrompts.length === 0 && !isLoading && (

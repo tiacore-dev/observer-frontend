@@ -200,15 +200,16 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
               sortDirection={sortDirection}
               onSort={handleSort}
             />
-
-            <PaginationControls
-              count={totalPages}
-              page={currentPage}
-              onPageChange={handlePageChange}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              totalItems={filteredChats.length}
-            />
+            {totalPages > 1 && (
+              <PaginationControls
+                count={totalPages}
+                page={currentPage}
+                onPageChange={handlePageChange}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                totalItems={filteredChats.length}
+              />
+            )}
           </Paper>
 
           {filteredChats.length === 0 && !isLoading && (
@@ -222,7 +223,7 @@ export const ChatsPage: React.FC<PageProps> = ({ developerMode }) => {
               <Typography variant="body2" color="text.secondary">
                 {nameFilter || idFilter
                   ? "Попробуйте изменить параметры поиска"
-                  : "Подключите аккаунты и добавьте их в группы для отображения чатов здесь"}
+                  : "Подключите Telegram бота, чтобы чаты начали отображаться"}
               </Typography>
             </Paper>
           )}

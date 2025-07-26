@@ -223,15 +223,16 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
               sortDirection={sortDirection}
               onSort={handleSort}
             />
-
-            <PaginationControls
-              count={totalPages}
-              page={currentPage}
-              onPageChange={handlePageChange}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              totalItems={totalItems}
-            />
+            {totalPages > 1 && (
+              <PaginationControls
+                count={totalPages}
+                page={currentPage}
+                onPageChange={handlePageChange}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                totalItems={totalItems}
+              />
+            )}
           </Paper>
 
           {filteredAccounts.length === 0 && !isLoading && (
@@ -247,7 +248,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
               <Typography variant="body2" color="text.secondary">
                 {nameFilter || usernameFilter || idFilter
                   ? "Попробуйте изменить параметры поиска"
-                  : "Подключите Telegram аккаунты для начала работы с системой"}
+                  : "Подключите Telegram бота, чтобы аккаунты начали отображаться"}
               </Typography>
             </Paper>
           )}

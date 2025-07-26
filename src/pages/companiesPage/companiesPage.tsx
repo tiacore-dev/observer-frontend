@@ -200,15 +200,16 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
               sortDirection={sortDirection}
               onSort={handleSort}
             />
-
-            <PaginationControls
-              count={totalPages}
-              page={currentPage}
-              onPageChange={handlePageChange}
-              rowsPerPage={rowsPerPage}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              totalItems={totalItems}
-            />
+            {totalPages > 1 && (
+              <PaginationControls
+                count={totalPages}
+                page={currentPage}
+                onPageChange={handlePageChange}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                totalItems={totalItems}
+              />
+            )}
           </Paper>
 
           {filteredCompanies.length === 0 && !isLoading && (

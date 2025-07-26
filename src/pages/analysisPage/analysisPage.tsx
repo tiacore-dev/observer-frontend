@@ -417,15 +417,16 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                     : undefined
                 }
               />
-
-              <PaginationControls
-                count={totalPages}
-                page={currentPage}
-                onPageChange={handlePageChange}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleRowsPerPageChange}
-                totalItems={totalItems}
-              />
+              {totalPages > 1 && (
+                <PaginationControls
+                  count={totalPages}
+                  page={currentPage}
+                  onPageChange={handlePageChange}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={handleRowsPerPageChange}
+                  totalItems={totalItems}
+                />
+              )}
             </Paper>
 
             {filteredAnalysis.length === 0 && !isLoading && (
