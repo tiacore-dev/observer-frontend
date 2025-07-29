@@ -23,8 +23,11 @@ import {
 } from "../../redux/slice/accountsSlice";
 import type { RootState } from "../../redux/store";
 import GroupIcon from "@mui/icons-material/Group";
+import { useThemeMode } from "../../context/themeContext";
 
 export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
+  const theme = useThemeMode();
+
   const dispatch = useDispatch();
   const {
     nameFilter,
@@ -149,7 +152,9 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
             sx={{
               p: 3,
               mb: 1,
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              background: theme.isDarkMode
+                ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               color: "white",
             }}
           >

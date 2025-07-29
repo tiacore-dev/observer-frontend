@@ -43,13 +43,14 @@ import {
   ExitToApp,
   Person,
   Add,
-  Group,
   Info,
-  Home,
   DeveloperMode,
+  DarkMode,
+  LightMode,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import { useThemeMode } from "../context/themeContext";
 import { AddCompanyModal } from "../pages/companiesPage/addCompanyModal";
 import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
@@ -87,6 +88,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+  const { isDarkMode, toggleTheme } = useThemeMode();
   const {
     isSuperadmin,
     user,
@@ -216,7 +218,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: "#7f7f9f", minWidth: 40 }}>
+                      <ListItemIcon
+                        sx={{
+                          color: theme.palette.text.secondary,
+                          minWidth: 40,
+                        }}
+                      >
                         {item.icon}
                       </ListItemIcon>
                       <ListItemText
@@ -262,7 +269,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                           },
                         }}
                       >
-                        <ListItemIcon sx={{ minWidth: 32, color: "#7f7f9f" }}>
+                        <ListItemIcon
+                          sx={{
+                            minWidth: 32,
+                            color: theme.palette.text.secondary,
+                          }}
+                        >
                           {child.icon}
                         </ListItemIcon>
                         <ListItemText
@@ -304,7 +316,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ color: "#7f7f9f", minWidth: 40 }}>
+                    <ListItemIcon
+                      sx={{ color: theme.palette.text.secondary, minWidth: 40 }}
+                    >
                       {item.badge ? (
                         <Badge badgeContent={item.badge} color="error">
                           {item.icon}
@@ -345,9 +359,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           zIndex: (theme) => theme.zIndex.drawer - 1,
           borderBottom: 1,
           borderColor: "divider",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          backgroundColor: isDarkMode
+            ? "rgba(30, 41, 59, 0.95)"
+            : "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(10px)",
-          borderRadius: 0, // Убираем закругленные углы
+          borderRadius: 0,
         }}
       >
         <Toolbar sx={{ minHeight: "70px !important" }}>
@@ -422,7 +438,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         border: 1,
                         borderColor: "divider",
                         borderRadius: 1,
-                      }} // Убираем закругленные углы
+                      }}
                     >
                       <FormControl size="small" sx={{ minWidth: 140 }}>
                         <InputLabel>Компании</InputLabel>
@@ -434,7 +450,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                             "& .MuiOutlinedInput-notchedOutline": {
                               border: "none",
                             },
-                            borderRadius: 1, // Убираем закругленные углы
+                            borderRadius: 1,
                           }}
                         >
                           {availableCompanies.map((companyId) => (
@@ -489,7 +505,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     onClick={handleAddCompanyClick}
                     size="small"
                     sx={{
-                      borderRadius: 1, // Убираем закругленные углы
+                      borderRadius: 1,
                       textTransform: "none",
                       fontWeight: 500,
                     }}
@@ -499,6 +515,23 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 )}
               </>
             )}
+
+            {/* Theme Toggle Button */}
+            <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
+              <IconButton
+                onClick={toggleTheme}
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                  },
+                  borderRadius: 1,
+                }}
+              >
+                {isDarkMode ? <LightMode /> : <DarkMode />}
+              </IconButton>
+            </Tooltip>
+
             {isSuperadmin && (
               <Tooltip
                 title={
@@ -514,7 +547,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     borderColor: developerMode
                       ? theme.palette.warning.main
                       : "divider",
-                    borderRadius: 1, // Убираем закругленные углы
+                    borderRadius: 1,
                     bgcolor: developerMode
                       ? alpha(theme.palette.warning.main, 0.1)
                       : "transparent",
@@ -549,7 +582,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     label="Суперадмин"
                     size="small"
                     color="primary"
-                    sx={{ height: 20, fontSize: "0.7rem", borderRadius: 1 }} // Убираем закругленные углы
+                    sx={{ height: 20, fontSize: "0.7rem", borderRadius: 1 }}
                   />
                 )}
               </Box>
@@ -564,7 +597,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   "&:hover": {
                     bgcolor: alpha(theme.palette.primary.main, 0.2),
                   },
-                  borderRadius: 4, // Убираем закругленные углы
+                  borderRadius: 4,
                 }}
               >
                 <Avatar
@@ -607,10 +640,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             elevation: 8,
             sx: {
               mt: 1,
-              borderRadius: 1, // Убираем закругленные углы
+              borderRadius: 1,
               minWidth: 200,
               "& .MuiMenuItem-root": {
-                borderRadius: 1, // Убираем закругленные углы
+                borderRadius: 1,
                 mx: 1,
                 my: 0.5,
               },
@@ -665,9 +698,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 boxShadow: theme.shadows[8],
                 left: "8px",
                 borderRadius: 1,
-                // bottom: "78px",
-                top: "82px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 90px)", // Вычитаем отступ сверху
+                top: "82px",
+                height: "calc(100% - 90px)",
               },
             }}
           >
@@ -685,9 +717,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 borderColor: "divider",
                 left: "8px",
                 borderRadius: "16px",
-                // bottom: "78px",
-                top: "82px", // 70px (AppBar) + 10px дополнительного отступа
-                height: "calc(100% - 90px)", // Вычитаем отступ сверху
+                top: "82px",
+                height: "calc(100% - 90px)",
               },
             }}
             open
@@ -705,7 +736,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           pb: 3,
           width: { sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)` },
           minHeight: "100vh",
-          backgroundColor: alpha(theme.palette.grey[50], 0.3),
+          backgroundColor: isDarkMode
+            ? alpha(theme.palette.grey[50], 0.3)
+            : alpha(theme.palette.grey[50], 0.3),
         }}
       >
         {children}

@@ -31,10 +31,13 @@ import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
 import { useChatMap } from "../../hooks/maps/useChatMap";
 import { usePromptMap } from "../../hooks/maps/usePromptMap";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
+import { useThemeMode } from "../../context/themeContext";
 
 export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
 }) => {
+  const theme = useThemeMode();
+
   const { analysisId } = useParams<{ analysisId: string }>();
   const navigate = useNavigate();
   const {
@@ -148,7 +151,9 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
         sx={{
           p: 3,
           mb: 1,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: theme.isDarkMode
+            ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+            : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
         <Box
@@ -206,7 +211,9 @@ export const AnalysisDetailsPage: React.FC<{ developerMode: boolean }> = ({
             onClick={() => navigate(-1)}
             variant="contained"
             sx={{
-              backgroundColor: "white",
+              fontWeight: 600,
+              border: "1px solid rgba(255, 255, 255, 0.25)",
+              backgroundColor: "#ffffffee",
               color: "#764ba2",
               "&:hover": {
                 backgroundColor: "#ffffffec",

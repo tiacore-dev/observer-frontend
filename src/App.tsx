@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+"use client";
+
+import type React from "react";
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   BrowserRouter as Router,
@@ -20,13 +23,14 @@ import { AccountsPage } from "./pages/accountsPage/accountsPage";
 import { AnalysisPage } from "./pages/analysisPage/analysisPage";
 import { AuthProvider } from "./context/authContext";
 import { AccountPage } from "./pages/accountPage/AccountPage";
-import theme from "./themeConfig/theme";
+import getTheme from "./themeConfig/theme";
 import { ThemeProvider } from "@mui/material/styles";
 import { AnalysisDetailsPage } from "./pages/analysisPage/analysisDetailsPage";
 import { ScheduleDetailsPage } from "./pages/schedulesPage/scheduleDetailsPage";
 import { HelpPage } from "./pages/helpPage/helpPage";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
+import { ThemeModeProvider, useThemeMode } from "./context/themeContext";
 
 export interface PageProps {
   developerMode: boolean;
@@ -34,94 +38,104 @@ export interface PageProps {
 
 const queryClient = new QueryClient();
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [developerMode, setDeveloperMode] = useState(false);
+  const { isDarkMode } = useThemeMode();
+  const theme = getTheme(isDarkMode ? "dark" : "light");
 
   return (
-    <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <QueryClientProvider client={queryClient}>
-          <SnackbarProvider maxSnack={3}>
-            <Router>
-              <AuthProvider>
-                <Routes>
-                  <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider theme={theme}>
+      <QueryClientProvider client={queryClient}>
+        <SnackbarProvider maxSnack={3}>
+          <Router>
+            <AuthProvider>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  element={
+                    <ProtectedRoute
+                      developerMode={developerMode}
+                      onToggleDeveloperMode={() =>
+                        setDeveloperMode(!developerMode)
+                      }
+                    />
+                  }
+                >
+                  <Route path="/account" element={<AccountPage />} />
                   <Route
+                    path="/bots"
+                    element={<BotsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/bots/:botId"
+                    element={<BotsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/accounts"
+                    element={<AccountsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/chats"
+                    element={<ChatsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/prompts"
+                    element={<PromptsPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/prompts/:promptId"
                     element={
-                      <ProtectedRoute
-                        developerMode={developerMode}
-                        onToggleDeveloperMode={() =>
-                          setDeveloperMode(!developerMode)
-                        }
-                      />
+                      <PromptDetailsPage developerMode={developerMode} />
                     }
-                  >
-                    <Route path="/account" element={<AccountPage />} />
-                    <Route
-                      path="/bots"
-                      element={<BotsPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/bots/:botId"
-                      element={<BotsPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/accounts"
-                      element={<AccountsPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/chats"
-                      element={<ChatsPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/prompts"
-                      element={<PromptsPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/prompts/:promptId"
-                      element={
-                        <PromptDetailsPage developerMode={developerMode} />
-                      }
-                    />
-                    <Route
-                      path="/analysis"
-                      element={<AnalysisPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/analysis/:analysisId"
-                      element={
-                        <AnalysisDetailsPage developerMode={developerMode} />
-                      }
-                    />
-                    <Route
-                      path="/schedules"
-                      element={<SchedulesPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/schedules/:scheduleId"
-                      element={
-                        <ScheduleDetailsPage developerMode={developerMode} />
-                      }
-                    />
-                    <Route
-                      path="/companies"
-                      element={<CompaniesPage developerMode={developerMode} />}
-                    />
-                    <Route
-                      path="/companies/:companyId"
-                      element={<CompaniesPage developerMode={developerMode} />}
-                    />
-                    <Route path="/help" element={<HelpPage />} />
-                    <Route path="/home" element={<HomePage />} />
-                    <Route path="*" element={<Navigate to="/home" />} />
-                  </Route>
-                  <Route path="*" element={<Navigate to="/login" />} />
-                </Routes>
-              </AuthProvider>
-            </Router>
-          </SnackbarProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+                  />
+                  <Route
+                    path="/analysis"
+                    element={<AnalysisPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/analysis/:analysisId"
+                    element={
+                      <AnalysisDetailsPage developerMode={developerMode} />
+                    }
+                  />
+                  <Route
+                    path="/schedules"
+                    element={<SchedulesPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/schedules/:scheduleId"
+                    element={
+                      <ScheduleDetailsPage developerMode={developerMode} />
+                    }
+                  />
+                  <Route
+                    path="/companies"
+                    element={<CompaniesPage developerMode={developerMode} />}
+                  />
+                  <Route
+                    path="/companies/:companyId"
+                    element={<CompaniesPage developerMode={developerMode} />}
+                  />
+                  <Route path="/help" element={<HelpPage />} />
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="*" element={<Navigate to="/home" />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/login" />} />
+              </Routes>
+            </AuthProvider>
+          </Router>
+        </SnackbarProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Provider store={store}>
+      <ThemeModeProvider>
+        <AppContent />
+      </ThemeModeProvider>
     </Provider>
   );
 };

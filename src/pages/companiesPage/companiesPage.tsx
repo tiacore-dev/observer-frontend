@@ -31,8 +31,11 @@ import {
   setSortDirection,
   resetFilters,
 } from "../../redux/slice/companiesSlice";
+import { useThemeMode } from "../../context/themeContext";
 
 export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
+  const theme = useThemeMode();
+
   const { companyId } = useParams();
   const navigate = useNavigate();
   const { data, isLoading, error } = useCompaniesQuery();
@@ -133,7 +136,9 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
             sx={{
               p: 3,
               mb: 1,
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              background: theme.isDarkMode
+                ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               color: "white",
             }}
           >

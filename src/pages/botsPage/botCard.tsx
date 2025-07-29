@@ -27,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 import { useUpdateBot } from "../../hooks/bots/useBotsMutations";
 import { EditBotDescriptionModal } from "./editBotDescriptionModal";
 import { useQueryClient } from "@tanstack/react-query";
+import { useThemeMode } from "../../context/themeContext";
 
 interface BotCardProps {
   bot: IBot;
@@ -39,6 +40,8 @@ export const BotCard: React.FC<BotCardProps> = ({
   companyName,
   developerMode,
 }) => {
+  const theme = useThemeMode();
+
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const updateBot = useUpdateBot(bot.bot_id);
@@ -155,7 +158,9 @@ export const BotCard: React.FC<BotCardProps> = ({
         sx={{
           p: 3,
           mb: 1,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: theme.isDarkMode
+            ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+            : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
         <Box

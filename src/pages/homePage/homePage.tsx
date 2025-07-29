@@ -46,8 +46,11 @@ import { useCompaniesQuery } from "../../hooks/companies/useCompaniesQuery";
 import { GuidedTour } from "../../components/guidedTour";
 import { SetupProgress } from "../../components/setupProgress";
 import ChatIcon from "@mui/icons-material/Chat";
+import { useThemeMode } from "../../context/themeContext";
 
 export const HomePage: React.FC = () => {
+  const theme = useThemeMode();
+
   const navigate = useNavigate();
   const { user, isSuperadmin, availableCompanies } = useAuth();
   const [showTour, setShowTour] = useState(false);
@@ -194,7 +197,9 @@ export const HomePage: React.FC = () => {
         sx={{
           p: 4,
           mb: 2,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: theme.isDarkMode
+            ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+            : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           color: "white",
           borderRadius: 1,
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
@@ -354,52 +359,54 @@ export const HomePage: React.FC = () => {
       </Box>
 
       {/* Быстрые советы */}
-      <Card sx={{ mb: 2, borderRadius: 1 }}>
-        <CardContent>
-          <Typography
-            variant="h6"
-            gutterBottom
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              fontWeight: 600,
-            }}
-          >
-            <TipsAndUpdates color="primary" sx={{ mr: 1 }} />
-            Советы по началу работы
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <List dense>
-            <ListItem sx={{ px: 0 }}>
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <PlayArrow color="primary" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Создайте компанию для начала работы"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 0 }}>
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <PlayArrow color="primary" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Добавьте Telegram-бота для подключения к системе"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 0 }}>
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <PlayArrow color="primary" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Создайте промпты для анализа сообщений"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-          </List>
-        </CardContent>
-      </Card>
+      {!isNewUser && (
+        <Card sx={{ mb: 2, borderRadius: 1 }}>
+          <CardContent>
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                fontWeight: 600,
+              }}
+            >
+              <TipsAndUpdates color="primary" sx={{ mr: 1 }} />
+              Советы по началу работы
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <List dense>
+              <ListItem sx={{ px: 0 }}>
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  <PlayArrow color="primary" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Создайте компанию для начала работы"
+                  primaryTypographyProps={{ variant: "body2" }}
+                />
+              </ListItem>
+              <ListItem sx={{ px: 0 }}>
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  <PlayArrow color="primary" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Добавьте Telegram-бота для подключения к системе"
+                  primaryTypographyProps={{ variant: "body2" }}
+                />
+              </ListItem>
+              <ListItem sx={{ px: 0 }}>
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  <PlayArrow color="primary" fontSize="small" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Создайте промпты для анализа сообщений"
+                  primaryTypographyProps={{ variant: "body2" }}
+                />
+              </ListItem>
+            </List>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Кнопка помощи */}
       <Zoom in={!showTour}>
@@ -409,9 +416,13 @@ export const HomePage: React.FC = () => {
             position: "fixed",
             bottom: 24,
             right: 24,
-            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            background: theme.isDarkMode
+              ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+              : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
             "&:hover": {
-              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+              background: theme.isDarkMode
+                ? "linear-gradient(135deg, #4f46e5aa 0%, #7c3aedaa 100%)"
+                : "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
             },
           }}
           onClick={() => navigate("/help")}

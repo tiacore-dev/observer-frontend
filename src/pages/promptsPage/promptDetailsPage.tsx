@@ -29,10 +29,13 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { EditPromptModal } from "./editPromptModal";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
+import { useThemeMode } from "../../context/themeContext";
 
 export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
 }) => {
+  const theme = useThemeMode();
+
   const { promptId } = useParams<{ promptId: string }>();
   const navigate = useNavigate();
   const {
@@ -170,7 +173,9 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
         sx={{
           p: 3,
           mb: 1,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: theme.isDarkMode
+            ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+            : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
         <Box

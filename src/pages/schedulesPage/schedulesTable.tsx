@@ -18,12 +18,9 @@ import {
 } from "@mui/material";
 import {
   Schedule as ScheduleIcon,
-  SmartToy as BotIcon,
   Notifications as NotificationIcon,
   Analytics as AnalysisIcon,
   AccessTime as TimeIcon,
-  CheckCircle as EnabledIcon,
-  Cancel as DisabledIcon,
   Business as CompanyIcon,
   CalendarToday as CalendarIcon,
   CheckCircle,
@@ -225,7 +222,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
       <TableContainer>
         <Table sx={{ minWidth: 650 }} aria-label="schedules table">
           <TableHead>
-            <TableRow sx={{ bgcolor: "grey.50" }}>
+            <TableRow>
               {developerMode && (
                 <TableCell sx={{ fontWeight: 600, width: "80px" }}>
                   ID

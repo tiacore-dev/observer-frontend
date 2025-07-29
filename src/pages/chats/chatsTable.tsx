@@ -1,3 +1,5 @@
+"use client";
+
 import type React from "react";
 import {
   Table,
@@ -15,9 +17,7 @@ import {
 import type { IChat } from "../../api/chatsApi";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
-import TagIcon from "@mui/icons-material/Tag";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import ContentCopy from "@mui/icons-material/ContentCopy";
 
 type SortField = "chat_id" | "chat_name" | "created_at";
 
@@ -106,7 +106,7 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
   return (
     <TableContainer>
       <Table sx={{ minWidth: 650 }} aria-label="таблица чатов">
-        <TableHead sx={{ backgroundColor: "#f8f9fa" }}>
+        <TableHead>
           <TableRow>
             <SortableTableHeader<SortField>
               field="chat_name"
@@ -139,7 +139,7 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
               key={chat.chat_id}
               sx={{
                 "&:last-child td, &:last-child th": { border: 0 },
-                "&:hover": { backgroundColor: "#f8f9fa" },
+                "&:hover": {}, // Оставьте пустым, стили будут из темы
                 transition: "background-color 0.2s ease",
               }}
             >
@@ -194,7 +194,6 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
                       variant="body2"
                       sx={{
                         cursor: "pointer",
-
                         fontFamily: "monospace",
                         fontSize: "0.85rem",
                         bgcolor: "grey.100",

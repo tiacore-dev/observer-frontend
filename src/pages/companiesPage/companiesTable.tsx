@@ -12,12 +12,8 @@ import {
   Box,
   Typography,
   Avatar,
-  Chip,
 } from "@mui/material";
-import {
-  Business as BusinessIcon,
-  Description as DescriptionIcon,
-} from "@mui/icons-material";
+import { Description as DescriptionIcon } from "@mui/icons-material";
 import type { ICompany } from "../../api/companiesApi";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
 import { ContextMenu } from "./contextMenu";
@@ -109,7 +105,7 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
       <TableContainer>
         <Table sx={{ minWidth: 650 }} aria-label="companies table">
           <TableHead>
-            <TableRow sx={{ bgcolor: "grey.50" }}>
+            <TableRow>
               {developerMode && (
                 <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
               )}

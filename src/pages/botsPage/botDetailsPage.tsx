@@ -37,6 +37,7 @@ import {
   useSetWebhookMutation,
   useDeleteWebhookMutation,
 } from "../../hooks/webhook/useWebhookMutations";
+import { useThemeMode } from "../../context/themeContext";
 
 interface BotDetailsPageProps {
   botId: string;
@@ -47,6 +48,8 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
   botId,
   developerMode,
 }) => {
+  const theme = useThemeMode();
+
   const { data: bot, isLoading, error, refetch } = useBotDetailsQuery(botId);
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const navigate = useNavigate();
@@ -219,7 +222,9 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
         sx={{
           p: 3,
           mb: 1,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: theme.isDarkMode
+            ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+            : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
         <MuiBox
@@ -316,7 +321,7 @@ export const BotDetailsPage: React.FC<BotDetailsPageProps> = ({
                 setWebhookMutation.isPending || deleteWebhookMutation.isPending
               }
             >
-              {bot.is_active ? "Запустить" : "Остановить"}
+              {bot.is_active ? "Остановить" : "Запустить"}
               {(setWebhookMutation.isPending ||
                 deleteWebhookMutation.isPending) && (
                 <CircularProgress size={20} sx={{ ml: 1, color: "white" }} />

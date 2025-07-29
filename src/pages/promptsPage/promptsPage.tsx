@@ -42,8 +42,11 @@ import {
   resetFilters,
 } from "../../redux/slice/promptsSlice";
 import type { RootState } from "../../redux/store";
+import { useThemeMode } from "../../context/themeContext";
 
 export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
+  const theme = useThemeMode();
+
   const { isSuperadmin } = useAuth();
   const dispatch = useDispatch();
   const {
@@ -206,7 +209,9 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         sx={{
           p: 3,
           mb: 1,
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: theme.isDarkMode
+            ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+            : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           color: "white",
         }}
       >

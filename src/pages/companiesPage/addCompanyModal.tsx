@@ -145,7 +145,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
           />
         </Box>
 
-        <Alert severity="success" variant="outlined" sx={{ mt: 2 }}>
+        <Alert severity="info" variant="outlined" sx={{ mt: 2 }}>
           <Typography variant="body2">
             После создания компании вы сможете добавить для неё ботов, настроить
             анализ чатов и создать расписания отчётов.
