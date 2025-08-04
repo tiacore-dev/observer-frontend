@@ -332,9 +332,9 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
           variant="contained"
           disabled={
             !botData.token ||
-            !botData.company_id ||
-            tokenStatus.status !== "success" ||
-            isValidatingToken ||
+            // !botData.company_id ||
+            // tokenStatus.status !== "success" ||
+            // isValidatingToken ||
             createBot.isPending
           }
           startIcon={
