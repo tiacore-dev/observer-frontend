@@ -203,12 +203,12 @@ const getTheme = (mode: "light" | "dark") => {
             background:
               mode === "dark"
                 ? "linear-gradient(135deg, #818cf822 0%, #a78bfa22 100%)"
-                : "linear-gradient(135deg, #6366f177 0%, #8b5cf677 100%)",
+                : "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
             "&:hover": {
               background:
                 mode === "dark"
                   ? "linear-gradient(135deg, #6366f122 0%, #8b5cf622 100%)"
-                  : "linear-gradient(135deg, #4f46e577 0%, #7c3aed77 100%)",
+                  : "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
             },
             "&.Mui-disabled": {
               background:
