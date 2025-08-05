@@ -92,9 +92,9 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      console.log("Скопировано:", text);
+      // console.log("Скопировано:", text);
     } catch (err) {
-      console.error("Ошибка при копировании:", err);
+      // console.error("Ошибка при копировании:", err);
     }
   };
 

@@ -7,7 +7,6 @@ import { useAuth } from "../../context/authContext";
 export const useSetWebhookMutation = () => {
   const queryClient = useQueryClient();
   const { selectedCompanyId, isSuperadmin } = useAuth();
-  console.log("Mutation  sci:", selectedCompanyId, " isa:", isSuperadmin);
   return useMutation({
     mutationFn: (bot_id: string) =>
       setWebhook(bot_id, selectedCompanyId, isSuperadmin),

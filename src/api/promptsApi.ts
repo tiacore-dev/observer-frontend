@@ -45,11 +45,10 @@ export const createPrompt = async (
   }
 
   // Добавляем логирование для отладки
-  console.log("API: Отправляемые данные на сервер:", {
-    ...newPrompt,
-    textLength: newPrompt.text.length,
-  });
-
+  // console.log("API: Отправляемые данные на сервер:", {
+  //   ...newPrompt,
+  //   textLength: newPrompt.text.length,
+  // })
   const response = await axiosInstance.post(
     `${url}/api/prompts/add`,
     newPrompt,
@@ -62,7 +61,7 @@ export const createPrompt = async (
     }
   );
 
-  console.log("API: Ответ сервера:", response.data);
+  // console.log("API: Ответ сервера:", response.data);
   return response.data;
 };
 

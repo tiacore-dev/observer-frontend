@@ -44,7 +44,6 @@ export const setWebhook = async (
   if (!isSuperadmin && selectedCompanyId) {
     params.company_id = selectedCompanyId;
   }
-  console.log("api  sci:", selectedCompanyId, " isa:", isSuperadmin);
 
   const response = await axiosInstance.patch(
     `${url}/api/webhook/${bot_id}/set`,

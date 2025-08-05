@@ -48,11 +48,13 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   open,
   onClose,
 }) => {
-  const { isSuperadmin, selectedCompanyId } = useAuth();
+  const { isSuperadmin } = useAuth();
+  const selectedCompanyId = localStorage.getItem("selected_company_id");
+
   const [promptData, setPromptData] = useState({
     prompt_name: "",
     text: "",
-    company_id: "",
+    company_id: isSuperadmin ? "" : selectedCompanyId || "",
   });
   const [showHelp, setShowHelp] = useState(false);
   const createPrompt = useCreatePrompt();
@@ -104,9 +106,14 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
         text: trimmedText,
       });
       onClose();
-      setPromptData({ prompt_name: "", text: "", company_id: "" });
+      // Полный сброс состояния с учетом прав пользователя
+      setPromptData({
+        prompt_name: "",
+        text: "",
+        company_id: isSuperadmin ? "" : selectedCompanyId || "",
+      });
     } catch (error) {
-      console.error("Error creating prompt:", error);
+      // console.error("Error creating prompt:", error);
     }
   };
 
@@ -178,7 +185,7 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
           <InfoCard
             type="info"
             title="Что такое промпт?"
-            description=" Промпт — это инструкция для ИИ, которая объясняет, как
+            description="Промпт — это инструкция для ИИ, которая объясняет, как
               анализировать сообщения, какие данные искать. Чем точнее
               инструкция, тем лучше результат анализа."
           />
@@ -342,7 +349,7 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
           variant="contained"
           disabled={
             promptData.prompt_name.trim().length < 3 ||
-            !promptData.company_id ||
+            (isSuperadmin && !promptData.company_id) ||
             !promptData.text.trim() ||
             createPrompt.isPending
           }
