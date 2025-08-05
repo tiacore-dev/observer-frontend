@@ -258,7 +258,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Статус"
-                // sx={{ width: "140px" }}
               />
               {isSuperadmin && (
                 <SortableTableHeader<SortField>
@@ -407,7 +406,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
+                        // justifyContent: "center",
                         gap: 1,
                       }}
                     >
