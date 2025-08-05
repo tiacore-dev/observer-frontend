@@ -229,6 +229,10 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
                   Дайте боту права <strong>администратора</strong> с
                   возможностью отправки сообщений
                 </li>
+                <li>
+                  Убедиться, что после добавления бота в чате есть новые
+                  сообщения
+                </li>
               </Box>
             </InfoCard>
           </Box>
@@ -311,10 +315,21 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
           />
 
           <Alert severity="info" variant="outlined">
-            <Typography variant="body2">
-              После создания бота не забудьте добавить его в нужные чаты и
-              назначить администратором с правами на отправку сообщений.
-            </Typography>
+            <Box component="div">
+              <Typography variant="body2">
+                Для корректной работы бота необходимо:
+              </Typography>
+              <Typography variant="body2">
+                • Добавить бота в нужные чаты
+              </Typography>
+              <Typography variant="body2">
+                • Назначить его администратором с правами на отправку сообщений
+              </Typography>
+              <Typography variant="body2">
+                • Убедиться, что после добавления бота в чате есть новые
+                сообщения
+              </Typography>
+            </Box>
           </Alert>
         </Box>
       </DialogContent>
