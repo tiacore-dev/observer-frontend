@@ -126,7 +126,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
       PaperProps={{
         sx: {
           borderRadius: 1,
-          backgroundColor: "white",
+          // backgroundColor: "white",
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
         },
       }}

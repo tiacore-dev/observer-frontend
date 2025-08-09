@@ -17,16 +17,43 @@ export interface IAnalys {
 
 export const fetchAnalysis = async (
   selectedCompanyId?: string | null,
-  isSuperadmin?: boolean
+  isSuperadmin?: boolean,
+  params?: {
+    page?: number;
+    page_size?: number;
+    prompt_id?: string;
+    chat_id?: number;
+    sort_field?: keyof IAnalys;
+    sort_direction?: "asc" | "desc";
+    date_from?: Date | null;
+    date_to?: Date | null;
+    company_id?: string;
+  }
 ) => {
   const url = process.env.REACT_APP_API_URL;
   const accessToken = localStorage.getItem("access_token");
-  const params: any = { page: 1, page_size: 100 };
+
+  const requestParams: any = {
+    page: params?.page || 1,
+    page_size: params?.page_size || 10,
+  };
+
+  if (params?.prompt_id) requestParams.prompt_id = params.prompt_id;
+  if (params?.chat_id) requestParams.chat_id = params.chat_id;
+  if (params?.sort_field) requestParams.sort_field = params.sort_field;
+  if (params?.sort_direction)
+    requestParams.sort_direction = params.sort_direction;
+  if (params?.date_from) requestParams.date_from = params.date_from;
+  if (params?.date_to) requestParams.date_to = params.date_to;
+
   if (!isSuperadmin && selectedCompanyId) {
-    params.company_id = selectedCompanyId;
+    requestParams.company_id = selectedCompanyId;
+  } else if (params?.company_id) {
+    requestParams.company_id = params.company_id;
   }
+
   const response = await axiosInstance.get(`${url}/api/analysis/all`, {
-    params,
+    params: requestParams,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
@@ -35,6 +62,7 @@ export const fetchAnalysis = async (
   return response.data;
 };
 
+// Остальные функции остаются без изменений
 export const createAnalysis = async (
   newAnalysis: {
     prompt_id: string;

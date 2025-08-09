@@ -5,6 +5,8 @@ import {
   IAnalys,
 } from "../../api/analysisApi";
 import { useAuth } from "../../context/authContext";
+import { RootState } from "../../redux/store";
+import { useSelector } from "react-redux";
 
 export interface IAnalysisResponse {
   total: number;
@@ -15,9 +17,45 @@ export const useAnalysisQuery = () => {
   const { selectedCompanyId, isSuperadmin } = useAuth();
   const user_id = localStorage.getItem("user_id");
 
+  const {
+    chatSelectFilter,
+    promptSelectFilter,
+    companySelectFilter,
+    dateFrom,
+    dateTo,
+    page,
+    rowsPerPage,
+    sortField,
+    sortDirection,
+  } = useSelector((state: RootState) => state.analysis);
+
   return useQuery<IAnalysisResponse>({
-    queryKey: ["analysis", selectedCompanyId, user_id],
-    queryFn: () => fetchAnalysis(selectedCompanyId, isSuperadmin),
+    queryKey: [
+      "analysis",
+      selectedCompanyId,
+      user_id,
+      chatSelectFilter,
+      promptSelectFilter,
+      companySelectFilter,
+      dateFrom,
+      dateTo,
+      page,
+      rowsPerPage,
+      sortField,
+      sortDirection,
+    ],
+    queryFn: () =>
+      fetchAnalysis(selectedCompanyId, isSuperadmin, {
+        page,
+        page_size: rowsPerPage,
+        chat_id: chatSelectFilter || undefined,
+        prompt_id: promptSelectFilter || undefined,
+        company_id: companySelectFilter || undefined,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
+        sort_field: sortField,
+        sort_direction: sortDirection,
+      }),
     staleTime: 5 * 60 * 1000,
     retry: false,
   });

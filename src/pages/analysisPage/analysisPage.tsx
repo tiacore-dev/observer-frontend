@@ -54,8 +54,7 @@ import { useThemeMode } from "../../context/themeContext";
 
 export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
-
-  const { isSuperadmin } = useAuth();
+  const { isSuperadmin, selectedCompanyId } = useAuth();
   const dispatch = useDispatch();
   const {
     chatFilter,
@@ -112,103 +111,55 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     dispatch(resetFilters());
   };
 
-  const filteredAnalysis = useMemo(() => {
-    if (!analysisData?.analysis) return [];
+  // Получаем списки чатов и промптов для Autocomplete
+  const chatOptions = useMemo(() => {
+    return (
+      chatsData?.chats?.map((chat) => ({
+        id: chat.chat_id,
+        name: chat.chat_name,
+      })) || []
+    );
+  }, [chatsData]);
 
-    let filtered = [...analysisData.analysis];
+  const promptOptions = useMemo(() => {
+    return (
+      promptsData?.prompts?.map((prompt) => ({
+        id: prompt.prompt_id,
+        name: prompt.prompt_name,
+      })) || []
+    );
+  }, [promptsData]);
 
-    if (chatFilter || chatSelectFilter) {
-      const chatFilterValue = chatSelectFilter || chatFilter;
-      filtered = filtered.filter(
-        (item) =>
-          chatMap
-            .get(item.chat_id)
-            ?.toLowerCase()
-            .includes(chatFilterValue.toLowerCase()) ??
-          item.chat_id.toString().includes(chatFilterValue)
-      );
-    }
+  // Получаем выбранные чат и промпт
+  const selectedChat = useMemo(() => {
+    return chatOptions.find((chat) => chat.id === chatSelectFilter) || null;
+  }, [chatOptions, chatSelectFilter]);
 
-    if (promptFilter || promptSelectFilter) {
-      const promptFilterValue = promptSelectFilter || promptFilter;
-      filtered = filtered.filter(
-        (item) =>
-          promptMap
-            .get(item.prompt_id)
-            ?.toLowerCase()
-            .includes(promptFilterValue.toLowerCase()) ??
-          item.prompt_id.toLowerCase().includes(promptFilterValue.toLowerCase())
-      );
-    }
+  const selectedPrompt = useMemo(() => {
+    return (
+      promptOptions.find((prompt) => prompt.id === promptSelectFilter) || null
+    );
+  }, [promptOptions, promptSelectFilter]);
 
-    if (isSuperadmin && (companyFilter || companySelectFilter)) {
-      const companyFilterValue = companySelectFilter || companyFilter;
-      filtered = filtered.filter(
-        (item) =>
-          companyMap
-            .get(item.company_id)
-            ?.toLowerCase()
-            .includes(companyFilterValue.toLowerCase()) ??
-          item.company_id
-            .toLowerCase()
-            .includes(companyFilterValue.toLowerCase())
-      );
-    }
+  // Фильтрация теперь происходит на сервере, поэтому просто используем полученные данные
+  const filteredAnalysis = analysisData?.analysis || [];
+  const totalItems = analysisData?.total || 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
 
-    if (dateFrom) {
-      filtered = filtered.filter(
-        (item) => new Date(item.created_at) >= dateFrom
-      );
-    }
-
-    if (dateTo) {
-      const endOfDay = new Date(dateTo);
-      endOfDay.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(
-        (item) => new Date(item.created_at) <= endOfDay
-      );
-    }
-
-    return filtered.sort((a, b) => {
-      const aValue = a[sortField]?.toString() ?? "";
-      const bValue = b[sortField]?.toString() ?? "";
-      return sortDirection === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    });
+  useEffect(() => {
+    refetch();
   }, [
-    analysisData,
-    chatFilter,
+    page,
+    rowsPerPage,
     chatSelectFilter,
-    promptFilter,
     promptSelectFilter,
-    companyFilter,
     companySelectFilter,
     dateFrom,
     dateTo,
     sortField,
     sortDirection,
-    chatMap,
-    promptMap,
-    companyMap,
-    isSuperadmin,
+    refetch,
   ]);
-
-  const totalItems = filteredAnalysis.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
-  const currentPage = Math.min(Math.max(1, page), totalPages);
-  const paginatedAnalysis = useMemo(() => {
-    return filteredAnalysis.slice(
-      (currentPage - 1) * rowsPerPage,
-      currentPage * rowsPerPage
-    );
-  }, [filteredAnalysis, currentPage, rowsPerPage]);
-
-  useEffect(() => {
-    if (page !== currentPage) {
-      dispatch(setPage(currentPage));
-    }
-  }, [page, currentPage, dispatch]);
 
   const handleSort = (field: keyof IAnalys) => {
     if (sortField === field) {
@@ -226,7 +177,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const handleRowsPerPageChange = (newRowsPerPage: number) => {
     const newTotalPages = Math.max(1, Math.ceil(totalItems / newRowsPerPage));
     dispatch(setRowsPerPage(newRowsPerPage));
-    dispatch(setPage(Math.min(currentPage, newTotalPages)));
+    dispatch(setPage(Math.min(page, newTotalPages)));
   };
 
   if (error) {
@@ -300,94 +251,38 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                 }}
               >
                 <Autocomplete
-                  freeSolo
-                  options={Array.from(chatMap.values())}
-                  value={chatSelectFilter || chatFilter}
+                  options={chatOptions}
+                  getOptionLabel={(option) => option.name}
+                  value={selectedChat}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Поиск по чату"
+                      label="Выберите чат"
                       variant="outlined"
                       size="small"
                       sx={{ width: 250 }}
-                      onChange={(e) => {
-                        dispatch(setChatFilter(e.target.value));
-                      }}
                     />
                   )}
                   onChange={(_, value) => {
-                    dispatch(setChatSelectFilter(value || ""));
+                    dispatch(setChatSelectFilter(value?.id || null));
                   }}
                 />
 
                 <Autocomplete
-                  freeSolo
-                  options={Array.from(promptMap.values())}
-                  value={promptSelectFilter || promptFilter}
+                  options={promptOptions}
+                  getOptionLabel={(option) => option.name}
+                  value={selectedPrompt}
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      label="Поиск по промпту"
+                      label="Выберите промпт"
                       variant="outlined"
                       size="small"
                       sx={{ width: 250 }}
-                      onChange={(e) => {
-                        dispatch(setPromptFilter(e.target.value));
-                      }}
                     />
                   )}
                   onChange={(_, value) => {
-                    dispatch(setPromptSelectFilter(value || ""));
-                  }}
-                />
-
-                {isSuperadmin && (
-                  <Autocomplete
-                    freeSolo
-                    options={Array.from(companyMap.values())}
-                    value={companySelectFilter || companyFilter}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Поиск по компании"
-                        variant="outlined"
-                        size="small"
-                        sx={{ width: 250 }}
-                        onChange={(e) => {
-                          dispatch(setCompanyFilter(e.target.value));
-                        }}
-                      />
-                    )}
-                    onChange={(_, value) => {
-                      dispatch(setCompanySelectFilter(value || ""));
-                    }}
-                  />
-                )}
-
-                <DatePicker
-                  label="От"
-                  value={dateFrom}
-                  onChange={(newValue) => dispatch(setDateFrom(newValue))}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      sx: { width: 150 },
-                      variant: "outlined",
-                    },
-                  }}
-                />
-
-                <DatePicker
-                  label="До"
-                  value={dateTo}
-                  onChange={(newValue) => dispatch(setDateTo(newValue))}
-                  minDate={dateFrom || undefined}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      sx: { width: 150 },
-                      variant: "outlined",
-                    },
+                    dispatch(setPromptSelectFilter(value?.id || null));
                   }}
                 />
 
@@ -408,7 +303,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
             <Paper elevation={1} sx={{ overflow: "hidden" }}>
               <AnalysisTable
-                analysis={paginatedAnalysis}
+                analysis={filteredAnalysis}
                 companyMap={companyMap}
                 chatMap={chatMap}
                 promptMap={promptMap}
@@ -425,7 +320,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
               {totalPages > 1 && (
                 <PaginationControls
                   count={totalPages}
-                  page={currentPage}
+                  page={page}
                   onPageChange={handlePageChange}
                   rowsPerPage={rowsPerPage}
                   onRowsPerPageChange={handleRowsPerPageChange}
@@ -440,8 +335,8 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                   sx={{ fontSize: 64, color: "text.secondary", mt: 2 }}
                 />
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                  {chatFilter ||
-                  promptFilter ||
+                  {chatSelectFilter ||
+                  promptSelectFilter ||
                   companyFilter ||
                   dateFrom ||
                   dateTo
@@ -449,8 +344,8 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                     : "Нет доступных анализов"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {chatFilter ||
-                  promptFilter ||
+                  {chatSelectFilter ||
+                  promptSelectFilter ||
                   companyFilter ||
                   dateFrom ||
                   dateTo

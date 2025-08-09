@@ -4,9 +4,9 @@ import { IAnalys } from "../../api/analysisApi";
 
 interface AnalysisState {
   chatFilter: string;
-  chatSelectFilter: string;
+  chatSelectFilter: number | null;
   promptFilter: string;
-  promptSelectFilter: string;
+  promptSelectFilter: string | null;
   companyFilter: string;
   companySelectFilter: string;
   dateFrom: Date | null;
@@ -19,9 +19,9 @@ interface AnalysisState {
 
 const initialState: AnalysisState = {
   chatFilter: "",
-  chatSelectFilter: "",
+  chatSelectFilter: null,
   promptFilter: "",
-  promptSelectFilter: "",
+  promptSelectFilter: null,
   companyFilter: "",
   companySelectFilter: "",
   dateFrom: null,
@@ -38,20 +38,20 @@ const analysisSlice = createSlice({
   reducers: {
     setChatFilter: (state, action: PayloadAction<string>) => {
       state.chatFilter = action.payload;
-      state.chatSelectFilter = "";
+      state.chatSelectFilter = null;
       state.page = 1;
     },
-    setChatSelectFilter: (state, action: PayloadAction<string>) => {
+    setChatSelectFilter: (state, action: PayloadAction<number | null>) => {
       state.chatSelectFilter = action.payload;
       state.chatFilter = "";
       state.page = 1;
     },
     setPromptFilter: (state, action: PayloadAction<string>) => {
       state.promptFilter = action.payload;
-      state.promptSelectFilter = "";
+      state.promptSelectFilter = null;
       state.page = 1;
     },
-    setPromptSelectFilter: (state, action: PayloadAction<string>) => {
+    setPromptSelectFilter: (state, action: PayloadAction<string | null>) => {
       state.promptSelectFilter = action.payload;
       state.promptFilter = "";
       state.page = 1;
@@ -91,9 +91,9 @@ const analysisSlice = createSlice({
     },
     resetFilters: (state) => {
       state.chatFilter = "";
-      state.chatSelectFilter = "";
+      state.chatSelectFilter = null;
       state.promptFilter = "";
-      state.promptSelectFilter = "";
+      state.promptSelectFilter = null;
       state.companyFilter = "";
       state.companySelectFilter = "";
       state.dateFrom = null;
