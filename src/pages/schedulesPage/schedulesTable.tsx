@@ -201,6 +201,42 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
     );
   };
 
+  const renderTargetChats = (targetChats: number[]) => {
+    if (!targetChats || targetChats.length === 0) {
+      return (
+        <Typography variant="body2" color="text.secondary" fontStyle="italic">
+          Не указаны
+        </Typography>
+      );
+    }
+
+    const visibleChats = targetChats.slice(0, 2);
+    const remainingCount = targetChats.length - visibleChats.length;
+
+    return (
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+          {visibleChats.map((chatId) => (
+            <Chip
+              key={chatId}
+              label={chatMap.get(chatId) || `Чат ${chatId}`}
+              size="small"
+              variant="outlined"
+            />
+          ))}
+          {remainingCount > 0 && (
+            <Chip
+              label={`[+${remainingCount}]`}
+              size="small"
+              variant="outlined"
+              color="default"
+            />
+          )}
+        </Box>
+      </Box>
+    );
+  };
+
   if (isLoading) {
     const columns = 5;
     const additionalColumns =
@@ -228,6 +264,9 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   ID
                 </TableCell>
               )}
+              <TableCell sx={{ fontWeight: 600, width: "80px" }}>
+                Название
+              </TableCell>
               <SortableTableHeader<SortField>
                 field="bot_id"
                 currentSortField={sortField}
@@ -236,22 +275,15 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 label="Telegram Бот"
                 // sx={{ minWidth: "180px" }}
               />
-              <SortableTableHeader<SortField>
-                field="schedule_strategy"
-                currentSortField={sortField}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                label="Тип задачи"
-                // sx={{ minWidth: "180px" }}
-              />
-              <SortableTableHeader<SortField>
-                field="schedule_type"
-                currentSortField={sortField}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                label="Когда выполнять"
-                // sx={{ minWidth: "180px" }}
-              />
+              <TableCell>
+                {/* // field="schedule_strategy"
+                // currentSortField={sortField}
+                // sortDirection={sortDirection}
+                // onSort={onSort} */}
+                Тип задачи
+                {/* // sx={{ minWidth: "180px" }} */}
+              </TableCell>
+              <TableCell>Когда и куда отправлять</TableCell>
               <SortableTableHeader<SortField>
                 field="enabled"
                 currentSortField={sortField}
@@ -333,7 +365,26 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
 
                   <TableCell>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      {getBotAvatar(botName)}
+                      {getBotAvatar(schedule.schedule_name || "Без названия")}
+                      <Box>
+                        <Typography variant="body1" fontWeight={500}>
+                          {schedule.schedule_name || "Без названия"}
+                        </Typography>
+                        {schedule.description && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            noWrap
+                          >
+                            {schedule.description}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </TableCell>
+
+                  <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <Box>
                         <Typography variant="body2" fontWeight={500}>
                           {botName}
@@ -386,18 +437,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                           sx={{ width: "fit-content" }}
                         />
                       </Tooltip>
-                      {sendStrategyInfo && (
-                        <Tooltip title="Стратегия отправки">
-                          <Chip
-                            icon={sendStrategyInfo.icon}
-                            label={sendStrategyInfo.label}
-                            color={sendStrategyInfo.color}
-                            variant="outlined"
-                            size="small"
-                            sx={{ width: "fit-content" }}
-                          />
-                        </Tooltip>
-                      )}
+                      {renderTargetChats(schedule.target_chats)}
                     </Box>
                   </TableCell>
 

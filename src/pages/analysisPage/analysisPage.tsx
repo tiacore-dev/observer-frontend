@@ -276,7 +276,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                     sx={{ mb: 1, fontWeight: 600 }}
                     color="white"
                   >
-                    Анализ чатов
+                    Результаты анализов
                   </Typography>
                   <Typography
                     variant="body1"

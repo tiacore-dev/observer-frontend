@@ -17,6 +17,8 @@ interface SchedulesState {
   strategyFilter: string;
   typeFilter: string;
   chatFilter: string;
+  nameFilter: string;
+  targetChatFilter: string;
   page: number;
   rowsPerPage: number;
   sortField: SortField;
@@ -30,8 +32,10 @@ const initialState: SchedulesState = {
   strategyFilter: "",
   typeFilter: "",
   chatFilter: "",
+  nameFilter: "",
+  targetChatFilter: "",
   page: 1,
-  rowsPerPage: 10, // Добавляем начальное значение
+  rowsPerPage: 10,
   sortField: "created_at",
   sortDirection: "desc",
 };
@@ -64,12 +68,20 @@ const schedulesSlice = createSlice({
       state.chatFilter = action.payload;
       state.page = 1;
     },
+    setNameFilter: (state, action: PayloadAction<string>) => {
+      state.nameFilter = action.payload;
+      state.page = 1;
+    },
+    setTargetChatFilter: (state, action: PayloadAction<string>) => {
+      state.targetChatFilter = action.payload;
+      state.page = 1;
+    },
     setPage: (state, action: PayloadAction<number>) => {
       state.page = action.payload;
     },
     setRowsPerPage: (state, action: PayloadAction<number>) => {
       state.rowsPerPage = action.payload;
-      state.page = 1; // Сбрасываем страницу при изменении количества строк
+      state.page = 1;
     },
     setSortField: (state, action: PayloadAction<SortField>) => {
       state.sortField = action.payload;
@@ -86,6 +98,8 @@ const schedulesSlice = createSlice({
       state.strategyFilter = "";
       state.typeFilter = "";
       state.chatFilter = "";
+      state.nameFilter = "";
+      state.targetChatFilter = "";
       state.sortField = "created_at";
       state.sortDirection = "desc";
       state.page = 1;
@@ -100,8 +114,10 @@ export const {
   setStrategyFilter,
   setTypeFilter,
   setChatFilter,
+  setNameFilter,
+  setTargetChatFilter,
   setPage,
-  setRowsPerPage, // Экспортируем новый action
+  setRowsPerPage,
   setSortField,
   setSortDirection,
   resetFilters,

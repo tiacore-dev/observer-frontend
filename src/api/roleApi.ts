@@ -1,0 +1,95 @@
+// src/api/legalEntitiesApi.tsx
+import { axiosInstance } from "../axiosConfig";
+
+export interface IRole {
+  role_id: string;
+  role_name: string;
+  application_id: string;
+}
+export interface CreateRoleRequest {
+  role_name: string;
+  permissions: string[];
+  application_id: string;
+}
+// Функция для получения списка с параметрами
+export const fetchRoles = async (application_id?: string) => {
+  const url = process.env.REACT_APP_AUTH_API_URL;
+  const accessToken = localStorage.getItem("access_token");
+  const params: any = { page: 1, page_size: 100 };
+  if (application_id) {
+    params.application_id = application_id;
+  }
+  const response = await axiosInstance.get(`${url}/api/roles/all`, {
+    params,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return response.data;
+};
+
+export const fetchRoleDetails = async (role_id: string) => {
+  const url = process.env.REACT_APP_AUTH_API_URL;
+  const accessToken = localStorage.getItem("access_token");
+  const response = await axiosInstance.get(`${url}/api/roles/${role_id}`, {
+    params: {
+      role_id,
+    },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return response.data;
+};
+
+// Функция для создания нового
+export const createRole = async (data: {
+  role_name: string;
+  permissions: string[];
+  application_id?: string;
+}): Promise<IRole> => {
+  const url = process.env.REACT_APP_AUTH_API_URL;
+  const accessToken = localStorage.getItem("access_token");
+  const response = await axiosInstance.post(`${url}/api/roles/add-many`, data, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.data;
+};
+
+// //изменить данные
+export const renameRole = async (role_id: string, new_name: string) => {
+  const url = process.env.REACT_APP_AUTH_API_URL;
+  const accessToken = localStorage.getItem("access_token");
+  const response = await axiosInstance.patch(
+    `${url}/api/roles/${role_id}`,
+    { role_name: new_name },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  return response.data;
+};
+
+//удалить данные
+
+export const deleteRole = async (role_id: string) => {
+  const url = process.env.REACT_APP_AUTH_API_URL;
+  const accessToken = localStorage.getItem("access_token");
+
+  await axiosInstance.delete(`${url}/api/roles/${role_id}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+};

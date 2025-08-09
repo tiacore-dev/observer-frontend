@@ -3,6 +3,8 @@
 import { useState } from "react";
 
 interface ValidationData {
+  schedule_name: string;
+  description?: string;
   schedule_strategy: "analysis" | "notification";
   bot_id?: string | number;
   chat_id?: string | number;
@@ -14,9 +16,9 @@ interface ValidationData {
   schedule_type: "interval" | "cron";
   interval_hours?: string | number;
   interval_minutes?: string | number;
-  send_strategy?: "fixed" | "relative"; // Теперь необязательное поле
-  time_to_send?: string; // Теперь необязательное поле
-  send_after_minutes?: string | number; // Теперь необязательное поле
+  send_strategy?: "fixed" | "relative";
+  time_to_send?: string;
+  send_after_minutes?: string | number;
 }
 
 export const useScheduleValidation = () => {
@@ -28,6 +30,17 @@ export const useScheduleValidation = () => {
     cronTime: string
   ) => {
     const newErrors: Record<string, string> = {};
+
+    // Валидация новых полей
+    if (!data.schedule_name) {
+      newErrors.schedule_name = "Название обязательно";
+    } else if (data.schedule_name.length > 100) {
+      newErrors.schedule_name = "Максимальная длина названия - 100 символов";
+    }
+
+    if (data.description && data.description.length > 500) {
+      newErrors.description = "Максимальная длина описания - 500 символов";
+    }
 
     // Базовые обязательные поля
     if (!data.bot_id) newErrors.bot_id = "Бот обязателен";

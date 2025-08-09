@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import { useState } from "react";
 import { useSchedulesQuery } from "../../hooks/schedules/useSchedulesQuery";
@@ -37,6 +35,8 @@ import {
   setStrategyFilter,
   setTypeFilter,
   setChatFilter,
+  setNameFilter,
+  setTargetChatFilter,
   setPage,
   setRowsPerPage,
   setSortField,
@@ -54,7 +54,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
 
-  // Получаем состояния из Redux
   const {
     botFilter,
     companyFilter,
@@ -62,20 +61,20 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
     strategyFilter,
     typeFilter,
     chatFilter,
+    nameFilter,
+    targetChatFilter,
     page,
     rowsPerPage,
     sortField,
     sortDirection,
   } = useSelector((state: RootState) => state.schedules);
 
-  // Используем хуки для маппингов
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { botMap } = useBotMap();
   const { chatMap, isLoadingChatsMap } = useChatMap();
 
   const isLoadingAll = isLoading || isLoadingCompanyMap || isLoadingChatsMap;
 
-  // Функция для сброса всех фильтров
   const resetAllFilters = () => {
     dispatch(resetFilters());
   };
@@ -103,6 +102,17 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   ).map((chatId) => ({
     id: chatId || "",
     name: chatId ? chatMap.get(Number(chatId)) || `Чат ${chatId}` : "",
+  }));
+
+  const targetChats = Array.from(
+    new Set(
+      data?.schedules
+        .flatMap((schedule) => schedule.target_chats || [])
+        .map((chatId) => chatId.toString()) || []
+    )
+  ).map((chatId) => ({
+    id: chatId,
+    name: chatMap.get(Number(chatId)) || `Чат ${chatId}`,
   }));
 
   const strategies = Array.from(
@@ -137,6 +147,12 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
     if (!data?.schedules) return [];
 
     let filteredSchedules = [...data.schedules];
+
+    if (nameFilter) {
+      filteredSchedules = filteredSchedules.filter((schedule) =>
+        schedule.schedule_name?.toLowerCase().includes(nameFilter.toLowerCase())
+      );
+    }
 
     if (botFilter) {
       filteredSchedules = filteredSchedules.filter(
@@ -174,7 +190,12 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
       );
     }
 
-    // Сортируем данные
+    if (targetChatFilter) {
+      filteredSchedules = filteredSchedules.filter((schedule) =>
+        schedule.target_chats?.includes(Number(targetChatFilter))
+      );
+    }
+
     filteredSchedules.sort((a, b) => {
       if (sortField === "bot_id") {
         const aBot = botMap.get(a.bot_id.toString()) ?? a.bot_id.toString();
@@ -247,7 +268,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   if (isLoadingAll) {
     return (
-      <PageSkeleton filterCount={isSuperadmin ? 5 : 4} hasAddButton={true} />
+      <PageSkeleton filterCount={isSuperadmin ? 7 : 6} hasAddButton={true} />
     );
   }
 
@@ -268,7 +289,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
-      {/* Заголовок страницы */}
       <Paper
         elevation={1}
         sx={{
@@ -300,7 +320,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         </Box>
       </Paper>
 
-      {/* Фильтры */}
       <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
         <Box
           sx={{
@@ -310,7 +329,16 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             alignItems: "center",
           }}
         >
-          {/* Фильтр по боту */}
+          {/* Фильтр по названию */}
+          <TextField
+            label="Название"
+            value={nameFilter}
+            onChange={(e) => dispatch(setNameFilter(e.target.value))}
+            variant="outlined"
+            size="small"
+            sx={{ width: 200 }}
+          />
+
           <Autocomplete
             options={bots}
             getOptionLabel={(option) => option.name || option.id}
@@ -327,7 +355,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             )}
           />
 
-          {/* Фильтр по чату */}
           <Autocomplete
             options={chats}
             getOptionLabel={(option) => option.name || option.id}
@@ -336,7 +363,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label="Чат"
+                label="Анализируемый чат"
                 variant="outlined"
                 size="small"
                 sx={{ width: 200 }}
@@ -344,7 +371,24 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             )}
           />
 
-          {/* Фильтр по типу задачи */}
+          <Autocomplete
+            options={targetChats}
+            getOptionLabel={(option) => option.name || option.id}
+            value={targetChats.find((c) => c.id === targetChatFilter) || null}
+            onChange={(_, value) =>
+              dispatch(setTargetChatFilter(value?.id || ""))
+            }
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Куда отправлять"
+                variant="outlined"
+                size="small"
+                sx={{ width: 200 }}
+              />
+            )}
+          />
+
           <TextField
             select
             label="Тип задачи"
@@ -362,7 +406,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             ))}
           </TextField>
 
-          {/* Фильтр по "когда выполнять" */}
           <TextField
             select
             label="Когда выполнять"
@@ -380,7 +423,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             ))}
           </TextField>
 
-          {/* Фильтр по статусу */}
           <TextField
             select
             label="Статус"
@@ -401,7 +443,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             <MenuItem value="false">Выключен</MenuItem>
           </TextField>
 
-          {/* Фильтр по компании (только для суперадмина) */}
           {isSuperadmin && (
             <Autocomplete
               options={companies}
@@ -437,7 +478,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         </Box>
       </Paper>
 
-      {/* Справочная информация */}
       <Collapse in={showHelp}>
         <Box sx={{ mb: 3 }}>
           <InfoCard
@@ -456,7 +496,6 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         </Box>
       </Collapse>
 
-      {/* Таблица */}
       <Paper elevation={1} sx={{ overflow: "hidden" }}>
         <SchedulesTable
           schedules={paginatedSchedules}
@@ -468,13 +507,11 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
           isLoading={isLoadingAll}
         />
 
-        {/* Пагинация */}
         {totalPages > 1 && (
           <Box
             sx={{
               display: "flex",
               justifyContent: "center",
-              // mb: 3,
               mt: 0,
             }}
           >
@@ -492,25 +529,28 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         )}
       </Paper>
 
-      {/* Пустое состояние */}
       {filteredSchedules.length === 0 && !isLoadingAll && (
         <Paper elevation={1} sx={{ p: 1, textAlign: "center", mb: 1 }}>
           <ScheduleIcon sx={{ fontSize: 64, color: "text.secondary", mt: 2 }} />
           <Typography variant="h6" gutterBottom color="text.secondary">
-            {botFilter ||
+            {nameFilter ||
+            botFilter ||
             companyFilter ||
             strategyFilter ||
             typeFilter ||
-            chatFilter
+            chatFilter ||
+            targetChatFilter
               ? "Расписания не найдены"
               : "Нет доступных расписаний"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {botFilter ||
+            {nameFilter ||
+            botFilter ||
             companyFilter ||
             strategyFilter ||
             typeFilter ||
-            chatFilter
+            chatFilter ||
+            targetChatFilter
               ? "Попробуйте изменить параметры поиска"
               : "Создайте первое расписание, нажав на кнопку выше"}
           </Typography>

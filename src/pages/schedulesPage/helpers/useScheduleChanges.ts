@@ -59,14 +59,17 @@ export const useScheduleChanges = (originalSchedule: ISchedule) => {
       // Проверяем, изменилось ли значение
       const originalValue = originalSchedule[fieldName as keyof ISchedule];
 
-      // Специальная обработка для числовых полей, которые могут приходить как строки
+      // Специальная обработка для разных типов полей
       let normalizedValue = value;
+
       if (
         fieldName === "interval_hours" ||
         fieldName === "interval_minutes" ||
         fieldName === "send_after_minutes"
       ) {
         normalizedValue = value === "" ? undefined : Number(value);
+      } else if (fieldName === "schedule_name" || fieldName === "description") {
+        normalizedValue = value === "" ? undefined : value;
       }
 
       if (normalizedValue === originalValue) {

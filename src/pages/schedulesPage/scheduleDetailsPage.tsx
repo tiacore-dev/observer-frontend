@@ -28,7 +28,7 @@ import ChatIcon from "@mui/icons-material/Chat";
 import BusinessIcon from "@mui/icons-material/Business";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import SendIcon from "@mui/icons-material/Send";
+import { Info } from "@mui/icons-material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import HistoryIcon from "@mui/icons-material/History";
@@ -66,6 +66,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   const updateScheduleMutation = useUpdateSchedule();
   const deleteScheduleMutation = useDeleteSchedule();
   const toggleScheduleMutation = useToggleSchedule();
+  const isSuperadmin = localStorage.getItem("is_superadmin") === "true";
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -250,6 +251,16 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     if (schedule?.schedule_strategy === "notification") return "УВ";
     return "РС";
   };
+  const getInitials = (str: string) => {
+    if (!str || typeof str !== "string") return "";
+
+    const words = str.trim().split(/\s+/);
+
+    if (words.length === 0) return "";
+    if (words.length === 1) return words[0][0].toUpperCase();
+
+    return (words[0][0] + words[1][0]).toUpperCase();
+  };
 
   if (isLoadingAll) {
     return (
@@ -304,24 +315,20 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 fontSize: "1.5rem",
                 fontWeight: "bold",
                 mr: 3,
+                color: "white",
               }}
             >
-              {getScheduleInitials()}
+              {getInitials(schedule.schedule_name || "Не указано")}
             </Avatar>
             <Box>
               <Typography
-                variant="h4"
+                variant="h3"
                 gutterBottom
                 sx={{ fontWeight: "bold", color: "white" }}
               >
-                {getScheduleStrategyLabel(schedule.schedule_strategy)}
+                {schedule.schedule_name || "Не указано"}
               </Typography>
-              <Typography
-                variant="h6"
-                sx={{ opacity: 0.9, mb: 1, color: "white" }}
-              >
-                {getScheduleTypeLabel(schedule.schedule_type)}
-              </Typography>
+
               <Chip
                 icon={
                   schedule.enabled ? <CheckCircleIcon /> : <PauseCircleIcon />
@@ -448,19 +455,34 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <Box sx={{ display: "flex", gap: 4 }}>
                 <Box sx={{ flex: 1 }}>
-                  <CompactDetailItem
-                    icon={<BusinessIcon color="primary" fontSize="small" />}
-                    label="Компания"
-                    value={
-                      companyMap.get(schedule.company_id) || schedule.company_id
-                    }
-                  />
+                  {isSuperadmin && (
+                    <CompactDetailItem
+                      icon={<BusinessIcon color="primary" fontSize="small" />}
+                      label="Компания"
+                      value={
+                        companyMap.get(schedule.company_id) ||
+                        schedule.company_id
+                      }
+                    />
+                  )}
+                  {/* <CompactDetailItem
+                    icon={<FingerprintIcon color="primary" fontSize="small" />}
+                    label="Название"
+                    value={schedule.schedule_name || "Не указано"}
+                  /> */}
+
                   <CompactDetailItem
                     icon={<SmartToyIcon color="primary" fontSize="small" />}
                     label="Telegram Бот"
                     value={
                       botMap.get(schedule.bot_id.toString()) || schedule.bot_id
                     }
+                  />
+                  <CompactDetailItem
+                    icon={<Info color="primary" fontSize="small" />}
+                    label="Описание"
+                    value={schedule.description || "Не указано"}
+                    multiline
                   />
                 </Box>
                 <Box sx={{ flex: 1 }}>

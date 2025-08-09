@@ -66,6 +66,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
 }) => {
   const { isSuperadmin, selectedCompanyId } = useAuth();
   const [scheduleData, setScheduleData] = useState({
+    schedule_name: "",
+    description: "",
     schedule_strategy: "analysis" as ScheduleStrategy,
     notification_text: "",
     chat_id: "",
@@ -228,6 +230,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
 
   const handleSubmit = async () => {
     const dataForValidation = {
+      schedule_name: scheduleData.schedule_name,
+      description: scheduleData.description,
       schedule_strategy: scheduleData.schedule_strategy,
       notification_text: scheduleData.notification_text,
       chat_id: scheduleData.chat_id,
@@ -258,6 +262,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         : undefined;
 
       await createSchedule.mutateAsync({
+        schedule_name: scheduleData.schedule_name,
+        description: scheduleData.description || undefined,
         schedule_strategy: scheduleData.schedule_strategy,
         notification_text:
           scheduleData.schedule_strategy === "notification"
@@ -307,6 +313,8 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
 
       onClose();
       setScheduleData({
+        schedule_name: "",
+        description: "",
         schedule_strategy: "analysis",
         notification_text: "",
         chat_id: "",
@@ -395,6 +403,28 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               )}
             </FormControl>
           )}
+          <TextField
+            name="schedule_name"
+            label="Название расписания"
+            value={scheduleData.schedule_name}
+            onChange={handleChange}
+            fullWidth
+            error={!!errors.schedule_name}
+            helperText={
+              errors.schedule_name || "Укажите название для расписания"
+            }
+          />
+
+          <TextField
+            name="description"
+            label="Описание (необязательно)"
+            value={scheduleData.description}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            rows={2}
+            helperText="Краткое описание назначения расписания"
+          />
 
           {/* Выбор бота */}
           {isLoadingBotMap ? (

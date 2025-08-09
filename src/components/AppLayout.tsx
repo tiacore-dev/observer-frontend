@@ -106,7 +106,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     const baseItems: AppMenuItem[] = [
       // { text: "Главная", icon: <Home />, path: "/home" },
       { text: "Компании", icon: <Business />, path: "/companies" },
-      { text: "Анализ чатов", icon: <Analytics />, path: "/analysis" },
+      { text: "Результаты анализов", icon: <Analytics />, path: "/analysis" },
       { text: "Расписания", icon: <Schedule />, path: "/schedules" },
       { text: "Промпты", icon: <Psychology />, path: "/prompts" },
       { text: "Telegram Боты", icon: <SmartToy />, path: "/bots" },

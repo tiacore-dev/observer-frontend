@@ -121,7 +121,7 @@ const getTheme = (mode: "light" | "dark") => {
   return createTheme({
     ...baseTheme,
     shape: {
-      borderRadius: 12,
+      borderRadius: 8,
     },
     typography: {
       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -243,7 +243,7 @@ const getTheme = (mode: "light" | "dark") => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: "16px",
+            borderRadius: "10px",
             boxShadow:
               mode === "dark"
                 ? "0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4)"
@@ -262,7 +262,7 @@ const getTheme = (mode: "light" | "dark") => {
       MuiPaper: {
         styleOverrides: {
           root: {
-            borderRadius: "12px",
+            borderRadius: "10px",
             boxShadow:
               mode === "dark"
                 ? "0 1px 3px rgba(0, 0, 0, 0.3)"

@@ -1,6 +1,8 @@
 import { axiosInstance } from "../axiosConfig";
 
 export interface ISchedule {
+  schedule_name?: string;
+  description?: string;
   schedule_id: string;
   schedule_strategy: "analysis" | "notification";
   notification_text?: string;
@@ -23,6 +25,8 @@ export interface ISchedule {
 }
 
 export interface IScheduleCreate {
+  schedule_name?: string;
+  description?: string;
   schedule_strategy: "analysis" | "notification";
   chat_id?: number;
   prompt_id?: string;
@@ -42,6 +46,8 @@ export interface IScheduleCreate {
 }
 
 export interface IScheduleEdit {
+  schedule_name?: string;
+  description?: string;
   schedule_strategy?: "analysis" | "notification";
   notification_text?: string;
   chat_id?: number;

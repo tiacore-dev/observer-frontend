@@ -50,6 +50,7 @@ import {
   generateCronExpressionWithTimeConversion,
   parseCronExpression,
 } from "./helpers/scheduleUtils";
+import { useAuth } from "../../context/authContext";
 
 interface EditScheduleModalProps {
   open: boolean;
@@ -71,6 +72,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 }) => {
   const [selectedDays, setSelectedDays] = React.useState<number[]>([]);
   const [cronTime, setCronTime] = React.useState<string>("09:00");
+  const { isSuperadmin } = useAuth();
 
   const { errors, validateFields } = useScheduleValidation();
   const {
@@ -183,6 +185,8 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
   const handleSubmit = async () => {
     const dataForValidation = {
+      schedule_name: getCurrentStringValue("schedule_name"),
+      description: getCurrentStringValue("description"),
       schedule_strategy: getCurrentValue("schedule_strategy"),
       notification_text:
         getCurrentStringValue("notification_text") || undefined,
@@ -254,34 +258,64 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
           {/* Выбор компании */}
-          {isLoadingCompanyMap ? (
-            <SelectSkeleton />
-          ) : (
-            <FormControl fullWidth error={!!errors.company_id}>
-              <InputLabel>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <BusinessIcon fontSize="small" />
-                  Компания
-                </Box>
-              </InputLabel>
-              <Select
-                name="company_id"
-                value={getCurrentStringValue("company_id") || ""}
-                label="Компания"
-                onChange={handleSelectChange}
-                disabled
-              >
-                {Array.from(companyMap.entries()).map(([id, name]) => (
-                  <MenuItem key={id} value={id}>
+
+          {isSuperadmin && (
+            <>
+              {isLoadingCompanyMap ? (
+                <SelectSkeleton />
+              ) : (
+                <FormControl fullWidth error={!!errors.company_id}>
+                  <InputLabel>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {name}
+                      <BusinessIcon fontSize="small" />
+                      Компания
                     </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  </InputLabel>
+                  <Select
+                    name="company_id"
+                    value={getCurrentStringValue("company_id") || ""}
+                    label="Компания"
+                    onChange={handleSelectChange}
+                    disabled
+                  >
+                    {Array.from(companyMap.entries()).map(([id, name]) => (
+                      <MenuItem key={id} value={id}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          {name}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            </>
           )}
 
+          <TextField
+            name="schedule_name"
+            label="Название расписания"
+            value={getCurrentStringValue("schedule_name")}
+            onChange={handleChange}
+            fullWidth
+            error={!!errors.schedule_name}
+            helperText={
+              errors.schedule_name || "Укажите название для расписания"
+            }
+          />
+
+          <TextField
+            name="description"
+            label="Описание"
+            value={getCurrentStringValue("description") || ""}
+            onChange={handleChange}
+            fullWidth
+            multiline
+            rows={2}
+            inputProps={{ maxLength: 500 }}
+            helperText="Краткое описание назначения расписания"
+          />
           {/* Выбор бота */}
           {isLoadingBotMap ? (
             <SelectSkeleton />
