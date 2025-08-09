@@ -17,7 +17,7 @@ const getTheme = (mode: "light" | "dark") => {
         contrastText: "#ffffff",
       },
       background: {
-        default: "#ebeaf2ff",
+        default: "#efeef5",
         paper: "#ffffff",
       },
       text: {

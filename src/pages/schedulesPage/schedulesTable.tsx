@@ -284,13 +284,13 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 {/* // sx={{ minWidth: "180px" }} */}
               </TableCell>
               <TableCell>Когда и куда отправлять</TableCell>
-              <SortableTableHeader<SortField>
+              {/* <SortableTableHeader<SortField>
                 field="enabled"
                 currentSortField={sortField}
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Статус"
-              />
+              /> */}
               {isSuperadmin && (
                 <SortableTableHeader<SortField>
                   field="company_id"
@@ -379,6 +379,32 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                             {schedule.description}
                           </Typography>
                         )}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            // justifyContent: "center",
+                            gap: 1,
+                          }}
+                        >
+                          {schedule.enabled ? (
+                            <Chip
+                              icon={<CheckCircle fontSize="small" />}
+                              label="Активно"
+                              color="success"
+                              variant="outlined"
+                              size="small"
+                            />
+                          ) : (
+                            <Chip
+                              icon={<PauseCircleFilled fontSize="small" />}
+                              label="Приостановлено"
+                              color="error"
+                              variant="outlined"
+                              size="small"
+                            />
+                          )}
+                        </Box>
                       </Box>
                     </Box>
                   </TableCell>
@@ -441,7 +467,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                     </Box>
                   </TableCell>
 
-                  <TableCell>
+                  {/* <TableCell>
                     <Box
                       sx={{
                         display: "flex",
@@ -468,7 +494,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                         />
                       )}
                     </Box>
-                  </TableCell>
+                  </TableCell> */}
 
                   {isSuperadmin && (
                     <TableCell>

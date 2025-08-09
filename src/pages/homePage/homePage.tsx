@@ -360,7 +360,7 @@ export const HomePage: React.FC = () => {
 
       {/* Быстрые советы */}
       {!isNewUser && (
-        <Card sx={{ mb: 2, borderRadius: 1 }}>
+        <Card sx={{ mb: 0, borderRadius: 1 }}>
           <CardContent>
             <Typography
               variant="h6"

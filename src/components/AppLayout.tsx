@@ -1,6 +1,5 @@
 "use client";
 
-// src/components/AppLayout.tsx
 import React, { useMemo, useState } from "react";
 import {
   AppBar,
@@ -56,12 +55,16 @@ import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import GroupIcon from "@mui/icons-material/Group";
+import { Footer } from "./footer";
 
 const drawerWidth = 229;
 const LOGO_AVATAR_SIZE = 35;
 const LOGO_TEXT_VARIANT = "h6";
 const LOGO_CONTAINER_GAP = 1.5;
 const LOGO_LEFT_PADDING = 2;
+const HEADER_HEIGHT = 70; // Высота AppBar Toolbar
+const DRAWER_TOP_OFFSET = 82; // Отступ Drawer от верха (82px)
+const FOOTER_HEIGHT_ESTIMATE = 128; // Примерная высота футера (80px)
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -104,7 +107,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
   const menuItems: AppMenuItem[] = useMemo(() => {
     const baseItems: AppMenuItem[] = [
-      // { text: "Главная", icon: <Home />, path: "/home" },
       { text: "Компании", icon: <Business />, path: "/companies" },
       { text: "Результаты анализов", icon: <Analytics />, path: "/analysis" },
       { text: "Расписания", icon: <Schedule />, path: "/schedules" },
@@ -173,6 +175,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       .slice(0, 2);
   };
 
+  // Рассчитываем высоту сайдбара, учитывая высоту футера
+  const calculatedDrawerHeight = `calc(100vh - ${DRAWER_TOP_OFFSET}px - ${FOOTER_HEIGHT_ESTIMATE}px)`;
+
   const drawer = (
     <Box
       sx={{
@@ -181,13 +186,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         flexDirection: "column",
       }}
     >
-      <Box sx={{ flexGrow: 1, overflow: "auto", py: 1 }}>
+      <Box sx={{ flexGrow: 1, overflow: "auto", py: 0 }}>
         <List sx={{ px: 1 }}>
           {menuItems.map((item) => (
             <React.Fragment key={item.text}>
               {item.children ? (
                 <>
-                  <ListItem disablePadding sx={{ mb: 0.5 }}>
+                  <ListItem disablePadding sx={{ mb: 0 }}>
                     <ListItemButton
                       selected={item.children.some((child) =>
                         location.pathname.startsWith(child.path || "")
@@ -239,7 +244,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     </ListItemButton>
                   </ListItem>
                   {item.children.map((child) => (
-                    <ListItem key={child.text} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItem key={child.text} disablePadding sx={{ mb: 0 }}>
                       <ListItemButton
                         selected={location.pathname.startsWith(
                           child.path || ""
@@ -248,7 +253,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         sx={{
                           borderRadius: 1,
                           mx: 2,
-                          py: 1,
+                          py: 0,
                           "&.Mui-selected": {
                             backgroundColor: alpha(
                               theme.palette.primary.main,
@@ -348,15 +353,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   );
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <CssBaseline />
+
+      {/* Header - Full Width */}
       <AppBar
         position="fixed"
         color="inherit"
         elevation={0}
         sx={{
           width: "100%",
-          zIndex: (theme) => theme.zIndex.drawer - 1,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
           borderBottom: 1,
           borderColor: "divider",
           backgroundColor: isDarkMode
@@ -366,7 +373,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           borderRadius: 0,
         }}
       >
-        <Toolbar sx={{ minHeight: "70px !important" }}>
+        <Toolbar sx={{ minHeight: `${HEADER_HEIGHT}px !important` }}>
           {!isHomePage && (
             <IconButton
               color="inherit"
@@ -516,7 +523,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               </>
             )}
 
-            {/* Theme Toggle Button */}
             <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
               <IconButton
                 onClick={toggleTheme}
@@ -616,6 +622,84 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </Toolbar>
       </AppBar>
 
+      {/* Content Area with Sidebar */}
+      <Box sx={{ display: "flex", flexGrow: 1 }}>
+        {!isHomePage && (
+          <Box
+            component="nav"
+            sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+            aria-label="navigation menu"
+          >
+            <Drawer
+              variant="temporary"
+              open={mobileOpen}
+              onClose={handleDrawerToggle}
+              ModalProps={{
+                keepMounted: true,
+              }}
+              sx={{
+                display: { xs: "block", sm: "none" },
+                "& .MuiDrawer-paper": {
+                  boxSizing: "border-box",
+                  width: drawerWidth,
+                  border: "none",
+                  boxShadow: theme.shadows[8],
+                  left: "8px",
+                  borderRadius: 1,
+                  top: `${DRAWER_TOP_OFFSET}px`,
+                  height: calculatedDrawerHeight, // Применяем рассчитанную высоту
+                },
+              }}
+            >
+              {drawer}
+            </Drawer>
+            <Drawer
+              variant="permanent"
+              sx={{
+                display: { xs: "none", sm: "block" },
+                "& .MuiDrawer-paper": {
+                  boxSizing: "border-box",
+                  width: drawerWidth,
+                  border: "none",
+                  borderRight: 1,
+                  borderColor: "divider",
+                  left: "8px",
+                  borderRadius: "16px",
+                  top: `${DRAWER_TOP_OFFSET}px`,
+                  height: calculatedDrawerHeight, // Применяем рассчитанную высоту
+                },
+              }}
+              open
+            >
+              {drawer}
+            </Drawer>
+          </Box>
+        )}
+
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            pt: `${HEADER_HEIGHT + 20}px`, // Отступ сверху для контента
+            pb: 3,
+            width: {
+              sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)`,
+            },
+            minHeight: `calc(100vh - ${
+              HEADER_HEIGHT + 20
+            }px - ${FOOTER_HEIGHT_ESTIMATE}px - ${theme.spacing(3)})`, // minHeight для контента, учитывая header, footer и pb
+            backgroundColor: isDarkMode
+              ? alpha(theme.palette.grey[50], 0.3)
+              : alpha(theme.palette.grey[50], 0.3),
+          }}
+        >
+          {children}
+        </Box>
+      </Box>
+
+      {/* Footer - Full Width, positioned outside the flex container with sidebar */}
+      <Footer />
+
       <AddCompanyModal
         open={addCompanyModalOpen}
         onClose={() => setAddCompanyModalOpen(false)}
@@ -675,74 +759,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <ListItemText primary="Выйти из системы" />
         </MenuItem>
       </Menu>
-
-      {!isHomePage && (
-        <Box
-          component="nav"
-          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-          aria-label="navigation menu"
-        >
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true,
-            }}
-            sx={{
-              display: { xs: "block", sm: "none" },
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: drawerWidth,
-                border: "none",
-                boxShadow: theme.shadows[8],
-                left: "8px",
-                borderRadius: 1,
-                top: "82px",
-                height: "calc(100% - 90px)",
-              },
-            }}
-          >
-            {drawer}
-          </Drawer>
-          <Drawer
-            variant="permanent"
-            sx={{
-              display: { xs: "none", sm: "block" },
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: drawerWidth,
-                border: "none",
-                borderRight: 1,
-                borderColor: "divider",
-                left: "8px",
-                borderRadius: "16px",
-                top: "82px",
-                height: "calc(100% - 90px)",
-              },
-            }}
-            open
-          >
-            {drawer}
-          </Drawer>
-        </Box>
-      )}
-
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          pt: "90px",
-          pb: 3,
-          width: { sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)` },
-          minHeight: "100vh",
-          backgroundColor: isDarkMode
-            ? alpha(theme.palette.grey[50], 0.3)
-            : alpha(theme.palette.grey[50], 0.3),
-        }}
-      >
-        {children}
-      </Box>
     </Box>
   );
 };

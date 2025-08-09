@@ -12,6 +12,9 @@ import {
   Typography,
   InputAdornment,
   IconButton,
+  Checkbox,
+  FormControlLabel,
+  Link,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { useRegisterMutation } from "../../hooks/register/useRegisterMutations";
@@ -29,6 +32,8 @@ type FormData = {
   confirmPassword: string;
   full_name: string;
   position: string;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
 };
 
 export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
@@ -39,9 +44,15 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     watch,
-  } = useForm<FormData>();
+  } = useForm<FormData>({
+    mode: "onChange",
+    defaultValues: {
+      termsAccepted: false,
+      privacyAccepted: false,
+    },
+  });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -52,7 +63,8 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
     setShowConfirmPassword((show) => !show);
 
   const onSubmit = (data: FormData) => {
-    const { confirmPassword, ...userData } = data;
+    const { confirmPassword, termsAccepted, privacyAccepted, ...userData } =
+      data;
     registerMutation.mutate(userData, {
       onSuccess: () => {
         onSuccess();
@@ -62,6 +74,8 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
   };
 
   const password = watch("password");
+  const termsAccepted = watch("termsAccepted");
+  const privacyAccepted = watch("privacyAccepted");
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -71,7 +85,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
           component="form"
           onSubmit={handleSubmit(onSubmit)}
           sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
-          autoComplete="off" // Отключаем автозаполнение для всей формы
+          autoComplete="off"
         >
           <Controller
             name="email"
@@ -90,9 +104,9 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                 label="Email"
                 error={!!errors.email}
                 helperText={errors.email?.message}
-                autoComplete="new-email" // Специальное значение для email
+                autoComplete="new-email"
                 inputProps={{
-                  autocomplete: "new-email", // Дублируем для надежности
+                  autocomplete: "new-email",
                   autocorrect: "off",
                   autocapitalize: "none",
                   spellcheck: "false",
@@ -100,7 +114,27 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
               />
             )}
           />
-
+          <Controller
+            name="full_name"
+            control={control}
+            rules={{ required: "Полное имя обязательно" }}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                label="Полное имя"
+                error={!!errors.full_name}
+                helperText={errors.full_name?.message}
+                autoComplete="off"
+                inputProps={{
+                  autocomplete: "off",
+                  autocorrect: "off",
+                  autocapitalize: "words",
+                  spellcheck: "false",
+                }}
+              />
+            )}
+          />
           <Controller
             name="password"
             control={control}
@@ -119,7 +153,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                 label="Пароль"
                 error={!!errors.password}
                 helperText={errors.password?.message}
-                autoComplete="new-password" // Лучшее значение для паролей
+                autoComplete="new-password"
                 inputProps={{
                   autocomplete: "new-password",
                   autocorrect: "off",
@@ -158,7 +192,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                 label="Подтвердите пароль"
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword?.message}
-                autoComplete="new-password" // Также new-password для подтверждения
+                autoComplete="new-password"
                 inputProps={{
                   autocomplete: "new-password",
                   autocorrect: "off",
@@ -185,45 +219,48 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
               />
             )}
           />
+
           <Controller
-            name="full_name"
+            name="termsAccepted"
             control={control}
-            rules={{ required: "Полное имя обязательно" }}
+            rules={{ required: "Необходимо принять условия" }}
             render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label="Полное имя"
-                error={!!errors.full_name}
-                helperText={errors.full_name?.message}
-                autoComplete="off"
-                inputProps={{
-                  autocomplete: "off",
-                  autocorrect: "off",
-                  autocapitalize: "words",
-                  spellcheck: "false",
-                }}
+              <FormControlLabel
+                control={
+                  <Checkbox {...field} checked={field.value} color="primary" />
+                }
+                label={
+                  <Typography>
+                    Я принимаю условия{" "}
+                    <Link href="/terms" target="_blank" rel="noopener">
+                      Пользовательского соглашения
+                    </Link>
+                  </Typography>
+                }
               />
             )}
           />
 
-          {/* <Controller
-            name="position"
+          <Controller
+            name="privacyAccepted"
             control={control}
+            rules={{ required: "Необходимо принять условия" }}
             render={({ field }) => (
-              <TextField 
-                {...field} 
-                fullWidth 
-                label="Должность" 
-                autoComplete="off"
-                inputProps={{
-                  autocomplete: "off",
-                  autocorrect: "off",
-                  spellcheck: "false",
-                }}
+              <FormControlLabel
+                control={
+                  <Checkbox {...field} checked={field.value} color="primary" />
+                }
+                label={
+                  <Typography>
+                    Я принимаю условия{" "}
+                    <Link href="/privacy" target="_blank" rel="noopener">
+                      Политики конфиденциальности
+                    </Link>
+                  </Typography>
+                }
               />
             )}
-          /> */}
+          />
         </Box>
       </DialogContent>
       <DialogActions>
@@ -231,7 +268,9 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
-          disabled={registerMutation.isPending}
+          disabled={
+            registerMutation.isPending || !termsAccepted || !privacyAccepted
+          }
         >
           {registerMutation.isPending ? (
             <CircularProgress size={24} />
