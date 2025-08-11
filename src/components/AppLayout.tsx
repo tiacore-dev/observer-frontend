@@ -57,14 +57,14 @@ import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import GroupIcon from "@mui/icons-material/Group";
 import { Footer } from "./footer";
 
-const drawerWidth = 214;
+const drawerWidth = 195;
 const LOGO_AVATAR_SIZE = 35;
 const LOGO_TEXT_VARIANT = "h6";
 const LOGO_CONTAINER_GAP = 1.5;
 const LOGO_LEFT_PADDING = 2;
-const HEADER_HEIGHT = 70; // Высота AppBar Toolbar
-const DRAWER_TOP_OFFSET = 82; // Отступ Drawer от верха (82px)
-const FOOTER_HEIGHT_ESTIMATE = 128; // Примерная высота футера (80px)
+const HEADER_HEIGHT = 70;
+const DRAWER_TOP_OFFSET = 82;
+const FOOTER_HEIGHT_ESTIMATE = 160;
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -175,7 +175,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       .slice(0, 2);
   };
 
-  // Рассчитываем высоту сайдбара, учитывая высоту футера
   const calculatedDrawerHeight = `calc(100vh - ${DRAWER_TOP_OFFSET}px - ${FOOTER_HEIGHT_ESTIMATE}px)`;
 
   const drawer = (
@@ -202,7 +201,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       }
                       sx={{
                         borderRadius: 1,
-                        mx: 1,
+                        mx: 0.5,
+                        my: 0.25,
+                        px: 1.5,
                         "&.Mui-selected": {
                           backgroundColor: alpha(
                             theme.palette.primary.main,
@@ -226,19 +227,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       <ListItemIcon
                         sx={{
                           color: theme.palette.text.secondary,
-                          minWidth: 40,
+                          minWidth: 32,
+                          mr: 0.5,
                         }}
                       >
                         {item.icon}
                       </ListItemIcon>
                       <ListItemText
                         primary={item.text}
-                        slotProps={{
-                          primary: {
-                            variant: "body2",
-                            fontWeight: 500,
-                            fontSize: "0.9rem",
-                          },
+                        primaryTypographyProps={{
+                          variant: "body2",
+                          fontWeight: 500,
+                          fontSize: "0.85rem",
                         }}
                       />
                     </ListItemButton>
@@ -252,8 +252,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         onClick={() => navigate(child.path || "/")}
                         sx={{
                           borderRadius: 1,
-                          mx: 1,
-                          py: 0,
+                          mx: 0.5,
+                          my: 0.25,
+                          px: 1.5,
+                          pl: 4,
                           "&.Mui-selected": {
                             backgroundColor: alpha(
                               theme.palette.primary.main,
@@ -276,20 +278,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       >
                         <ListItemIcon
                           sx={{
-                            minWidth: 32,
+                            minWidth: 28,
                             color: theme.palette.text.secondary,
+                            mr: 0.5,
                           }}
                         >
                           {child.icon}
                         </ListItemIcon>
                         <ListItemText
                           primary={child.text}
-                          slotProps={{
-                            primary: {
-                              variant: "body2",
-                              fontSize: "0.85rem",
-                              fontWeight: 400,
-                            },
+                          primaryTypographyProps={{
+                            variant: "body2",
+                            fontSize: "0.8rem",
+                            fontWeight: 400,
                           }}
                         />
                       </ListItemButton>
@@ -297,13 +298,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   ))}
                 </>
               ) : (
-                <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                <ListItem key={item.text} disablePadding sx={{ mb: 0.25 }}>
                   <ListItemButton
                     selected={location.pathname.startsWith(item.path || "")}
                     onClick={() => navigate(item.path || "/")}
                     sx={{
                       borderRadius: 1,
-                      mx: 1,
+                      mx: 0.5,
+                      my: 0.25,
+                      px: 1.5,
                       "&.Mui-selected": {
                         backgroundColor: alpha(theme.palette.primary.main, 0.1),
                         "&:hover": {
@@ -322,7 +325,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     }}
                   >
                     <ListItemIcon
-                      sx={{ color: theme.palette.text.secondary, minWidth: 40 }}
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        minWidth: 32,
+                        mr: 0.5,
+                      }}
                     >
                       {item.badge ? (
                         <Badge badgeContent={item.badge} color="error">
@@ -334,12 +341,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     </ListItemIcon>
                     <ListItemText
                       primary={item.text}
-                      slotProps={{
-                        primary: {
-                          variant: "body2",
-                          fontWeight: 500,
-                          fontSize: "0.9rem",
-                        },
+                      primaryTypographyProps={{
+                        variant: "body2",
+                        fontWeight: 500,
+                        fontSize: "0.85rem",
                       }}
                     />
                   </ListItemButton>
@@ -647,7 +652,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   left: "8px",
                   borderRadius: 1,
                   top: `${DRAWER_TOP_OFFSET}px`,
-                  height: calculatedDrawerHeight, // Применяем рассчитанную высоту
+                  height: calculatedDrawerHeight,
                 },
               }}
             >
@@ -666,7 +671,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   left: "8px",
                   borderRadius: "16px",
                   top: `${DRAWER_TOP_OFFSET}px`,
-                  height: calculatedDrawerHeight, // Применяем рассчитанную высоту
+                  height: calculatedDrawerHeight,
                 },
               }}
               open
@@ -680,14 +685,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           component="main"
           sx={{
             flexGrow: 1,
-            pt: `${HEADER_HEIGHT + 20}px`, // Отступ сверху для контента
+            pt: `${HEADER_HEIGHT + 20}px`,
             pb: 3,
             width: {
               sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)`,
             },
             minHeight: `calc(100vh - ${
               HEADER_HEIGHT + 20
-            }px - ${FOOTER_HEIGHT_ESTIMATE}px - ${theme.spacing(3)})`, // minHeight для контента, учитывая header, footer и pb
+            }px - ${FOOTER_HEIGHT_ESTIMATE}px - ${theme.spacing(3)})`,
             backgroundColor: isDarkMode
               ? alpha(theme.palette.grey[50], 0.3)
               : alpha(theme.palette.grey[50], 0.3),
