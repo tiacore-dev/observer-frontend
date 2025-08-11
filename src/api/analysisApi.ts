@@ -23,8 +23,8 @@ export const fetchAnalysis = async (
     page_size?: number;
     prompt_id?: string;
     chat_id?: number;
-    sort_field?: keyof IAnalys;
-    sort_direction?: "asc" | "desc";
+    sort_by?: keyof IAnalys;
+    order?: "asc" | "desc";
     date_from?: Date | null;
     date_to?: Date | null;
     company_id?: string;
@@ -40,9 +40,8 @@ export const fetchAnalysis = async (
 
   if (params?.prompt_id) requestParams.prompt_id = params.prompt_id;
   if (params?.chat_id) requestParams.chat_id = params.chat_id;
-  if (params?.sort_field) requestParams.sort_field = params.sort_field;
-  if (params?.sort_direction)
-    requestParams.sort_direction = params.sort_direction;
+  if (params?.sort_by) requestParams.sort_by = params.sort_by;
+  if (params?.order) requestParams.order = params.order;
   if (params?.date_from) requestParams.date_from = params.date_from;
   if (params?.date_to) requestParams.date_to = params.date_to;
 
