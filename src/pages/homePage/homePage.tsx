@@ -226,7 +226,7 @@ export const HomePage: React.FC = () => {
               variant="body1"
               sx={{ opacity: 0.9, mb: 2, color: "white" }}
             >
-              Система анализа Telegram-чатов
+              Сервис анализа Telegram-чатов
             </Typography>
           </Box>
 
