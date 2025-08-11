@@ -669,7 +669,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   borderRight: 1,
                   borderColor: "divider",
                   left: "8px",
-                  borderRadius: "16px",
+                  borderRadius: 1,
                   top: `${DRAWER_TOP_OFFSET}px`,
                   height: calculatedDrawerHeight,
                 },
