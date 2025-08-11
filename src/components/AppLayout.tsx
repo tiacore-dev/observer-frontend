@@ -57,14 +57,14 @@ import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import GroupIcon from "@mui/icons-material/Group";
 import { Footer } from "./footer";
 
-const drawerWidth = 229;
+const drawerWidth = 214;
 const LOGO_AVATAR_SIZE = 35;
 const LOGO_TEXT_VARIANT = "h6";
 const LOGO_CONTAINER_GAP = 1.5;
 const LOGO_LEFT_PADDING = 2;
 const HEADER_HEIGHT = 70; // Высота AppBar Toolbar
 const DRAWER_TOP_OFFSET = 82; // Отступ Drawer от верха (82px)
-const FOOTER_HEIGHT_ESTIMATE = 92; // Примерная высота футера (80px)
+const FOOTER_HEIGHT_ESTIMATE = 128; // Примерная высота футера (80px)
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -187,7 +187,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       }}
     >
       <Box sx={{ flexGrow: 1, overflow: "auto", py: 0 }}>
-        <List sx={{ px: 1 }}>
+        <List sx={{ px: 0 }}>
           {menuItems.map((item) => (
             <React.Fragment key={item.text}>
               {item.children ? (
@@ -252,7 +252,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         onClick={() => navigate(child.path || "/")}
                         sx={{
                           borderRadius: 1,
-                          mx: 2,
+                          mx: 1,
                           py: 0,
                           "&.Mui-selected": {
                             backgroundColor: alpha(
