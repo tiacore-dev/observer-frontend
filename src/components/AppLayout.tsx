@@ -64,7 +64,7 @@ const LOGO_CONTAINER_GAP = 1.5;
 const LOGO_LEFT_PADDING = 2;
 const HEADER_HEIGHT = 70; // Высота AppBar Toolbar
 const DRAWER_TOP_OFFSET = 82; // Отступ Drawer от верха (82px)
-const FOOTER_HEIGHT_ESTIMATE = 128; // Примерная высота футера (80px)
+const FOOTER_HEIGHT_ESTIMATE = 92; // Примерная высота футера (80px)
 
 interface AppLayoutProps {
   children: React.ReactNode;

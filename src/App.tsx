@@ -31,6 +31,8 @@ import { HelpPage } from "./pages/helpPage/helpPage";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { ThemeModeProvider, useThemeMode } from "./context/themeContext";
+import { PrivacyPage } from "./pages/privacyPage/privacyPage";
+import { TermsPage } from "./pages/termsPage/termsPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -51,6 +53,9 @@ const AppContent: React.FC = () => {
             <AuthProvider>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+
                 <Route
                   element={
                     <ProtectedRoute
