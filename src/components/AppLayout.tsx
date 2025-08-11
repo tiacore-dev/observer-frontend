@@ -1,5 +1,6 @@
 "use client";
 
+// src/components/AppLayout.tsx
 import React, { useMemo, useState } from "react";
 import {
   AppBar,
@@ -31,6 +32,7 @@ import {
   Paper,
   useTheme,
   alpha,
+  Link,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -57,14 +59,11 @@ import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import GroupIcon from "@mui/icons-material/Group";
 import { Footer } from "./footer";
 
-const drawerWidth = 195;
+const drawerWidth = 205; // Уменьшил ширину сайдбара
 const LOGO_AVATAR_SIZE = 35;
 const LOGO_TEXT_VARIANT = "h6";
 const LOGO_CONTAINER_GAP = 1.5;
 const LOGO_LEFT_PADDING = 2;
-const HEADER_HEIGHT = 70;
-const DRAWER_TOP_OFFSET = 82;
-const FOOTER_HEIGHT_ESTIMATE = 160;
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -175,8 +174,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       .slice(0, 2);
   };
 
-  const calculatedDrawerHeight = `calc(100vh - ${DRAWER_TOP_OFFSET}px - ${FOOTER_HEIGHT_ESTIMATE}px)`;
-
   const drawer = (
     <Box
       sx={{
@@ -186,12 +183,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       }}
     >
       <Box sx={{ flexGrow: 1, overflow: "auto", py: 0 }}>
+        {/* Уменьшил вертикальный padding */}
         <List sx={{ px: 0 }}>
+          {/* Убрал горизонтальный padding */}
           {menuItems.map((item) => (
             <React.Fragment key={item.text}>
               {item.children ? (
                 <>
-                  <ListItem disablePadding sx={{ mb: 0 }}>
+                  <ListItem disablePadding sx={{ mb: 0.25 }}>
+                    {/* Уменьшил отступ снизу */}
                     <ListItemButton
                       selected={item.children.some((child) =>
                         location.pathname.startsWith(child.path || "")
@@ -200,10 +200,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         item.children && navigate(item.children[0].path || "/")
                       }
                       sx={{
-                        borderRadius: 1,
-                        mx: 0.5,
-                        my: 0.25,
-                        px: 1.5,
+                        borderRadius: 1, // Уменьшил радиус скругления
+                        mx: 0.5, // Уменьшил горизонтальные отступы
+                        py: 0.75, // Уменьшил вертикальные отступы
                         "&.Mui-selected": {
                           backgroundColor: alpha(
                             theme.palette.primary.main,
@@ -227,8 +226,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       <ListItemIcon
                         sx={{
                           color: theme.palette.text.secondary,
-                          minWidth: 32,
-                          mr: 0.5,
+                          minWidth: 32, // Уменьшил минимальную ширину иконки
                         }}
                       >
                         {item.icon}
@@ -238,24 +236,23 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         primaryTypographyProps={{
                           variant: "body2",
                           fontWeight: 500,
-                          fontSize: "0.85rem",
+                          fontSize: "0.95rem", // Уменьшил размер шрифта
                         }}
                       />
                     </ListItemButton>
                   </ListItem>
                   {item.children.map((child) => (
-                    <ListItem key={child.text} disablePadding sx={{ mb: 0 }}>
+                    <ListItem key={child.text} disablePadding sx={{ mb: 0.25 }}>
+                      {/* Уменьшил отступ снизу */}
                       <ListItemButton
                         selected={location.pathname.startsWith(
                           child.path || ""
                         )}
                         onClick={() => navigate(child.path || "/")}
                         sx={{
-                          borderRadius: 1,
-                          mx: 0.5,
-                          my: 0.25,
-                          px: 1.5,
-                          pl: 4,
+                          borderRadius: 0.5,
+                          mx: 1, // Уменьшил горизонтальные отступы
+                          py: 0.5, // Уменьшил вертикальные отступы
                           "&.Mui-selected": {
                             backgroundColor: alpha(
                               theme.palette.primary.main,
@@ -278,9 +275,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       >
                         <ListItemIcon
                           sx={{
-                            minWidth: 28,
+                            minWidth: 28, // Уменьшил минимальную ширину иконки
                             color: theme.palette.text.secondary,
-                            mr: 0.5,
                           }}
                         >
                           {child.icon}
@@ -289,7 +285,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                           primary={child.text}
                           primaryTypographyProps={{
                             variant: "body2",
-                            fontSize: "0.8rem",
+                            fontSize: "0.95rem", // Уменьшил размер шрифта
                             fontWeight: 400,
                           }}
                         />
@@ -299,14 +295,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 </>
               ) : (
                 <ListItem key={item.text} disablePadding sx={{ mb: 0.25 }}>
+                  {/* Уменьшил отступ снизу */}
                   <ListItemButton
                     selected={location.pathname.startsWith(item.path || "")}
                     onClick={() => navigate(item.path || "/")}
                     sx={{
-                      borderRadius: 1,
-                      mx: 0.5,
-                      my: 0.25,
-                      px: 1.5,
+                      borderRadius: 0.5,
+                      mx: 0.5, // Уменьшил горизонтальные отступы
+                      py: 0.75, // Уменьшил вертикальные отступы
                       "&.Mui-selected": {
                         backgroundColor: alpha(theme.palette.primary.main, 0.1),
                         "&:hover": {
@@ -325,11 +321,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     }}
                   >
                     <ListItemIcon
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        minWidth: 32,
-                        mr: 0.5,
-                      }}
+                      sx={{ color: theme.palette.text.secondary, minWidth: 32 }} // Уменьшил минимальную ширину иконки
                     >
                       {item.badge ? (
                         <Badge badgeContent={item.badge} color="error">
@@ -344,7 +336,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                       primaryTypographyProps={{
                         variant: "body2",
                         fontWeight: 500,
-                        fontSize: "0.85rem",
+                        fontSize: "0.95rem", // Уменьшил размер шрифта
                       }}
                     />
                   </ListItemButton>
@@ -354,21 +346,55 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           ))}
         </List>
       </Box>
+
+      {/* Добавленные ссылки внизу сайдбара */}
+      <Box sx={{ py: 0.75, px: 1.5 }}>
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Link
+            href="/privacy"
+            variant="body2"
+            color="grey.400"
+            sx={{
+              fontSize: "12px",
+              textDecoration: "none",
+              "&:hover": {
+                color: "primary.main",
+                textDecoration: "underline",
+              },
+            }}
+          >
+            Политика конфиденциальности
+          </Link>
+          <Link
+            href="/terms"
+            variant="body2"
+            color="grey.400"
+            sx={{
+              fontSize: "12px",
+              textDecoration: "none",
+              "&:hover": {
+                color: "primary.main",
+                textDecoration: "underline",
+              },
+            }}
+          >
+            Пользовательское соглашение
+          </Link>
+        </Box>
+      </Box>
     </Box>
   );
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <Box sx={{ display: "flex" }}>
       <CssBaseline />
-
-      {/* Header - Full Width */}
       <AppBar
         position="fixed"
         color="inherit"
         elevation={0}
         sx={{
           width: "100%",
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          zIndex: (theme) => theme.zIndex.drawer - 1,
           borderBottom: 1,
           borderColor: "divider",
           backgroundColor: isDarkMode
@@ -378,7 +404,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           borderRadius: 0,
         }}
       >
-        <Toolbar sx={{ minHeight: `${HEADER_HEIGHT}px !important` }}>
+        <Toolbar sx={{ minHeight: "70px !important" }}>
           {!isHomePage && (
             <IconButton
               color="inherit"
@@ -627,84 +653,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </Toolbar>
       </AppBar>
 
-      {/* Content Area with Sidebar */}
-      <Box sx={{ display: "flex", flexGrow: 1 }}>
-        {!isHomePage && (
-          <Box
-            component="nav"
-            sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-            aria-label="navigation menu"
-          >
-            <Drawer
-              variant="temporary"
-              open={mobileOpen}
-              onClose={handleDrawerToggle}
-              ModalProps={{
-                keepMounted: true,
-              }}
-              sx={{
-                display: { xs: "block", sm: "none" },
-                "& .MuiDrawer-paper": {
-                  boxSizing: "border-box",
-                  width: drawerWidth,
-                  border: "none",
-                  boxShadow: theme.shadows[8],
-                  left: "8px",
-                  borderRadius: 1,
-                  top: `${DRAWER_TOP_OFFSET}px`,
-                  height: calculatedDrawerHeight,
-                },
-              }}
-            >
-              {drawer}
-            </Drawer>
-            <Drawer
-              variant="permanent"
-              sx={{
-                display: { xs: "none", sm: "block" },
-                "& .MuiDrawer-paper": {
-                  boxSizing: "border-box",
-                  width: drawerWidth,
-                  border: "none",
-                  borderRight: 1,
-                  borderColor: "divider",
-                  left: "8px",
-                  borderRadius: 1,
-                  top: `${DRAWER_TOP_OFFSET}px`,
-                  height: calculatedDrawerHeight,
-                },
-              }}
-              open
-            >
-              {drawer}
-            </Drawer>
-          </Box>
-        )}
-
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            pt: `${HEADER_HEIGHT + 20}px`,
-            pb: 3,
-            width: {
-              sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)`,
-            },
-            minHeight: `calc(100vh - ${
-              HEADER_HEIGHT + 20
-            }px - ${FOOTER_HEIGHT_ESTIMATE}px - ${theme.spacing(3)})`,
-            backgroundColor: isDarkMode
-              ? alpha(theme.palette.grey[50], 0.3)
-              : alpha(theme.palette.grey[50], 0.3),
-          }}
-        >
-          {children}
-        </Box>
-      </Box>
-
-      {/* Footer - Full Width, positioned outside the flex container with sidebar */}
-      <Footer />
-
       <AddCompanyModal
         open={addCompanyModalOpen}
         onClose={() => setAddCompanyModalOpen(false)}
@@ -764,6 +712,74 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <ListItemText primary="Выйти из системы" />
         </MenuItem>
       </Menu>
+
+      {!isHomePage && (
+        <Box
+          component="nav"
+          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+          aria-label="navigation menu"
+        >
+          <Drawer
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true,
+            }}
+            sx={{
+              display: { xs: "block", sm: "none" },
+              "& .MuiDrawer-paper": {
+                boxSizing: "border-box",
+                width: drawerWidth,
+                border: "none",
+                boxShadow: theme.shadows[8],
+                left: "8px",
+                borderRadius: 1,
+                top: "82px",
+                height: "calc(100% - 90px)",
+              },
+            }}
+          >
+            {drawer}
+          </Drawer>
+          <Drawer
+            variant="permanent"
+            sx={{
+              display: { xs: "none", sm: "block" },
+              "& .MuiDrawer-paper": {
+                boxSizing: "border-box",
+                width: drawerWidth,
+                border: "none",
+                borderRight: 1,
+                borderColor: "divider",
+                left: "8px",
+                borderRadius: "16px",
+                top: "82px",
+                height: "calc(100% - 90px)",
+              },
+            }}
+            open
+          >
+            {drawer}
+          </Drawer>
+        </Box>
+      )}
+
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          pt: "90px",
+          pb: 3,
+          width: { sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)` },
+          minHeight: "100vh",
+          backgroundColor: isDarkMode
+            ? alpha(theme.palette.grey[50], 0.3)
+            : alpha(theme.palette.grey[50], 0.3),
+        }}
+      >
+        {children}
+      </Box>
     </Box>
   );
 };
