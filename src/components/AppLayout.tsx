@@ -57,7 +57,6 @@ import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import GroupIcon from "@mui/icons-material/Group";
-import { Footer } from "./footer";
 
 const drawerWidth = 205; // Уменьшил ширину сайдбара
 const LOGO_AVATAR_SIZE = 35;
@@ -456,6 +455,20 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 Observer
               </Typography>
             </Box>
+            <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
+              <IconButton
+                onClick={toggleTheme}
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  "&:hover": {
+                    bgcolor: alpha(theme.palette.primary.main, 0.2),
+                  },
+                  borderRadius: 1,
+                }}
+              >
+                {isDarkMode ? <LightMode /> : <DarkMode />}
+              </IconButton>
+            </Tooltip>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -473,22 +486,30 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     <Paper
                       elevation={0}
                       sx={{
-                        border: 1,
+                        // border: 1,
+                        border: "none", // Убираем границу полностью
+
                         borderColor: "divider",
                         borderRadius: 1,
                       }}
                     >
                       <FormControl size="small" sx={{ minWidth: 140 }}>
-                        <InputLabel>Компании</InputLabel>
+                        <InputLabel>Компания</InputLabel>
                         <Select
                           value={selectedCompanyId || ""}
                           onChange={handleCompanyChange}
-                          label="Компании"
+                          label="Компания"
                           sx={{
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              border: "none",
-                            },
                             borderRadius: 1,
+                            "& fieldset": {
+                              border: "none", // Основная граница
+                            },
+                            "&:hover fieldset": {
+                              border: "none !important", // Ховер-состояние
+                            },
+                            "&.Mui-focused fieldset": {
+                              border: "none !important", // Фокус-состояние
+                            },
                           }}
                         >
                           {availableCompanies.map((companyId) => (
@@ -553,8 +574,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 )}
               </>
             )}
-
-            <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
+            {/* <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
               <IconButton
                 onClick={toggleTheme}
                 sx={{
@@ -567,8 +587,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               >
                 {isDarkMode ? <LightMode /> : <DarkMode />}
               </IconButton>
-            </Tooltip>
-
+            </Tooltip> */}
             {isSuperadmin && (
               <Tooltip
                 title={
@@ -609,22 +628,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 </Paper>
               </Tooltip>
             )}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  {user?.full_name || "Пользователь"}
-                </Typography>
-                {isSuperadmin && (
-                  <Chip
-                    label="Суперадмин"
-                    size="small"
-                    color="primary"
-                    sx={{ height: 20, fontSize: "0.7rem", borderRadius: 1 }}
-                  />
-                )}
-              </Box>
-            </Box>
-            <Tooltip title="Профиль и настройки">
+            <Tooltip title="Профиль">
               <IconButton
                 size="large"
                 edge="end"
@@ -647,6 +651,27 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 >
                   {user?.full_name ? getInitials(user.full_name) : "U"}
                 </Avatar>
+                {/* </IconButton>
+            </Tooltip> */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ fontWeight: 600, marginLeft: 1 }}
+                    >
+                      {" "}
+                      {user?.full_name || "Пользователь"}
+                    </Typography>
+                    {/* {isSuperadmin && (
+                      <Chip
+                        label="Суперадмин"
+                        size="small"
+                        color="primary"
+                        sx={{ height: 20, fontSize: "0.7rem", borderRadius: 1 }}
+                      />
+                    )} */}
+                  </Box>
+                </Box>
               </IconButton>
             </Tooltip>
           </Box>

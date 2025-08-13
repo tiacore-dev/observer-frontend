@@ -247,14 +247,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, [logout]);
 
   const updateUser = useCallback((userData: Partial<IUser>) => {
-    // setAuthState((prev) => {
-    // const updatedUser = { ...prev.user, ...userData };
-    //   localStorage.setItem("user", JSON.stringify(updatedUser));
-    //   return {
-    //     ...prev,
-    //     user: updatedUser,
-    //   };
-    // });
+    setAuthState((prev) => {
+      const updatedUser = { ...prev.user, ...userData };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      return {
+        ...prev,
+        user: updatedUser,
+      };
+    });
   }, []);
 
   const setSelectedCompanyId = useCallback((companyId: string) => {

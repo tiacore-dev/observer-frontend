@@ -143,7 +143,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
               <TextField
                 fullWidth
                 type="password"
-                label="Новый пароль"
+                label="Новый пароль (оставьте пустым, если не хотите менять пароль)"
                 {...register("newPassword", {
                   minLength: {
                     value: 6,
