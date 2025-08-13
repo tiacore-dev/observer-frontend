@@ -6,6 +6,8 @@ import {
   resendVerification,
 } from "../../api/registrationApi";
 import { enqueueSnackbar } from "notistack";
+import { resetPassword, resetPasswordRequest } from "../../api/authApi";
+import { useNavigate } from "react-router-dom";
 
 export const useRegisterMutation = () => {
   return useMutation({
@@ -56,6 +58,58 @@ export const useResendVerificationMutation = () => {
       enqueueSnackbar("Ошибка при отправке письма подтверждения", {
         variant: "error",
       });
+    },
+  });
+};
+
+type ApiError = {
+  response?: {
+    status: number;
+    data: {
+      message: string;
+    };
+  };
+};
+
+type ResetPasswordData = {
+  password: string;
+  token: string;
+};
+
+export const useResetPasswordRequestMutation = () => {
+  return useMutation({
+    mutationFn: (email: string) => resetPasswordRequest(email),
+    onSuccess: () => {
+      enqueueSnackbar(
+        "Письмо с инструкциями по восстановлению пароля отправлено на ваш email",
+        { variant: "success" }
+      );
+    },
+    onError: (error: ApiError) => {
+      const errorMessage =
+        error.response?.data.message || "Ошибка при запросе сброса пароля";
+      enqueueSnackbar(errorMessage, { variant: "error" });
+    },
+  });
+};
+
+export const useResetPasswordMutation = () => {
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: (data: ResetPasswordData) =>
+      resetPassword(data.password, data.token),
+    onSuccess: () => {
+      enqueueSnackbar(
+        "Пароль успешно изменён. Теперь вы можете войти с новым паролем.",
+        { variant: "success" }
+      );
+      navigate("/login");
+    },
+    onError: (error: ApiError) => {
+      const errorMessage =
+        error.response?.data.message || "Ошибка при изменении пароля";
+      enqueueSnackbar(errorMessage, { variant: "error" });
     },
   });
 };

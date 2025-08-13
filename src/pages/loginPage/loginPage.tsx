@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../context/authContext";
 import { UserRegistrationModal } from "./userRegistrationModal";
+import { ResetPasswordModal } from "./resetPasswordModal";
 import {
   useVerifyEmailMutation,
   useResendVerificationMutation,
@@ -39,6 +40,8 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const location = useLocation();
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
+  const [isResetPasswordModalVisible, setIsResetPasswordModalVisible] =
+    useState(false);
   const [showResendLink, setShowResendLink] = useState(false);
   const emailValue = watch("email");
 
@@ -123,7 +126,6 @@ export const LoginPage: React.FC = () => {
             </Typography>
             <Button
               variant="text"
-              // size="small"
               disabled={resendVerificationMutation.isPending}
               onClick={() => resendVerificationMutation.mutate(emailValue)}
             >
@@ -190,14 +192,22 @@ export const LoginPage: React.FC = () => {
             Войти
           </Button>
 
-          <Button
-            type="button"
-            fullWidth
-            variant="text"
-            onClick={() => setIsRegisterModalVisible(true)}
-          >
-            Зарегистрироваться
-          </Button>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Button
+              type="button"
+              variant="text"
+              onClick={() => setIsRegisterModalVisible(true)}
+            >
+              Зарегистрироваться
+            </Button>
+            <Button
+              type="button"
+              variant="text"
+              onClick={() => setIsResetPasswordModalVisible(true)}
+            >
+              Не помню пароль
+            </Button>
+          </Box>
         </form>
       </Paper>
 
@@ -210,6 +220,12 @@ export const LoginPage: React.FC = () => {
             { variant: "success" }
           );
         }}
+      />
+
+      <ResetPasswordModal
+        open={isResetPasswordModalVisible}
+        onClose={() => setIsResetPasswordModalVisible(false)}
+        onSuccess={() => {}}
       />
     </Box>
   );

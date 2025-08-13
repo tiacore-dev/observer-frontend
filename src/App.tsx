@@ -33,6 +33,7 @@ import { store } from "./redux/store";
 import { ThemeModeProvider, useThemeMode } from "./context/themeContext";
 import { PrivacyPage } from "./pages/privacyPage/privacyPage";
 import { TermsPage } from "./pages/termsPage/termsPage";
+import { ResetPasswordPage } from "./pages/loginPage/resetPasswordPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -55,6 +56,7 @@ const AppContent: React.FC = () => {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                 <Route
                   element={
