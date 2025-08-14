@@ -301,14 +301,15 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
           <TextField
             name="schedule_name"
-            label="Название расписания (необязательно)"
+            label="Название расписания"
             value={getCurrentStringValue("schedule_name")}
             onChange={handleChange}
             fullWidth
             error={!!errors.schedule_name}
-            helperText={errors.schedule_name || "Можно оставить пустым"}
+            helperText={
+              errors.schedule_name || "Укажите название для расписания"
+            }
           />
-
           <TextField
             name="description"
             label="Описание"

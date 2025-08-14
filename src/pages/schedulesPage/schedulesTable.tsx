@@ -399,35 +399,56 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
 
                   <TableCell>
                     <Box sx={{ flexGrow: 1 }}>
-                      {/* Название и статус в одной строке */}
-                      {/* <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          mb: 0.5,
-                        }}
-                      > */}
-                      <Typography
-                        variant="body1"
-                        fontWeight={500}
-                        sx={{ lineHeight: 1.2 }}
-                      >
-                        {schedule.schedule_name || "Без названия"}
-                      </Typography>
-                      <Chip
-                        label={schedule.enabled ? "Запущено" : "Остановлено"}
-                        size="small"
-                        color={schedule.enabled ? "success" : "error"}
-                        variant="outlined"
-                        sx={{
-                          height: 20,
-                          fontSize: "0.75rem",
-                          "& .MuiChip-label": { px: 0.5 },
-                        }}
-                      />
-                      {/* </Box> */}
-
+                      <Box>
+                        <Typography variant="body1" fontWeight={500}>
+                          {schedule.schedule_name || "Без названия"}
+                        </Typography>
+                        {schedule.description && (
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            noWrap
+                          >
+                            {schedule.description}
+                          </Typography>
+                        )}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            // justifyContent: "center",
+                            gap: 1,
+                          }}
+                        >
+                          {schedule.enabled ? (
+                            <Chip
+                              icon={<CheckCircle fontSize="small" />}
+                              label="Активно"
+                              color="success"
+                              variant="outlined"
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: "0.75rem",
+                                "& .MuiChip-label": { px: 0.5 },
+                              }}
+                            />
+                          ) : (
+                            <Chip
+                              icon={<PauseCircleFilled fontSize="small" />}
+                              label="Остановлено"
+                              color="error"
+                              variant="outlined"
+                              size="small"
+                              sx={{
+                                height: 20,
+                                fontSize: "0.75rem",
+                                "& .MuiChip-label": { px: 0.5 },
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Box>
                       {/* Описание */}
                       {schedule.description && (
                         <Typography

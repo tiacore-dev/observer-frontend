@@ -414,7 +414,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             </FormControl>
           )}
 
-          <TextField
+          {/* <TextField
             name="schedule_name"
             label="Название расписания (необязательно)"
             value={scheduleData.schedule_name}
@@ -422,8 +422,18 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
             fullWidth
             error={!!errors.schedule_name}
             helperText={errors.schedule_name || "Можно оставить пустым"}
+          /> */}
+          <TextField
+            name="schedule_name"
+            label="Название расписания"
+            value={scheduleData.schedule_name}
+            onChange={handleChange}
+            fullWidth
+            error={!!errors.schedule_name}
+            helperText={
+              errors.schedule_name || "Укажите название для расписания"
+            }
           />
-
           <TextField
             name="description"
             label="Описание (необязательно)"

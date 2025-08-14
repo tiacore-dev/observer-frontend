@@ -32,7 +32,9 @@ export const useScheduleValidation = () => {
   ) => {
     const newErrors: Record<string, string> = {};
 
-    if (data.schedule_name && data.schedule_name.length > 100) {
+    if (!data.schedule_name) {
+      newErrors.schedule_name = "Название обязательно";
+    } else if (data.schedule_name.length > 100) {
       newErrors.schedule_name = "Максимальная длина названия - 100 символов";
     }
 
