@@ -15,6 +15,7 @@ interface AnalysisState {
   rowsPerPage: number;
   sortField: keyof IAnalys;
   sortDirection: "asc" | "desc";
+  analysingModel: "yandex-gpt-pro" | "yandex-gpt-mini" | null;
 }
 
 const initialState: AnalysisState = {
@@ -30,12 +31,21 @@ const initialState: AnalysisState = {
   rowsPerPage: 10,
   sortField: "created_at",
   sortDirection: "desc",
+  analysingModel: null,
 };
 
 const analysisSlice = createSlice({
   name: "analysis",
   initialState,
   reducers: {
+    setModelFilter: (
+      state,
+      action: PayloadAction<"yandex-gpt-pro" | "yandex-gpt-mini" | null>
+    ) => {
+      state.analysingModel = action.payload;
+      state.chatSelectFilter = null;
+      state.page = 1;
+    },
     setChatFilter: (state, action: PayloadAction<string>) => {
       state.chatFilter = action.payload;
       state.chatSelectFilter = null;
@@ -102,12 +112,14 @@ const analysisSlice = createSlice({
       state.rowsPerPage = 10;
       state.sortField = "created_at";
       state.sortDirection = "desc";
+      state.analysingModel = null;
       state.page = 1;
     },
   },
 });
 
 export const {
+  setModelFilter,
   setChatFilter,
   setChatSelectFilter,
   setPromptFilter,

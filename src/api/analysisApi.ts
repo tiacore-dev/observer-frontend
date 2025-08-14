@@ -13,6 +13,7 @@ export interface IAnalys {
   date_to?: number;
   date_from?: number;
   send_time?: number;
+  analysing_model: "yandex-gpt-pro" | "yandex-gpt-mini";
 }
 
 export const fetchAnalysis = async (
@@ -28,6 +29,7 @@ export const fetchAnalysis = async (
     date_from?: Date | null;
     date_to?: Date | null;
     company_id?: string;
+    analysing_model?: "yandex-gpt-pro" | "yandex-gpt-mini";
   }
 ) => {
   const url = process.env.REACT_APP_API_URL;
@@ -44,6 +46,8 @@ export const fetchAnalysis = async (
   if (params?.order) requestParams.order = params.order;
   if (params?.date_from) requestParams.date_from = params.date_from;
   if (params?.date_to) requestParams.date_to = params.date_to;
+  if (params?.analysing_model)
+    requestParams.analysing_model = params.analysing_model;
 
   if (!isSuperadmin && selectedCompanyId) {
     requestParams.company_id = selectedCompanyId;

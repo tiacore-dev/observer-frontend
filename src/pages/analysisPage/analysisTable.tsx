@@ -170,13 +170,22 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               }
             />
             {isSuperadmin && (
-              <SortableTableHeader<SortField>
-                field="company_id"
-                currentSortField={sortField}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                label={"Компания"}
-              />
+              <>
+                <SortableTableHeader<SortField>
+                  field="company_id"
+                  currentSortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={onSort}
+                  label={"Компания"}
+                />
+                <SortableTableHeader<SortField>
+                  field="analysing_model"
+                  currentSortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={onSort}
+                  label={"Модель"}
+                />
+              </>
             )}
             {developerMode && (
               <TableCell sx={{ width: "15%" }}>
@@ -274,18 +283,63 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                 </Box>
               </TableCell>
               {isSuperadmin && (
-                <TableCell sx={{ width: "15%" }}>
-                  <Chip
-                    // icon={<Business fontSize="small" />}
-                    size="small"
-                    label={companyMap.get(item.company_id) || item.company_id}
-                    sx={{
-                      bgcolor: "primary.light",
-                      color: "primary.contrastText",
-                      fontWeight: 500,
-                    }}
-                  />
-                </TableCell>
+                <>
+                  <TableCell sx={{ width: "15%" }}>
+                    <Chip
+                      // icon={<Business fontSize="small" />}
+                      size="small"
+                      label={companyMap.get(item.company_id) || item.company_id}
+                      sx={{
+                        bgcolor: "primary.light",
+                        color: "primary.contrastText",
+                        fontWeight: 500,
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {/* Иконка модели (опционально) */}
+                      {/* {item.analysing_model === 'yandex-gpt-pro' ? (
+      <StarsIcon color="primary" fontSize="small" />
+    ) : (
+      <MemoryIcon color="secondary" fontSize="small" />
+    )} */}
+
+                      {/* Название модели с цветом в зависимости от типа */}
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 500,
+                          color:
+                            item.analysing_model === "yandex-gpt-pro"
+                              ? "primary.main"
+                              : "text.primary",
+                        }}
+                      >
+                        {item.analysing_model === "yandex-gpt-pro"
+                          ? "Yandex GPT Pro"
+                          : item.analysing_model === "yandex-gpt-mini"
+                          ? "Yandex GPT Mini"
+                          : "Не указано"}
+                      </Typography>
+
+                      {/* Бейдж для Pro версии (опционально) */}
+                      {item.analysing_model === "yandex-gpt-pro" && (
+                        <Chip
+                          label="PRO"
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{
+                            height: 20,
+                            fontSize: "0.65rem",
+                            "& .MuiChip-label": { px: 0.5 },
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
+                </>
               )}
               {developerMode && (
                 <TableCell sx={{ width: "15%" }}>

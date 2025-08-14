@@ -334,7 +334,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 icon={
                   schedule.enabled ? <CheckCircleIcon /> : <PauseCircleIcon />
                 }
-                label={schedule.enabled ? "Запустить" : "Выключить"}
+                label={schedule.enabled ? "Активно" : "Приоставновлено"}
                 sx={{
                   bgcolor: "rgba(255,255,255,0.9)",
                   color: schedule.enabled ? "#059669" : "#dc2626",
@@ -390,7 +390,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
               }}
               disabled={toggleScheduleMutation.isPending}
             >
-              {schedule.enabled ? "Приостановить" : "Активировать"}
+              {schedule.enabled ? "Выключить" : "Запустить"}
               {toggleScheduleMutation.isPending && (
                 <CircularProgress size={20} sx={{ ml: 1, color: "white" }} />
               )}

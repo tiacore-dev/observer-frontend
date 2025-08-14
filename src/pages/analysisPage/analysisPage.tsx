@@ -48,10 +48,25 @@ import {
   setSortField,
   setSortDirection,
   resetFilters,
+  setModelFilter,
 } from "../../redux/slice/analysisSlice";
 import type { RootState } from "../../redux/store";
 import { useThemeMode } from "../../context/themeContext";
 
+export type ModelId = "yandex-gpt-mini" | "yandex-gpt-pro" | null;
+
+// 2. Определяем тип для объекта опции
+export interface ModelOption {
+  id: ModelId;
+  name: string;
+}
+
+// 3. Создаем константу с доступными опциями
+export const MODEL_OPTIONS: ModelOption[] = [
+  { id: "yandex-gpt-mini", name: "Yandex GPT Mini" },
+  { id: "yandex-gpt-pro", name: "Yandex GPT Pro" },
+  { id: null, name: "Все модели" },
+];
 export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
   const { isSuperadmin, selectedCompanyId } = useAuth();
@@ -70,6 +85,8 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     sortField,
     sortDirection,
   } = useSelector((state: RootState) => state.analysis);
+  // 1. Определяем тип для возможных значений моделей
+  const [selectedModel, setSelectedModel] = useState<ModelOption | null>(null);
 
   const {
     data: analysisData,
@@ -285,7 +302,29 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                     dispatch(setPromptSelectFilter(value?.id || null));
                   }}
                 />
-
+                {isSuperadmin && (
+                  <Autocomplete<ModelOption>
+                    options={MODEL_OPTIONS}
+                    getOptionLabel={(option) => option.name}
+                    value={selectedModel}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Выберите модель"
+                        variant="outlined"
+                        size="small"
+                        sx={{ width: 250 }}
+                      />
+                    )}
+                    onChange={(_, value) => {
+                      setSelectedModel(value);
+                      dispatch(setModelFilter(value?.id ?? null));
+                    }}
+                    isOptionEqualToValue={(option, value) =>
+                      option.id === value?.id
+                    }
+                  />
+                )}
                 <ResetFiltersButton onClick={resetAllFilters} />
 
                 <Box sx={{ flexGrow: 1 }} />

@@ -27,6 +27,7 @@ export const useAnalysisQuery = () => {
     rowsPerPage,
     sortField,
     sortDirection,
+    analysingModel,
   } = useSelector((state: RootState) => state.analysis);
 
   return useQuery<IAnalysisResponse>({
@@ -43,6 +44,7 @@ export const useAnalysisQuery = () => {
       rowsPerPage,
       sortField,
       sortDirection,
+      analysingModel,
     ],
     queryFn: () =>
       fetchAnalysis(selectedCompanyId, isSuperadmin, {
@@ -55,6 +57,7 @@ export const useAnalysisQuery = () => {
         date_to: dateTo || undefined,
         sort_by: sortField,
         order: sortDirection,
+        analysing_model: analysingModel || undefined,
       }),
     staleTime: 5 * 60 * 1000,
     retry: false,
