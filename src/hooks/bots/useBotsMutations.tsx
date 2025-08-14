@@ -17,8 +17,14 @@ export const useCreateBot = () => {
       queryClient.invalidateQueries({ queryKey: ["bots"] });
       enqueueSnackbar("Успешно добавлено", { variant: "success" });
     },
-    onError: () => {
-      enqueueSnackbar("Ошибка при создании", { variant: "error" });
+    onError: (error: any) => {
+      if (error.response?.status === 419) {
+        enqueueSnackbar("Этот бот уже привязан к другой компании", {
+          variant: "error",
+        });
+      } else {
+        enqueueSnackbar("Ошибка при создании", { variant: "error" });
+      }
     },
   });
 };

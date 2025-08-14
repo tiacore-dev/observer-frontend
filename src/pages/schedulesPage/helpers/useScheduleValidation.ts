@@ -19,6 +19,7 @@ interface ValidationData {
   send_strategy?: "fixed" | "relative";
   time_to_send?: string;
   send_after_minutes?: string | number;
+  run_on_empty_chat?: boolean;
 }
 
 export const useScheduleValidation = () => {
@@ -31,10 +32,7 @@ export const useScheduleValidation = () => {
   ) => {
     const newErrors: Record<string, string> = {};
 
-    // Валидация новых полей
-    if (!data.schedule_name) {
-      newErrors.schedule_name = "Название обязательно";
-    } else if (data.schedule_name.length > 100) {
+    if (data.schedule_name && data.schedule_name.length > 100) {
       newErrors.schedule_name = "Максимальная длина названия - 100 символов";
     }
 
@@ -42,19 +40,16 @@ export const useScheduleValidation = () => {
       newErrors.description = "Максимальная длина описания - 500 символов";
     }
 
-    // Базовые обязательные поля
     if (!data.bot_id) newErrors.bot_id = "Бот обязателен";
     if (!data.company_id) newErrors.company_id = "Компания обязательна";
     if (data.target_chats.length === 0) {
       newErrors.target_chats = "Необходимо выбрать хотя бы один чат";
     }
 
-    // Валидация по стратегии расписания
     if (data.schedule_strategy === "analysis") {
       if (!data.chat_id) newErrors.chat_id = "Анализируемый чат обязателен";
       if (!data.prompt_id) newErrors.prompt_id = "Промпт обязателен";
 
-      // Валидация стратегии отправки (только для анализа)
       if (data.send_strategy === "fixed") {
         if (!data.time_to_send) {
           newErrors.time_to_send = "Время отправки обязательно";
@@ -75,12 +70,10 @@ export const useScheduleValidation = () => {
       }
     }
 
-    // Валидация длины шапки сообщения
     if (data.message_intro && data.message_intro.length > 255) {
       newErrors.message_intro = "Максимальная длина - 255 символов";
     }
 
-    // Валидация типа расписания
     if (data.schedule_type === "interval") {
       const hours = Number(data.interval_hours) || 0;
       const minutes = Number(data.interval_minutes) || 0;

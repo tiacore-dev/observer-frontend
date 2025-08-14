@@ -6,7 +6,8 @@ export const registrationUser = async (newUser: {
   password: string;
   full_name: string;
   position: string;
-}): Promise<IUser> => {
+}): Promise<{ user_id: string }> => {
+  // Измененный тип возвращаемого значения
   const url = process.env.REACT_APP_API_URL;
 
   const payload = {

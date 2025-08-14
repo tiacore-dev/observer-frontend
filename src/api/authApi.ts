@@ -8,7 +8,6 @@ export interface AuthResponse {
   is_superadmin: boolean;
   user_id: string;
 }
-
 export const loginUser = async (data: {
   email: string;
   password: string;
@@ -91,5 +90,14 @@ export const resetPassword = async (password: string, token: string) => {
   if (!url) throw new Error("REACT_APP_API_URL is not defined");
   await axiosInstance.post(`${url}/api/reset-verify?token=${token}`, {
     password,
+  });
+};
+
+// /api/agreement
+export const userAgreement = async (user_id: string) => {
+  const url = process.env.REACT_APP_API_URL;
+  if (!url) throw new Error("REACT_APP_API_URL is not defined");
+  await axiosInstance.post(`${url}/api/agreement`, {
+    user_id,
   });
 };

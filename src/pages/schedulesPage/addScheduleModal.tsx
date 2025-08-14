@@ -21,6 +21,8 @@ import {
   Chip,
   CircularProgress,
   Collapse,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import {
   Info as InfoIcon,
@@ -84,6 +86,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     send_strategy: "fixed" as SendStrategy,
     time_to_send: "",
     send_after_minutes: "",
+    run_on_empty_chat: false,
   });
 
   const [cronTime, setCronTime] = useState<string>("09:00");
@@ -202,6 +205,10 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
     setScheduleData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleBooleanChange = (field: string, value: boolean) => {
+    setScheduleData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleChatToggle = (chatId: number) => () => {
     setScheduleData((prev) => {
       const newTargetChats = [...prev.target_chats];
@@ -241,6 +248,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
       schedule_type: scheduleData.schedule_type,
       target_chats: scheduleData.target_chats,
       bot_id: scheduleData.bot_id,
+      run_on_empty_chat: scheduleData.run_on_empty_chat,
       ...(scheduleData.schedule_strategy === "analysis" && {
         send_strategy: scheduleData.send_strategy,
         time_to_send: scheduleData.time_to_send,
@@ -296,6 +304,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         enabled: scheduleData.enabled,
         bot_id: Number.parseInt(scheduleData.bot_id),
         target_chats: scheduleData.target_chats,
+        run_on_empty_chat: scheduleData.run_on_empty_chat,
         ...(scheduleData.schedule_strategy === "analysis" && {
           send_strategy: scheduleData.send_strategy,
           time_to_send:
@@ -331,6 +340,7 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
         send_strategy: "fixed",
         time_to_send: "",
         send_after_minutes: "",
+        run_on_empty_chat: false,
       });
       setCronTime("09:00");
       setSelectedDays([1, 2, 3, 4, 5]);
@@ -403,16 +413,15 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
               )}
             </FormControl>
           )}
+
           <TextField
             name="schedule_name"
-            label="Название расписания"
+            label="Название расписания (необязательно)"
             value={scheduleData.schedule_name}
             onChange={handleChange}
             fullWidth
             error={!!errors.schedule_name}
-            helperText={
-              errors.schedule_name || "Укажите название для расписания"
-            }
+            helperText={errors.schedule_name || "Можно оставить пустым"}
           />
 
           <TextField
@@ -677,6 +686,52 @@ export const AddScheduleModal: React.FC<AddScheduleModalProps> = ({
                   helperText={`Этот текст будет добавлен в начало каждого отчета`}
                   placeholder="Например: Еженедельный отчет по активности чата"
                 />
+              </Box>
+
+              {/* Обработка пустых чатов */}
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  gutterBottom
+                  sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                >
+                  Если сообщений нет:
+                </Typography>
+                <Stack direction="row" spacing={2}>
+                  <Button
+                    variant={
+                      !scheduleData.run_on_empty_chat ? "contained" : "outlined"
+                    }
+                    onClick={() =>
+                      handleBooleanChange("run_on_empty_chat", false)
+                    }
+                    sx={{ flex: 1 }}
+                  >
+                    Пропускать анализ
+                  </Button>
+                  <Button
+                    variant={
+                      !!scheduleData.run_on_empty_chat
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() =>
+                      handleBooleanChange("run_on_empty_chat", true)
+                    }
+                    sx={{ flex: 1 }}
+                  >
+                    Выполнять анализ
+                  </Button>
+                </Stack>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  {scheduleData.run_on_empty_chat
+                    ? "Выполнять анализ даже при отсутствии сообщений - бот напишет в чат"
+                    : "Не выполнять анализ, если нет сообщений - в чат ничего не прийдет"}
+                </Typography>
               </Box>
             </>
           )}

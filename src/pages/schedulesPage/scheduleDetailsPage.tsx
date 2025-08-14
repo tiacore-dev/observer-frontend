@@ -49,6 +49,7 @@ import { DeleteDialog } from "../../components/deleteDialog";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 import { daysOfWeek, convertToLocalTime } from "./helpers/scheduleUtils";
 import { useThemeMode } from "../../context/themeContext";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 
 export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
@@ -333,7 +334,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 icon={
                   schedule.enabled ? <CheckCircleIcon /> : <PauseCircleIcon />
                 }
-                label={schedule.enabled ? "Активно" : "Приостановлено"}
+                label={schedule.enabled ? "Запустить" : "Выключить"}
                 sx={{
                   bgcolor: "rgba(255,255,255,0.9)",
                   color: schedule.enabled ? "#059669" : "#dc2626",
@@ -543,6 +544,21 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                         }
                       />
                     )}
+
+                    <CompactDetailItem
+                      icon={
+                        <ChatBubbleOutlineIcon
+                          color="primary"
+                          fontSize="small"
+                        />
+                      }
+                      label="Если сообщений нет:"
+                      value={
+                        schedule.run_on_empty_chat
+                          ? "Выполнять анализ"
+                          : "Пропускать анализ"
+                      }
+                    />
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     {schedule.prompt_id && (
@@ -572,17 +588,13 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 )}
               </Box>
             )}
-          </CardContent>
-        </Card>
+            {/* </CardContent>
+        </Card> */}
 
-        {/* Чаты для отправки */}
-        <Card>
-          <CardContent sx={{ p: 3 }}>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ fontWeight: "bold", mb: 1 }}
-            >
+            {/* Чаты для отправки */}
+            {/* <Card>
+          <CardContent sx={{ p: 3 }}> */}
+            <Typography sx={{ fontWeight: "bold", mb: 1 }}>
               Чаты для получения результатов
             </Typography>
 

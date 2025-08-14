@@ -6,17 +6,20 @@ import {
   resendVerification,
 } from "../../api/registrationApi";
 import { enqueueSnackbar } from "notistack";
-import { resetPassword, resetPasswordRequest } from "../../api/authApi";
+import {
+  resetPassword,
+  resetPasswordRequest,
+  userAgreement,
+} from "../../api/authApi";
 import { useNavigate } from "react-router-dom";
 
 export const useRegisterMutation = () => {
   return useMutation({
     mutationFn: registrationUser,
-    onSuccess: () => {
-      // enqueueSnackbar(
-      //   "Регистрация успешна! Пожалуйста, проверьте вашу почту для подтверждения email.",
-      //   { variant: "success" }
-      // );
+    onSuccess: (response) => {
+      if (response?.user_id) {
+        userAgreement(response.user_id);
+      }
     },
     onError: (error: any) => {
       if (error.response?.status === 400) {

@@ -22,6 +22,7 @@ export interface ISchedule {
   send_after_minutes?: number;
   bot_id: number;
   target_chats: number[];
+  run_on_empty_chat?: boolean;
 }
 
 export interface IScheduleCreate {
@@ -43,6 +44,7 @@ export interface IScheduleCreate {
   send_strategy?: "fixed" | "relative";
   time_to_send?: string;
   send_after_minutes?: number;
+  run_on_empty_chat?: boolean;
 }
 
 export interface IScheduleEdit {
@@ -65,6 +67,7 @@ export interface IScheduleEdit {
   time_to_send?: string;
   send_after_minutes?: number;
   company_id?: string;
+  run_on_empty_chat?: boolean;
 }
 
 export const fetchSchedules = async (

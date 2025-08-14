@@ -15,6 +15,8 @@ import {
   Box,
   Avatar,
   Tooltip,
+  IconButton,
+  CircularProgress,
 } from "@mui/material";
 import {
   Schedule as ScheduleIcon,
@@ -27,6 +29,7 @@ import {
   PauseCircleFilled,
   ScheduleSend as FixedStrategyIcon,
   TrendingFlat as RelativeStrategyIcon,
+  PowerSettingsNew as ToggleIcon,
 } from "@mui/icons-material";
 import type { ISchedule } from "../../api/schedulesApi";
 import { useCompanyMap } from "../../hooks/maps/useCompanyMap";
@@ -34,6 +37,7 @@ import { useBotMap } from "../../hooks/maps/useBotMap";
 import { useChatMap } from "../../hooks/maps/useChatMap";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
+import { useToggleSchedule } from "../../hooks/schedules/useScheduleMutations";
 
 type SortField =
   | "bot_id"
@@ -64,6 +68,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
   isLoading = false,
 }) => {
   const navigate = useNavigate();
+  const toggleScheduleMutation = useToggleSchedule();
 
   const companyMap = useCompanyMap().companyMap;
   const botMap = useBotMap().botMap;
@@ -158,7 +163,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
     }
   };
 
-  const getBotAvatar = (botName: string) => {
+  const getBotAvatar = (botName: string, enabled: boolean) => {
     const initials = botName
       .split(" ")
       .map((word) => word[0])
@@ -171,7 +176,8 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
         sx={{
           width: 32,
           height: 32,
-          bgcolor: "primary.main",
+          bgcolor: enabled ? "#10b981" : "#ef4444",
+          color: "white",
           fontSize: "0.875rem",
         }}
       >
@@ -237,12 +243,21 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
     );
   };
 
+  const handleToggleSchedule = async (
+    e: React.MouseEvent,
+    scheduleId: string
+  ) => {
+    e.stopPropagation();
+    try {
+      await toggleScheduleMutation.mutateAsync(scheduleId);
+    } catch (error) {
+      console.error("Error toggling schedule:", error);
+    }
+  };
+
   if (isLoading) {
     const columns = 5;
-    const additionalColumns =
-      (developerMode ? 1 : 0) +
-      (isSuperadmin ? 1 : 0) +
-      (developerMode ? 1 : 0);
+    const additionalColumns = (isSuperadmin ? 1 : 0) + (developerMode ? 1 : 0);
 
     return (
       <TableSkeleton
@@ -264,33 +279,20 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   ID
                 </TableCell>
               )}
+              <TableCell sx={{ fontWeight: 600, width: "20px" }}></TableCell>
               <TableCell sx={{ fontWeight: 600, width: "80px" }}>
                 Название
               </TableCell>
+
               <SortableTableHeader<SortField>
                 field="bot_id"
                 currentSortField={sortField}
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Telegram Бот"
-                // sx={{ minWidth: "180px" }}
               />
-              <TableCell>
-                {/* // field="schedule_strategy"
-                // currentSortField={sortField}
-                // sortDirection={sortDirection}
-                // onSort={onSort} */}
-                Тип задачи
-                {/* // sx={{ minWidth: "180px" }} */}
-              </TableCell>
+              <TableCell>Тип задачи</TableCell>
               <TableCell>Когда и куда отправлять</TableCell>
-              {/* <SortableTableHeader<SortField>
-                field="enabled"
-                currentSortField={sortField}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                label="Статус"
-              /> */}
               {isSuperadmin && (
                 <SortableTableHeader<SortField>
                   field="company_id"
@@ -298,7 +300,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   sortDirection={sortDirection}
                   onSort={onSort}
                   label="Компания"
-                  // sx={{ minWidth: "150px" }}
                 />
               )}
               <SortableTableHeader<SortField>
@@ -308,7 +309,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 onSort={onSort}
                 label="Последнее выполнение"
                 defaultDirection="desc"
-                // sx={{ minWidth: "160px" }}
               />
               {developerMode && (
                 <SortableTableHeader<SortField>
@@ -318,7 +318,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                   onSort={onSort}
                   label="Дата создания"
                   defaultDirection="desc"
-                  // sx={{ minWidth: "160px" }}
                 />
               )}
             </TableRow>
@@ -362,50 +361,90 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                       </Typography>
                     </TableCell>
                   )}
+                  <TableCell>
+                    <Tooltip
+                      title={
+                        schedule.enabled
+                          ? "Остановить расписание"
+                          : "Запустить расписание"
+                      }
+                    >
+                      <IconButton
+                        onClick={(e) =>
+                          handleToggleSchedule(e, schedule.schedule_id)
+                        }
+                        sx={{
+                          color: schedule.enabled
+                            ? "error.main"
+                            : "success.main",
+                          "&:hover": {
+                            backgroundColor: schedule.enabled
+                              ? "error.dark"
+                              : "success.dark",
+                            color: "background.paper",
+                          },
+                        }}
+                        disabled={toggleScheduleMutation.isPending}
+                      >
+                        {toggleScheduleMutation.isPending &&
+                        toggleScheduleMutation.variables ===
+                          schedule.schedule_id ? (
+                          <CircularProgress size={24} />
+                        ) : (
+                          <ToggleIcon />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
 
                   <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      {getBotAvatar(schedule.schedule_name || "Без названия")}
-                      <Box>
-                        <Typography variant="body1" fontWeight={500}>
-                          {schedule.schedule_name || "Без названия"}
-                        </Typography>
-                        {schedule.description && (
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            noWrap
-                          >
-                            {schedule.description}
-                          </Typography>
-                        )}
-                        <Box
+                    <Box sx={{ flexGrow: 1 }}>
+                      {/* Название и статус в одной строке */}
+                      {/* <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mb: 0.5,
+                        }}
+                      > */}
+                      <Typography
+                        variant="body1"
+                        fontWeight={500}
+                        sx={{ lineHeight: 1.2 }}
+                      >
+                        {schedule.schedule_name || "Без названия"}
+                      </Typography>
+                      <Chip
+                        label={schedule.enabled ? "Запущено" : "Остановлено"}
+                        size="small"
+                        color={schedule.enabled ? "success" : "error"}
+                        variant="outlined"
+                        sx={{
+                          height: 20,
+                          fontSize: "0.75rem",
+                          "& .MuiChip-label": { px: 0.5 },
+                        }}
+                      />
+                      {/* </Box> */}
+
+                      {/* Описание */}
+                      {schedule.description && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
                           sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            // justifyContent: "center",
-                            gap: 1,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            // lineHeight: 1.2,
                           }}
                         >
-                          {schedule.enabled ? (
-                            <Chip
-                              icon={<CheckCircle fontSize="small" />}
-                              label="Активно"
-                              color="success"
-                              variant="outlined"
-                              size="small"
-                            />
-                          ) : (
-                            <Chip
-                              icon={<PauseCircleFilled fontSize="small" />}
-                              label="Приостановлено"
-                              color="error"
-                              variant="outlined"
-                              size="small"
-                            />
-                          )}
-                        </Box>
-                      </Box>
+                          {schedule.description}
+                        </Typography>
+                      )}
                     </Box>
                   </TableCell>
 
@@ -466,35 +505,6 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                       {renderTargetChats(schedule.target_chats)}
                     </Box>
                   </TableCell>
-
-                  {/* <TableCell>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        // justifyContent: "center",
-                        gap: 1,
-                      }}
-                    >
-                      {schedule.enabled ? (
-                        <Chip
-                          icon={<CheckCircle fontSize="small" />}
-                          label="Активно"
-                          color="success"
-                          variant="outlined"
-                          size="small"
-                        />
-                      ) : (
-                        <Chip
-                          icon={<PauseCircleFilled fontSize="small" />}
-                          label="Приостановлено"
-                          color="error"
-                          variant="outlined"
-                          size="small"
-                        />
-                      )}
-                    </Box>
-                  </TableCell> */}
 
                   {isSuperadmin && (
                     <TableCell>

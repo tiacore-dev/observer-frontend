@@ -21,6 +21,8 @@ import {
   AlertTitle,
   Chip,
   Collapse,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import {
   Info as InfoIcon,
@@ -121,7 +123,6 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     }
 
     if (schedule.time_to_send) {
-      // Конвертируем серверное время в локальное для отображения
       const localTime = convertToLocalTime(
         schedule.time_to_send.split(":").slice(0, 2).join(":")
       );
@@ -183,6 +184,10 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     updateField(field, value);
   };
 
+  const handleBooleanChange = (field: string, value: boolean) => {
+    updateField(field, value);
+  };
+
   const handleSubmit = async () => {
     const dataForValidation = {
       schedule_name: getCurrentStringValue("schedule_name"),
@@ -202,6 +207,7 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
       send_after_minutes: getCurrentNumberValue("send_after_minutes"),
       company_id: getCurrentStringValue("company_id"),
       message_intro: getCurrentStringValue("message_intro") || undefined,
+      run_on_empty_chat: getCurrentBooleanValue("run_on_empty_chat"),
     };
 
     if (!validateFields(dataForValidation, selectedDays, cronTime)) return;
@@ -295,14 +301,12 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
 
           <TextField
             name="schedule_name"
-            label="Название расписания"
+            label="Название расписания (необязательно)"
             value={getCurrentStringValue("schedule_name")}
             onChange={handleChange}
             fullWidth
             error={!!errors.schedule_name}
-            helperText={
-              errors.schedule_name || "Укажите название для расписания"
-            }
+            helperText={errors.schedule_name || "Можно оставить пустым"}
           />
 
           <TextField
@@ -568,6 +572,54 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                   placeholder="Например: Еженедельный отчет по активности чата"
                 />
               </Box>
+
+              {/* Обработка пустых чатов */}
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  gutterBottom
+                  sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                >
+                  Если сообщений нет:
+                </Typography>
+                <Stack direction="row" spacing={2}>
+                  <Button
+                    variant={
+                      !getCurrentBooleanValue("run_on_empty_chat")
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() =>
+                      handleBooleanChange("run_on_empty_chat", false)
+                    }
+                    sx={{ flex: 1 }}
+                  >
+                    Пропускать анализ
+                  </Button>
+                  <Button
+                    variant={
+                      getCurrentBooleanValue("run_on_empty_chat")
+                        ? "contained"
+                        : "outlined"
+                    }
+                    onClick={() =>
+                      handleBooleanChange("run_on_empty_chat", true)
+                    }
+                    sx={{ flex: 1 }}
+                  >
+                    Выполнять анализ
+                  </Button>
+                </Stack>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  {getCurrentBooleanValue("run_on_empty_chat")
+                    ? "Анализ будет выполнен даже если в чате нет новых сообщений и бот напишет в чат"
+                    : "Анализ будет пропущен, если в чате нет новых сообщений и в чат ничего не прийдет"}
+                </Typography>
+              </Box>
             </>
           )}
 
@@ -739,11 +791,11 @@ export const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             </FormControl>
           </Box>
           {/* Информационное уведомление */}
-          <Collapse in={hasAnyChanges}>
+          {/* <Collapse in={hasAnyChanges}>
             <Alert severity="warning" sx={{ mb: 2 }}>
               <AlertTitle>Есть несохраненные изменения</AlertTitle>
             </Alert>
-          </Collapse>
+          </Collapse> */}
         </Box>
       </DialogContent>
 
