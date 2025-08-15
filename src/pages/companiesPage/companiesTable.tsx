@@ -20,6 +20,7 @@ import { ContextMenu } from "./contextMenu";
 import { useDeleteCompany } from "../../hooks/companies/useCompaniesMutations";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { EditCompanyModal } from "./editCompanyModal";
+import { useNavigate } from "react-router-dom"; // Добавьте этот импорт
 
 type SortField = "company_name" | "description";
 
@@ -38,6 +39,7 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
   sortDirection,
   onSort,
 }) => {
+  const navigate = useNavigate(); // Добавьте этот хук
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [selectedCompany, setSelectedCompany] = React.useState<ICompany | null>(
@@ -62,6 +64,11 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
     e.stopPropagation();
     setSelectedCompany(company);
     setDeleteDialogOpen(true);
+  };
+
+  // Добавьте эту функцию для обработки клика по компании
+  const handleCompanyClick = (companyId: string) => {
+    navigate(`/companies/${companyId}`);
   };
 
   const getCompanyAvatar = (companyName: string) => {
@@ -89,19 +96,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
 
   return (
     <Paper elevation={2} sx={{ overflow: "hidden" }}>
-      {/* Заголовок таблицы */}
-      {/* <Box sx={{ p: 3, pb: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          <BusinessIcon color="primary" />
-          <Typography variant="h6" component="h2" fontWeight={600}>
-            Организации и компании
-          </Typography>
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Управление организациями для группировки ботов, чатов и расписаний
-        </Typography>
-      </Box> */}
-
       <TableContainer>
         <Table sx={{ minWidth: 650 }} aria-label="companies table">
           <TableHead>
@@ -115,7 +109,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Название компании"
-                // sx={{ fontWeight: 600 }}
               />
               <SortableTableHeader<SortField>
                 field="description"
@@ -123,7 +116,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                 sortDirection={sortDirection}
                 onSort={onSort}
                 label="Описание и назначение"
-                // sx={{ fontWeight: 600 }}
               />
               <TableCell width={50} sx={{ fontWeight: 600 }}>
                 Действия
@@ -139,9 +131,11 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                   "&:last-child td, &:last-child th": { border: 0 },
                   "&:hover": {
                     backgroundColor: "action.hover",
+                    cursor: "pointer", // Добавьте курсор-указатель
                   },
                   transition: "background-color 0.2s ease",
                 }}
+                onClick={() => handleCompanyClick(company.company_id)} // Добавьте обработчик клика
               >
                 {developerMode && (
                   <TableCell component="th" scope="row">
@@ -166,17 +160,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                       >
                         {company.company_name}
                       </Typography>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
-                        {/* <Chip
-                          icon={<BusinessIcon sx={{ fontSize: 14 }} />}
-                          label="Активная организация"
-                          color="success"
-                          variant="outlined"
-                          size="small"
-                        /> */}
-                      </Box>
                     </Box>
                   </Box>
                 </TableCell>
@@ -187,16 +170,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                       <Typography variant="body2" sx={{ mb: 0.5 }}>
                         {company.description}
                       </Typography>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
-                        {/* <DescriptionIcon
-                          sx={{ fontSize: 14, color: "text.secondary" }}
-                        /> */}
-                        {/* <Typography variant="caption" color="text.secondary">
-                          Описание настроено
-                        </Typography> */}
-                      </Box>
                     </Box>
                   ) : (
                     <Box

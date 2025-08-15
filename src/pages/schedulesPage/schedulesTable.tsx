@@ -280,9 +280,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                 </TableCell>
               )}
               <TableCell sx={{ fontWeight: 600, width: "20px" }}></TableCell>
-              <TableCell sx={{ fontWeight: 600, width: "80px" }}>
-                Название
-              </TableCell>
+              <TableCell sx={{ fontWeight: 600 }}>Название</TableCell>
 
               <SortableTableHeader<SortField>
                 field="bot_id"
@@ -403,7 +401,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                         <Typography variant="body1" fontWeight={500}>
                           {schedule.schedule_name || "Без названия"}
                         </Typography>
-                        {schedule.description && (
+                        {/* {schedule.description && (
                           <Typography
                             variant="caption"
                             color="text.secondary"
@@ -411,7 +409,7 @@ export const SchedulesTable: React.FC<SchedulesTableProps> = ({
                           >
                             {schedule.description}
                           </Typography>
-                        )}
+                        )} */}
                         <Box
                           sx={{
                             display: "flex",
