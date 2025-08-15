@@ -117,9 +117,9 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                 onSort={onSort}
                 label="Описание и назначение"
               />
-              <TableCell width={50} sx={{ fontWeight: 600 }}>
+              {/* <TableCell width={50} sx={{ fontWeight: 600 }}>
                 Действия
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           </TableHead>
 
@@ -189,7 +189,7 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                   )}
                 </TableCell>
 
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                {/* <TableCell onClick={(e) => e.stopPropagation()}>
                   <Box display="flex" justifyContent="center">
                     <ContextMenu
                       onEdit={(e: React.MouseEvent) =>
@@ -200,7 +200,7 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                       }
                     />
                   </Box>
-                </TableCell>
+                </TableCell> */}
               </TableRow>
             ))}
           </TableBody>
