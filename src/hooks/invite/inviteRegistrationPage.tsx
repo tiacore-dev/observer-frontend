@@ -86,9 +86,9 @@ export const InviteRegistrationPage: React.FC = () => {
       },
       {
         onSuccess: () => {
-          enqueueSnackbar("Регистрация завершена успешно!", {
-            variant: "success",
-          });
+          //   enqueueSnackbar("Регистрация завершена успешно!", {
+          //     variant: "success",
+          //   });
           navigate("/");
         },
       }
@@ -191,12 +191,12 @@ export const InviteRegistrationPage: React.FC = () => {
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
           />
-
+          {/* 
           {isError && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error?.response?.data?.message || "Ошибка при регистрации"}
             </Alert>
-          )}
+          )} */}
 
           <Button
             type="submit"

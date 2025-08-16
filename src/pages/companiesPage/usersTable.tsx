@@ -48,7 +48,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ users, loading }) => {
             <TableRow key={user.user_id}>
               <TableCell>
                 <Box display="flex" alignItems="center" gap={2}>
-                  <Avatar>
+                  <Avatar sx={{ bgcolor: "primary.main", color: "white" }}>
                     {user.full_name
                       ? user.full_name.charAt(0).toUpperCase()
                       : "U"}
@@ -69,6 +69,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ users, loading }) => {
                     user.is_verified ? "Верифицирован" : "Ожидает верификации"
                   }
                   color={user.is_verified ? "success" : "warning"}
+                  sx={{ color: "grey.100" }}
                 />
               </TableCell>
             </TableRow>

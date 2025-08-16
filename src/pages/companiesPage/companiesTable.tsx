@@ -84,7 +84,8 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
         sx={{
           width: 40,
           height: 40,
-          bgcolor: "secondary.main",
+          bgcolor: "primary.main",
+          color: "white",
           fontSize: "1rem",
           fontWeight: 600,
         }}
