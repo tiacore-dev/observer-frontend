@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchUserDetails, IUser } from "../../api/usersApi";
+import { fetchCompanyUsers, fetchUserDetails, IUser } from "../../api/usersApi";
 import { useAuth } from "../../context/authContext";
 
 export const useUserDetailsQuery = (companyId?: string) => {
@@ -12,5 +12,13 @@ export const useUserDetailsQuery = (companyId?: string) => {
     staleTime: 5 * 60 * 1000,
     enabled: !!user_id,
     // initialData: undefined,
+  });
+};
+
+export const useCompanyUsers = (companyId: string) => {
+  return useQuery({
+    queryKey: ["companyUsers", companyId],
+    queryFn: () => fetchCompanyUsers(companyId),
+    enabled: !!companyId,
   });
 };

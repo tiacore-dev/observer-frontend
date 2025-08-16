@@ -1,4 +1,5 @@
-import React from "react";
+// src/components/companyCard.tsx
+import React, { useState } from "react";
 import {
   Box,
   Paper,
@@ -7,6 +8,10 @@ import {
   Divider,
   CircularProgress,
   Stack,
+  Card,
+  CardHeader,
+  Avatar,
+  IconButton,
 } from "@mui/material";
 import { ICompany } from "../../api/companiesApi";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +23,11 @@ import { DeleteDialog } from "../../components/deleteDialog";
 import { useCompanyDetailsQuery } from "../../hooks/companies/useCompaniesQuery";
 import { EditCompanyModal } from "./editCompanyModal";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
+import PeopleIcon from "@mui/icons-material/People";
+import AddIcon from "@mui/icons-material/Add";
+import { useCompanyUsers } from "../../hooks/users/useUsersQuery";
+import { UsersTable } from "./usersTable";
+import { InviteUserModal } from "./inviteUserModal";
 
 interface CompanyCardProps {
   company: ICompany;
@@ -29,12 +39,16 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
   developerMode,
 }) => {
   const navigate = useNavigate();
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [editModalOpen, setEditModalOpen] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const { data: companyDetails, isLoading } = useCompanyDetailsQuery(
     company.company_id
   );
   const { mutate: deleteCompany, isPending: isDeleting } = useDeleteCompany();
+  const { data: usersData, isLoading: isLoadingUsers } = useCompanyUsers(
+    company.company_id
+  );
 
   const handleDelete = () => {
     deleteCompany(company.company_id, {
@@ -108,6 +122,34 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         </Box>
       </Paper>
 
+      {/* Users Section */}
+      <Paper sx={{ mt: 2, p: 0 }} elevation={0}>
+        <Card>
+          <CardHeader
+            avatar={
+              <Avatar sx={{ bgcolor: "primary.main" }}>
+                <PeopleIcon />
+              </Avatar>
+            }
+            title="Пользователи компании"
+            action={
+              <IconButton
+                color="primary"
+                onClick={() => setInviteModalOpen(true)}
+              >
+                <AddIcon />
+              </IconButton>
+            }
+          />
+          <Box sx={{ p: 2 }}>
+            <UsersTable
+              users={usersData?.users || []}
+              loading={isLoadingUsers}
+            />
+          </Box>
+        </Card>
+      </Paper>
+
       <DeleteDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
@@ -120,6 +162,14 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
           open={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           company={currentCompany}
+        />
+      )}
+
+      {inviteModalOpen && (
+        <InviteUserModal
+          open={inviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          companyId={currentCompany.company_id}
         />
       )}
     </Box>

@@ -34,6 +34,8 @@ import { ThemeModeProvider, useThemeMode } from "./context/themeContext";
 import { PrivacyPage } from "./pages/privacyPage/privacyPage";
 import { TermsPage } from "./pages/termsPage/termsPage";
 import { ResetPasswordPage } from "./pages/loginPage/resetPasswordPage";
+import { AcceptInvitePage } from "./pages/acceptInvitePage/acceptInvitePage";
+import { InviteRegistrationPage } from "./hooks/invite/inviteRegistrationPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -57,6 +59,8 @@ const AppContent: React.FC = () => {
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/accept-invite" element={<AcceptInvitePage />} />
+                <Route path="/invite" element={<InviteRegistrationPage />} />
 
                 <Route
                   element={

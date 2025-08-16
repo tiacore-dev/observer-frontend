@@ -1,4 +1,4 @@
-// companyDetailsPage.tsx
+// src/pages/companyDetailsPage.tsx
 import React from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useCompanyDetailsQuery } from "../../hooks/companies/useCompaniesQuery";
