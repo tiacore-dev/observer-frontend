@@ -23,6 +23,8 @@ import {
   Divider,
   Tooltip,
   CircularProgress,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   Psychology,
@@ -37,7 +39,7 @@ import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
 import { useAuth } from "../../context/authContext";
 import { InfoCard } from "../../components/infoCard";
 import BusinessIcon from "@mui/icons-material/Business";
-import PsychologyIcon from "@mui/icons-material/Business";
+import PsychologyIcon from "@mui/icons-material/Psychology";
 
 interface AddPromptModalProps {
   open: boolean;
@@ -48,6 +50,9 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   open,
   onClose,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const { isSuperadmin } = useAuth();
   const selectedCompanyId = localStorage.getItem("selected_company_id");
 
@@ -106,7 +111,6 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
         text: trimmedText,
       });
       onClose();
-      // Полный сброс состояния с учетом прав пользователя
       setPromptData({
         prompt_name: "",
         text: "",
@@ -163,11 +167,19 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Psychology color="primary" />
-          Создать новый промпт
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Создать новый промпт
+          </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button
             variant="text"
@@ -175,7 +187,7 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
             endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
             size="small"
           >
-            Что такое промпт?
+            {isMobile ? "Помощь" : "Что такое промпт?"}
           </Button>
         </Box>
       </DialogTitle>
@@ -311,8 +323,8 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
               value={promptData.text}
               onChange={handleChange}
               multiline
-              minRows={8}
-              maxRows={20}
+              minRows={isMobile ? 4 : 8}
+              maxRows={isMobile ? 8 : 20}
               required
               error={!!errors.text}
               helperText={
@@ -337,13 +349,13 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
 
       <DialogActions
         sx={{
-          paddingBottom: 3,
-          paddingTop: 0,
-          paddingRight: 3,
-          justifyContent: "flex-end",
+          p: isMobile ? 2 : 3,
+          justifyContent: "space-between",
         }}
       >
-        <Button onClick={onClose}>Отмена</Button>
+        <Button onClick={onClose} fullWidth={isMobile}>
+          Отмена
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
@@ -360,6 +372,8 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
               <Psychology />
             )
           }
+          fullWidth={isMobile}
+          sx={isMobile ? { ml: 1 } : {}}
         >
           {createPrompt.isPending ? "Создаем..." : "Создать промпт"}
         </Button>

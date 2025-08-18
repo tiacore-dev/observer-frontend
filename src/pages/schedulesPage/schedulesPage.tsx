@@ -11,8 +11,13 @@ import {
   Paper,
   Alert,
   Collapse,
+  IconButton,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import type { PageProps } from "../../App";
 import { SchedulesTable } from "./schedulesTable";
 import { AddScheduleModal } from "./addScheduleModal";
@@ -47,12 +52,16 @@ import { useThemeMode } from "../../context/themeContext";
 
 export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
 
   const dispatch = useDispatch();
   const { isSuperadmin } = useAuth();
   const { data, isLoading, error } = useSchedulesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const {
     botFilter,
@@ -288,11 +297,20 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+    <Box
+      sx={{
+        pl: isMobile ? 1 : 2,
+        pr: isMobile ? 1 : 2,
+        mt: -1,
+        mb: -2,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       <Paper
         elevation={1}
         sx={{
-          p: 3,
+          p: isMobile ? 2 : 3,
           mb: 1,
           background: theme.isDarkMode
             ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
@@ -301,10 +319,10 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <ScheduleIcon sx={{ fontSize: 40 }} />
+          <ScheduleIcon sx={{ fontSize: isMobile ? 32 : 40 }} />
           <Box>
             <Typography
-              variant="h4"
+              variant={isMobile ? "h5" : "h4"}
               component="h1"
               gutterBottom
               sx={{ mb: 1, fontWeight: 600 }}
@@ -320,7 +338,7 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
         </Box>
       </Paper>
 
-      <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+      <Paper elevation={1} sx={{ p: isMobile ? 1 : 2, mb: 1 }}>
         <Box
           sx={{
             display: "flex",
@@ -329,153 +347,332 @@ export const SchedulesPage: React.FC<PageProps> = ({ developerMode }) => {
             alignItems: "center",
           }}
         >
-          {/* Фильтр по названию */}
-          <TextField
-            label="Название"
-            value={nameFilter}
-            onChange={(e) => dispatch(setNameFilter(e.target.value))}
-            variant="outlined"
-            size="small"
-            sx={{ width: 200 }}
-          />
-
-          <Autocomplete
-            options={bots}
-            getOptionLabel={(option) => option.name || option.id}
-            value={bots.find((b) => b.id === botFilter) || null}
-            onChange={(_, value) => dispatch(setBotFilter(value?.id || ""))}
-            renderInput={(params) => (
+          {isMobile ? (
+            <>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <IconButton onClick={() => setFiltersOpen(!filtersOpen)}>
+                  <SearchIcon />
+                </IconButton>
+                <ResetFiltersButton onClick={resetAllFilters} />
+              </Box>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button
+                variant="contained"
+                onClick={() => setIsModalOpen(true)}
+                startIcon={<AddIcon />}
+                size="small"
+                sx={{
+                  whiteSpace: "nowrap",
+                  backgroundColor: "#7353ae",
+                }}
+              >
+                Добавить
+              </Button>
+            </>
+          ) : (
+            <>
               <TextField
-                {...params}
-                label="Бот"
+                label="Название"
+                value={nameFilter}
+                onChange={(e) => dispatch(setNameFilter(e.target.value))}
                 variant="outlined"
                 size="small"
                 sx={{ width: 200 }}
               />
-            )}
-          />
 
-          <Autocomplete
-            options={chats}
-            getOptionLabel={(option) => option.name || option.id}
-            value={chats.find((c) => c.id === chatFilter) || null}
-            onChange={(_, value) => dispatch(setChatFilter(value?.id || ""))}
-            renderInput={(params) => (
+              <Autocomplete
+                options={bots}
+                getOptionLabel={(option) => option.name || option.id}
+                value={bots.find((b) => b.id === botFilter) || null}
+                onChange={(_, value) => dispatch(setBotFilter(value?.id || ""))}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Бот"
+                    variant="outlined"
+                    size="small"
+                    sx={{ width: 200 }}
+                  />
+                )}
+              />
+
+              <Autocomplete
+                options={chats}
+                getOptionLabel={(option) => option.name || option.id}
+                value={chats.find((c) => c.id === chatFilter) || null}
+                onChange={(_, value) =>
+                  dispatch(setChatFilter(value?.id || ""))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Анализируемый чат"
+                    variant="outlined"
+                    size="small"
+                    sx={{ width: 200 }}
+                  />
+                )}
+              />
+
+              <Autocomplete
+                options={targetChats}
+                getOptionLabel={(option) => option.name || option.id}
+                value={
+                  targetChats.find((c) => c.id === targetChatFilter) || null
+                }
+                onChange={(_, value) =>
+                  dispatch(setTargetChatFilter(value?.id || ""))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Куда отправлять"
+                    variant="outlined"
+                    size="small"
+                    sx={{ width: 200 }}
+                  />
+                )}
+              />
+
               <TextField
-                {...params}
-                label="Анализируемый чат"
+                select
+                label="Тип задачи"
+                value={strategyFilter}
+                onChange={(e) => dispatch(setStrategyFilter(e.target.value))}
                 variant="outlined"
                 size="small"
-                sx={{ width: 200 }}
-              />
-            )}
-          />
+                sx={{ width: 180 }}
+              >
+                <MenuItem value="">Все типы</MenuItem>
+                {strategies.map((strategy) => (
+                  <MenuItem key={strategy.value} value={strategy.value}>
+                    {strategy.label}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-          <Autocomplete
-            options={targetChats}
-            getOptionLabel={(option) => option.name || option.id}
-            value={targetChats.find((c) => c.id === targetChatFilter) || null}
-            onChange={(_, value) =>
-              dispatch(setTargetChatFilter(value?.id || ""))
-            }
-            renderInput={(params) => (
               <TextField
-                {...params}
-                label="Куда отправлять"
+                select
+                label="Когда выполнять"
+                value={typeFilter}
+                onChange={(e) => dispatch(setTypeFilter(e.target.value))}
                 variant="outlined"
                 size="small"
-                sx={{ width: 200 }}
-              />
-            )}
-          />
+                sx={{ width: 180 }}
+              >
+                <MenuItem value="">Все типы</MenuItem>
+                {types.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    {type.label}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-          <TextField
-            select
-            label="Тип задачи"
-            value={strategyFilter}
-            onChange={(e) => dispatch(setStrategyFilter(e.target.value))}
-            variant="outlined"
-            size="small"
-            sx={{ width: 180 }}
+              <TextField
+                select
+                label="Статус"
+                value={enabledFilter}
+                onChange={(e) =>
+                  dispatch(
+                    setEnabledFilter(
+                      e.target.value === "all"
+                        ? "all"
+                        : e.target.value === "true"
+                    )
+                  )
+                }
+                variant="outlined"
+                size="small"
+                sx={{ width: 130 }}
+              >
+                <MenuItem value="all">Все</MenuItem>
+                <MenuItem value="true">Включен</MenuItem>
+                <MenuItem value="false">Выключен</MenuItem>
+              </TextField>
+
+              {isSuperadmin && (
+                <Autocomplete
+                  options={companies}
+                  getOptionLabel={(option) => option.name || option.id}
+                  value={companies.find((c) => c.id === companyFilter) || null}
+                  onChange={(_, value) =>
+                    dispatch(setCompanyFilter(value?.id || ""))
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Компания"
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: 250 }}
+                    />
+                  )}
+                />
+              )}
+
+              <ResetFiltersButton onClick={resetAllFilters} />
+
+              <Box sx={{ flexGrow: 1 }} />
+
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setIsModalOpen(true)}
+                style={{ backgroundColor: "#7353ae" }}
+              >
+                Новое расписание
+              </Button>
+            </>
+          )}
+        </Box>
+
+        {isMobile && filtersOpen && (
+          <Paper
+            sx={{
+              mt: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              backgroundColor: "background.paper",
+            }}
           >
-            <MenuItem value="">Все типы</MenuItem>
-            {strategies.map((strategy) => (
-              <MenuItem key={strategy.value} value={strategy.value}>
-                {strategy.label}
-              </MenuItem>
-            ))}
-          </TextField>
+            <TextField
+              fullWidth
+              label="Название"
+              value={nameFilter}
+              onChange={(e) => dispatch(setNameFilter(e.target.value))}
+              variant="outlined"
+              size="small"
+            />
 
-          <TextField
-            select
-            label="Когда выполнять"
-            value={typeFilter}
-            onChange={(e) => dispatch(setTypeFilter(e.target.value))}
-            variant="outlined"
-            size="small"
-            sx={{ width: 180 }}
-          >
-            <MenuItem value="">Все типы</MenuItem>
-            {types.map((type) => (
-              <MenuItem key={type.value} value={type.value}>
-                {type.label}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            select
-            label="Статус"
-            value={enabledFilter}
-            onChange={(e) =>
-              dispatch(
-                setEnabledFilter(
-                  e.target.value === "all" ? "all" : e.target.value === "true"
-                )
-              )
-            }
-            variant="outlined"
-            size="small"
-            sx={{ width: 130 }}
-          >
-            <MenuItem value="all">Все</MenuItem>
-            <MenuItem value="true">Включен</MenuItem>
-            <MenuItem value="false">Выключен</MenuItem>
-          </TextField>
-
-          {isSuperadmin && (
             <Autocomplete
-              options={companies}
+              sx={{ width: "100%" }}
+              options={bots}
               getOptionLabel={(option) => option.name || option.id}
-              value={companies.find((c) => c.id === companyFilter) || null}
+              value={bots.find((b) => b.id === botFilter) || null}
+              onChange={(_, value) => dispatch(setBotFilter(value?.id || ""))}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Бот"
+                  variant="outlined"
+                  size="small"
+                />
+              )}
+            />
+
+            <Autocomplete
+              sx={{ width: "100%" }}
+              options={chats}
+              getOptionLabel={(option) => option.name || option.id}
+              value={chats.find((c) => c.id === chatFilter) || null}
+              onChange={(_, value) => dispatch(setChatFilter(value?.id || ""))}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Анализируемый чат"
+                  variant="outlined"
+                  size="small"
+                />
+              )}
+            />
+
+            <Autocomplete
+              sx={{ width: "100%" }}
+              options={targetChats}
+              getOptionLabel={(option) => option.name || option.id}
+              value={targetChats.find((c) => c.id === targetChatFilter) || null}
               onChange={(_, value) =>
-                dispatch(setCompanyFilter(value?.id || ""))
+                dispatch(setTargetChatFilter(value?.id || ""))
               }
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Компания"
+                  label="Куда отправлять"
                   variant="outlined"
                   size="small"
-                  sx={{ width: 250 }}
                 />
               )}
             />
-          )}
 
-          <ResetFiltersButton onClick={resetAllFilters} />
+            <TextField
+              sx={{ width: "100%" }}
+              select
+              fullWidth
+              label="Тип задачи"
+              value={strategyFilter}
+              onChange={(e) => dispatch(setStrategyFilter(e.target.value))}
+              variant="outlined"
+              size="small"
+            >
+              <MenuItem value="">Все типы</MenuItem>
+              {strategies.map((strategy) => (
+                <MenuItem key={strategy.value} value={strategy.value}>
+                  {strategy.label}
+                </MenuItem>
+              ))}
+            </TextField>
 
-          <Box sx={{ flexGrow: 1 }} />
+            <TextField
+              sx={{ width: "100%" }}
+              select
+              fullWidth
+              label="Когда выполнять"
+              value={typeFilter}
+              onChange={(e) => dispatch(setTypeFilter(e.target.value))}
+              variant="outlined"
+              size="small"
+            >
+              <MenuItem value="">Все типы</MenuItem>
+              {types.map((type) => (
+                <MenuItem key={type.value} value={type.value}>
+                  {type.label}
+                </MenuItem>
+              ))}
+            </TextField>
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setIsModalOpen(true)}
-            style={{ backgroundColor: "#7353ae" }}
-          >
-            Новое расписание
-          </Button>
-        </Box>
+            <TextField
+              sx={{ width: "100%" }}
+              select
+              fullWidth
+              label="Статус"
+              value={enabledFilter}
+              onChange={(e) =>
+                dispatch(
+                  setEnabledFilter(
+                    e.target.value === "all" ? "all" : e.target.value === "true"
+                  )
+                )
+              }
+              variant="outlined"
+              size="small"
+            >
+              <MenuItem value="all">Все</MenuItem>
+              <MenuItem value="true">Включен</MenuItem>
+              <MenuItem value="false">Выключен</MenuItem>
+            </TextField>
+
+            {isSuperadmin && (
+              <Autocomplete
+                sx={{ width: "100%" }}
+                options={companies}
+                getOptionLabel={(option) => option.name || option.id}
+                value={companies.find((c) => c.id === companyFilter) || null}
+                onChange={(_, value) =>
+                  dispatch(setCompanyFilter(value?.id || ""))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Компания"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+              />
+            )}
+          </Paper>
+        )}
       </Paper>
 
       <Collapse in={showHelp}>

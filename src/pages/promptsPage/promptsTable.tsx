@@ -13,6 +13,8 @@ import {
   Box,
   Chip,
   Avatar,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import type { IPrompt } from "../../api/promptsApi";
 import { useNavigate } from "react-router-dom";
@@ -49,6 +51,9 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
   isLoading = false,
 }) => {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
 
   const handleRowClick = (promptId: string) => {
     if (!isLoading) {
@@ -56,7 +61,6 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
     }
   };
 
-  // Функция для форматирования даты
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("ru-RU", {
@@ -71,7 +75,6 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
   if (isLoading) {
     const columns = 2; // Основные колонки (Название, Текст)
     const additionalColumns =
-      // (developerMode ? 1 : 0) + // Колонка ID если developerMode
       (developerMode ? 1 : 0) + // Колонка даты если developerMode
       (isSuperadmin ? 1 : 0); // Колонка компании если isSuperadmin
 
@@ -94,24 +97,28 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
         mb: 4,
       }}
     >
-      <Table sx={{ minWidth: 650 }} aria-label="таблица промптов">
+      <Table
+        sx={{ minWidth: isMobile ? 300 : 650 }}
+        aria-label="таблица промптов"
+      >
         <TableHead>
           <TableRow>
-            {/* {developerMode && <TableCell>ID</TableCell>} */}
             <SortableTableHeader<SortField>
               field="prompt_name"
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
-              label="Название промпта"
+              label={isMobile ? "Название" : "Название промпта"}
             />
-            <TableCell>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <TextSnippet fontSize="small" />
-                Содержание промпта
-              </Box>
-            </TableCell>
-            {developerMode && (
+            {!isMobile && (
+              <TableCell>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <TextSnippet fontSize="small" />
+                  Содержание промпта
+                </Box>
+              </TableCell>
+            )}
+            {developerMode && !isMobile && (
               <SortableTableHeader<SortField>
                 field="created_at"
                 currentSortField={sortField}
@@ -121,7 +128,7 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
                 defaultDirection="desc"
               />
             )}
-            {isSuperadmin && (
+            {isSuperadmin && !isMobile && (
               <SortableTableHeader<SortField>
                 field="company_id"
                 currentSortField={sortField}
@@ -147,46 +154,69 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
               }}
               onClick={() => handleRowClick(prompt.prompt_id)}
             >
-              {/* {developerMode && (
-                <TableCell component="th" scope="row">
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: "monospace",
-                      bgcolor: "grey.100",
-                      p: 0.5,
-                      borderRadius: 1,
-                    }}
-                  >
-                    {prompt.prompt_id.substring(0, 8)}...
-                  </Typography>
-                </TableCell>
-              )} */}
               <TableCell>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Typography variant="body1" fontWeight={500}>
                     {prompt.prompt_name}
                   </Typography>
                 </Box>
+                {isMobile && (
+                  <>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "text.secondary",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        lineHeight: "1.5em",
+                        maxHeight: "3em",
+                        mt: 1,
+                      }}
+                    >
+                      {prompt.text}
+                    </Typography>
+                    {isSuperadmin && (
+                      <Box sx={{ mt: 1 }}>
+                        <Chip
+                          size="small"
+                          label={
+                            companyMap.get(prompt.company_id) ||
+                            prompt.company_id
+                          }
+                          sx={{
+                            bgcolor: "primary.light",
+                            color: "primary.contrastText",
+                            fontWeight: 500,
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </>
+                )}
               </TableCell>
-              <TableCell sx={{ maxWidth: 400, wordBreak: "break-word" }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: "text.secondary",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    lineHeight: "1.5em",
-                    maxHeight: "3em",
-                  }}
-                >
-                  {prompt.text}
-                </Typography>
-              </TableCell>
-              {developerMode && (
+              {!isMobile && (
+                <TableCell sx={{ maxWidth: 400, wordBreak: "break-word" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "text.secondary",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      lineHeight: "1.5em",
+                      maxHeight: "3em",
+                    }}
+                  >
+                    {prompt.text}
+                  </Typography>
+                </TableCell>
+              )}
+              {developerMode && !isMobile && (
                 <TableCell>
                   <Box sx={{ display: "flex", alignItems: "center" }}>
                     <CalendarMonth
@@ -199,10 +229,9 @@ export const PromptsTable: React.FC<PromptsTableProps> = ({
                   </Box>
                 </TableCell>
               )}
-              {isSuperadmin && (
+              {isSuperadmin && !isMobile && (
                 <TableCell>
                   <Chip
-                    // icon={<Business fontSize="small" />}
                     size="small"
                     label={
                       companyMap.get(prompt.company_id) || prompt.company_id

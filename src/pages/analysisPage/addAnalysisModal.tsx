@@ -20,6 +20,8 @@ import {
   Alert,
   Divider,
   Collapse,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   Analytics as AnalyticsIcon,
@@ -50,6 +52,9 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
   open,
   onClose,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const { isSuperadmin, selectedCompanyId } = useAuth();
   const [analysisData, setAnalysisData] = useState({
     prompt_id: "",
@@ -60,7 +65,6 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
   });
   const [showHelp, setShowHelp] = useState(false);
 
-  // Автоматически устанавливаем company_id для обычных пользователей
   useEffect(() => {
     if (!isSuperadmin && selectedCompanyId) {
       setAnalysisData((prev) => ({
@@ -98,7 +102,6 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
       date_to: !analysisData.date_to ? "Укажите конец периода" : "",
     };
 
-    // Проверка, что дата окончания не раньше даты начала
     if (analysisData.date_from && analysisData.date_to) {
       const fromDate = new Date(analysisData.date_from);
       const toDate = new Date(analysisData.date_to);
@@ -149,11 +152,19 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <AnalyticsIcon color="primary" />
-          Запустить новый анализ чата
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Новый анализ чата
+          </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button
             variant="text"
@@ -161,7 +172,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
             endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
             size="small"
           >
-            Что такое анализ чата?
+            {isMobile ? "Помощь" : "Что такое анализ чата?"}
           </Button>
         </Box>
       </DialogTitle>
@@ -255,7 +266,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                   sx={{ mt: 1 }}
                 >
                   Промт задаёт, какие данные искать и как анализировать
-                  сообщения в чатах.
+                  сообщения
                 </Typography>
               </FormControl>
             )
@@ -304,7 +315,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
                   color="textSecondary"
                   sx={{ mt: 1 }}
                 >
-                  Выберите чат, сообщения которого нужно проанализировать
+                  Выберите чат для анализа сообщений
                 </Typography>
               </FormControl>
             )
@@ -314,13 +325,13 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
             sx={{
               display: "flex",
               gap: 2,
-              flexDirection: "row",
+              flexDirection: isMobile ? "column" : "row",
               alignItems: "flex-start",
             }}
           >
             {renderWithTooltip(
               <FormControl
-                sx={{ flex: 1, minWidth: "250px" }}
+                sx={{ flex: 1, minWidth: "100%" }}
                 error={!!errors.date_from}
               >
                 <TextField
@@ -348,7 +359,7 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 
             {renderWithTooltip(
               <FormControl
-                sx={{ flex: 1, minWidth: "250px" }}
+                sx={{ flex: 1, minWidth: "100%" }}
                 error={!!errors.date_to}
               >
                 <TextField
@@ -377,46 +388,44 @@ export const AddAnalysisModal: React.FC<AddAnalysisModalProps> = ({
 
           <Alert severity="info" variant="outlined">
             <Typography variant="body2">
-              После создания анализ начнётся автоматически. Вы сможете
-              посмотреть результаты в разделе "Анализы".
+              Анализ начнётся автоматически. Результаты будут в разделе
+              "Анализы".
             </Typography>
           </Alert>
         </Box>
       </DialogContent>
       <DialogActions
         sx={{
-          paddingBottom: 3,
-          paddingTop: 0,
-          paddingRight: 3, // Добавляем отступ справа, сдвигая кнопки левее
-          justifyContent: "flex-end", // Сохраняем выравнивание по правому краю, но с отступом
+          p: isMobile ? 2 : 3,
+          justifyContent: "space-between",
         }}
       >
-        <Button onClick={onClose}>Отмена</Button>
+        <Button onClick={onClose} fullWidth={isMobile}>
+          Отмена
+        </Button>
         <Tooltip title={!isCompanySelected ? tooltipMessage : ""}>
-          <span>
-            <Button
-              onClick={handleSubmit}
-              variant="contained"
-              disabled={
-                !analysisData.prompt_id ||
-                !analysisData.chat_id ||
-                !analysisData.company_id ||
-                !analysisData.date_from ||
-                !analysisData.date_to
-              }
-              startIcon={
-                createAnalysis.isPending ? (
-                  <CircularProgress size={16} />
-                ) : (
-                  <PlayIcon />
-                )
-              }
-            >
-              {createAnalysis.isPending
-                ? "Запуск анализа..."
-                : "Запустить анализ"}
-            </Button>
-          </span>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={
+              !analysisData.prompt_id ||
+              !analysisData.chat_id ||
+              !analysisData.company_id ||
+              !analysisData.date_from ||
+              !analysisData.date_to
+            }
+            startIcon={
+              createAnalysis.isPending ? (
+                <CircularProgress size={16} />
+              ) : (
+                <PlayIcon />
+              )
+            }
+            fullWidth={isMobile}
+            sx={isMobile ? { ml: 1 } : {}}
+          >
+            {createAnalysis.isPending ? "Запуск..." : "Запустить"}
+          </Button>
         </Tooltip>
       </DialogActions>
     </Dialog>

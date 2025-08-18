@@ -1,4 +1,3 @@
-// companiesPage.tsx
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
@@ -10,9 +9,13 @@ import {
   Button,
   TextField,
   Alert,
+  useMediaQuery,
+  Theme,
+  IconButton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import BusinessIcon from "@mui/icons-material/Business";
+import SearchIcon from "@mui/icons-material/Search";
 import { AddCompanyModal } from "./addCompanyModal";
 import type { PageProps } from "../../App";
 import { CompaniesTable } from "./companiesTable";
@@ -35,11 +38,15 @@ import { useThemeMode } from "../../context/themeContext";
 
 export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
 
   const { companyId } = useParams();
   const navigate = useNavigate();
   const { data, isLoading, error } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const dispatch = useDispatch();
 
   const { nameFilter, page, rowsPerPage, sortField, sortDirection } =
@@ -126,7 +133,16 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+    <Box
+      sx={{
+        pl: isMobile ? 1 : 2,
+        pr: isMobile ? 1 : 2,
+        mt: -1,
+        mb: -2,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       {isLoading ? (
         <PageSkeleton filterCount={1} pagination={true} hasAddButton={true} />
       ) : (
@@ -134,7 +150,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
           <Paper
             elevation={1}
             sx={{
-              p: 3,
+              p: isMobile ? 2 : 3,
               mb: 1,
               background: theme.isDarkMode
                 ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
@@ -143,10 +159,10 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <BusinessIcon sx={{ fontSize: 40 }} />
+              <BusinessIcon sx={{ fontSize: isMobile ? 32 : 40 }} />
               <Box>
                 <Typography
-                  variant="h4"
+                  variant={isMobile ? "h5" : "h4"}
                   component="h1"
                   gutterBottom
                   sx={{ mb: 1, fontWeight: 600 }}
@@ -154,16 +170,18 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
                 >
                   Компании
                 </Typography>
+                {/* {!isMobile && ( */}
                 <Typography variant="body1" sx={{ opacity: 0.9 }} color="white">
                   Просмотр и управление компаниями. Используйте их, чтобы
                   группировать чаты и отчёты по направлениям бизнеса, отделам
-                  или темам. Это поможет быстрее находить нужные данные.
+                  или темам.
                 </Typography>
+                {/* )} */}
               </Box>
             </Box>
           </Paper>
 
-          <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+          <Paper elevation={1} sx={{ p: isMobile ? 1 : 2, mb: 1 }}>
             <Box
               sx={{
                 display: "flex",
@@ -172,29 +190,76 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
                 alignItems: "center",
               }}
             >
-              <TextField
-                label="Поиск по названию компании"
-                variant="outlined"
-                size="small"
-                value={nameFilter}
-                onChange={(e) => dispatch(setNameFilter(e.target.value))}
-                placeholder="Например: My Company"
-                sx={{ minWidth: 300 }}
-              />
-
-              <ResetFiltersButton onClick={resetAllFilters} />
-
-              <Box sx={{ flexGrow: 1 }} />
-
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setIsModalOpen(true)}
-                style={{ backgroundColor: "#7353ae" }}
-              >
-                Добавить компанию
-              </Button>
+              {isMobile ? (
+                <>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <IconButton onClick={() => setSearchOpen(!searchOpen)}>
+                      <SearchIcon />
+                    </IconButton>
+                    <ResetFiltersButton onClick={resetAllFilters} />
+                  </Box>
+                  <Box sx={{ flexGrow: 1 }} />
+                  <Button
+                    variant="contained"
+                    onClick={() => setIsModalOpen(true)}
+                    startIcon={<AddIcon />}
+                    size="small"
+                    sx={{
+                      whiteSpace: "nowrap",
+                      backgroundColor: "#7353ae",
+                      "& .MuiButton-startIcon": {
+                        // marginRight: 0.5,
+                      },
+                    }}
+                  >
+                    Добавить
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <TextField
+                    label="Поиск по названию компании"
+                    variant="outlined"
+                    size="small"
+                    value={nameFilter}
+                    onChange={(e) => dispatch(setNameFilter(e.target.value))}
+                    placeholder="Например: My Company"
+                    sx={{ minWidth: 300 }}
+                  />
+                  <ResetFiltersButton onClick={resetAllFilters} />
+                  <Box sx={{ flexGrow: 1 }} />
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setIsModalOpen(true)}
+                    style={{ backgroundColor: "#7353ae" }}
+                  >
+                    Добавить компанию
+                  </Button>
+                </>
+              )}
             </Box>
+            {isMobile && searchOpen && (
+              <Paper
+                sx={{
+                  mt: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  backgroundColor: "background.paper",
+                }}
+              >
+                <TextField
+                  fullWidth
+                  label="Поиск компании"
+                  variant="outlined"
+                  size="small"
+                  value={nameFilter}
+                  onChange={(e) => dispatch(setNameFilter(e.target.value))}
+                  placeholder="Введите название"
+                />
+              </Paper>
+            )}
           </Paper>
 
           <Paper elevation={1} sx={{ overflow: "hidden" }}>
@@ -228,7 +293,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
               <Typography variant="body2" color="text.secondary">
                 {nameFilter
                   ? "Попробуйте изменить параметры поиска"
-                  : "Добавьте первую компанию, нажав на кнопку выше"}
+                  : "Добавьте первую компанию"}
               </Typography>
             </Paper>
           )}

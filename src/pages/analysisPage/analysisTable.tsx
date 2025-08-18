@@ -14,6 +14,8 @@ import {
   Chip,
   Avatar,
   Tooltip,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import type { IAnalys } from "../../api/analysisApi";
 import { useNavigate } from "react-router-dom";
@@ -44,7 +46,6 @@ interface AnalysisTableProps {
   isLoading?: boolean;
 }
 
-// Функция для генерации цвета на основе строки
 const stringToColor = (string: string) => {
   let hash = 0;
   for (let i = 0; i < string.length; i++) {
@@ -72,6 +73,9 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isSuperadmin } = useAuth();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
 
   const handleRowClick = (analysisId: string) => {
     if (onRowClick) {
@@ -81,16 +85,21 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
     }
   };
 
-  // Функция для форматирования даты
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    return isMobile
+      ? new Intl.DateTimeFormat("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(date)
+      : new Intl.DateTimeFormat("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date);
   };
 
   const formatResultText = (text?: string) => {
@@ -120,29 +129,19 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
     >
       <Table
         sx={{
-          minWidth: 650,
-          tableLayout: "fixed", // Фиксированное распределение ширины
+          minWidth: isMobile ? 300 : 650,
+          tableLayout: "fixed",
         }}
         aria-label="таблица анализов"
       >
         <TableHead>
           <TableRow>
-            {/* {developerMode && (
-              <TableCell sx={{ width: "10%" }}>
-                <Typography variant="subtitle2">ID</Typography>
-              </TableCell>
-            )} */}
             <SortableTableHeader<SortField>
               field="created_at"
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
-              label={
-                // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                //  <CalendarMonth fontSize="small" />
-                "Дата анализа"
-                // </Box>
-              }
+              label={isMobile ? "Дата" : "Дата анализа"}
               defaultDirection="desc"
             />
             <SortableTableHeader<SortField>
@@ -150,49 +149,43 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               currentSortField={sortField}
               sortDirection={sortDirection}
               onSort={onSort}
-              label={
-                // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                // <Chat fontSize="small" />
-                "Чат"
-                // </Box>
-              }
+              label="Чат"
             />
-            <SortableTableHeader<SortField>
-              field="prompt_id"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label={
-                // <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                //   <Description fontSize="small" />
-                "Промпт"
-                // </Box>
-              }
-            />
-            {isSuperadmin && (
+            {!isMobile && (
+              <SortableTableHeader<SortField>
+                field="prompt_id"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Промпт"
+              />
+            )}
+            {isSuperadmin && !isMobile && (
               <>
                 <SortableTableHeader<SortField>
                   field="company_id"
                   currentSortField={sortField}
                   sortDirection={sortDirection}
                   onSort={onSort}
-                  label={"Компания"}
+                  label="Компания"
                 />
                 <SortableTableHeader<SortField>
                   field="analysing_model"
                   currentSortField={sortField}
                   sortDirection={sortDirection}
                   onSort={onSort}
-                  label={"Модель"}
+                  label="Модель"
                 />
               </>
             )}
-            {developerMode && (
+            {developerMode && !isMobile && (
               <TableCell sx={{ width: "15%" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Token fontSize="small" />
-                  Токены (вход/выход)
-                </Box>
+                <Tooltip title="Токены (вход/выход)">
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Token fontSize="small" />
+                    Токены
+                  </Box>
+                </Tooltip>
               </TableCell>
             )}
           </TableRow>
@@ -213,99 +206,70 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
               }}
               onClick={() => handleRowClick(item.analysis_id)}
             >
-              {/* {developerMode && (
-                <TableCell component="th" scope="row" sx={{ width: "10%" }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontFamily: "monospace",
-                      bgcolor: "grey.100",
-                      p: 0.5,
-                      borderRadius: 1,
-                    }}
-                  >
-                    {item.analysis_id.substring(0, 8)}...
-                  </Typography>
-                </TableCell>
-              )} */}
-              <TableCell sx={{ width: "20%" }}>
+              <TableCell sx={{ width: isMobile ? "30%" : "20%" }}>
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <CalendarMonth
-                    fontSize="small"
-                    sx={{ mr: 1, color: "text.secondary" }}
-                  />
+                  {!isMobile && (
+                    <CalendarMonth
+                      fontSize="small"
+                      sx={{ mr: 1, color: "text.secondary" }}
+                    />
+                  )}
                   <Typography variant="body2">
                     {formatDate(item.created_at)}
                   </Typography>
                 </Box>
               </TableCell>
-              <TableCell sx={{ width: "20%" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  {/* <Avatar
+              <TableCell sx={{ width: isMobile ? "40%" : "20%" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {isMobile && (
+                    <Chat fontSize="small" sx={{ color: "text.secondary" }} />
+                  )}
+                  <Typography
+                    variant="body2"
                     sx={{
-                      bgcolor: stringToColor(
-                        chatMap.get(item.chat_id) || item.chat_id.toString()
-                      ),
-                      width: 36,
-                      height: 36,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    <Chat fontSize="small" />
-                  </Avatar> */}
-                  <Typography variant="body2">
-                    {chatMap.get(item.chat_id) || (
-                      <Typography
-                        component="span"
-                        sx={{ fontFamily: "monospace" }}
-                      >
-                        {item.chat_id}
-                      </Typography>
-                    )}
+                    {chatMap.get(item.chat_id) || item.chat_id}
                   </Typography>
                 </Box>
               </TableCell>
-              <TableCell sx={{ width: "20%" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  {/* <Avatar
-                    sx={{
-                      bgcolor: stringToColor(
-                        promptMap.get(item.prompt_id) || item.prompt_id
-                      ),
-                      width: 26,
-                      height: 26,
-                    }}
-                  >
-                    <Description fontSize="small" />
-                  </Avatar> */}
-                  <Typography variant="body2">
-                    {promptMap.get(item.prompt_id) || item.prompt_id}
-                  </Typography>
-                </Box>
-              </TableCell>
-              {isSuperadmin && (
+              {!isMobile && (
+                <TableCell sx={{ width: "20%" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {promptMap.get(item.prompt_id) || item.prompt_id}
+                    </Typography>
+                  </Box>
+                </TableCell>
+              )}
+              {isSuperadmin && !isMobile && (
                 <>
                   <TableCell sx={{ width: "15%" }}>
                     <Chip
-                      // icon={<Business fontSize="small" />}
                       size="small"
                       label={companyMap.get(item.company_id) || item.company_id}
                       sx={{
                         bgcolor: "primary.light",
                         color: "primary.contrastText",
                         fontWeight: 500,
+                        maxWidth: "100%",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                       }}
                     />
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {/* Иконка модели (опционально) */}
-                      {/* {item.analysing_model === 'yandex-gpt-pro' ? (
-      <StarsIcon color="primary" fontSize="small" />
-    ) : (
-      <MemoryIcon color="secondary" fontSize="small" />
-    )} */}
-
-                      {/* Название модели с цветом в зависимости от типа */}
                       <Typography
                         variant="body2"
                         sx={{
@@ -317,13 +281,11 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                         }}
                       >
                         {item.analysing_model === "yandex-gpt-pro"
-                          ? "Yandex GPT Pro"
+                          ? "GPT Pro"
                           : item.analysing_model === "yandex-gpt-mini"
-                          ? "Yandex GPT Mini"
+                          ? "GPT Mini"
                           : "Не указано"}
                       </Typography>
-
-                      {/* Бейдж для Pro версии (опционально) */}
                       {item.analysing_model === "yandex-gpt-pro" && (
                         <Chip
                           label="PRO"
@@ -341,12 +303,12 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
                   </TableCell>
                 </>
               )}
-              {developerMode && (
+              {developerMode && !isMobile && (
                 <TableCell sx={{ width: "15%" }}>
                   <Tooltip title="Количество токенов на входе и выходе">
                     <Chip
                       icon={<Token fontSize="small" />}
-                      label={`${item.tokens_input} / ${item.tokens_output}`}
+                      label={`${item.tokens_input}/${item.tokens_output}`}
                       variant="outlined"
                       size="small"
                       color="primary"

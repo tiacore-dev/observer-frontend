@@ -12,6 +12,9 @@ import {
   TextField,
   Alert,
   Collapse,
+  useMediaQuery,
+  Theme,
+  IconButton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
@@ -44,6 +47,7 @@ import {
 } from "../../redux/slice/botsSlice";
 import type { RootState } from "../../redux/store";
 import { useThemeMode } from "../../context/themeContext";
+import SearchIcon from "@mui/icons-material/Search";
 
 type SortField =
   | "bot_username"
@@ -55,6 +59,9 @@ type SortField =
 
 export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
 
   const { botId } = useParams();
   const navigate = useNavigate();
@@ -86,6 +93,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   } = useCompaniesQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
@@ -248,7 +256,16 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+    <Box
+      sx={{
+        pl: isMobile ? 1 : 2,
+        pr: isMobile ? 1 : 2,
+        mt: -1,
+        mb: -2,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       {isLoading ? (
         <PageSkeleton
           filterCount={isSuperadmin ? 3 : 2}
@@ -260,7 +277,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
           <Paper
             elevation={1}
             sx={{
-              p: 3,
+              p: isMobile ? 2 : 3,
               mb: 1,
               background: theme.isDarkMode
                 ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
@@ -269,10 +286,10 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <SmartToyIcon sx={{ fontSize: 40 }} />
+              <SmartToyIcon sx={{ fontSize: isMobile ? 32 : 40 }} />
               <Box>
                 <Typography
-                  variant="h4"
+                  variant={isMobile ? "h5" : "h4"}
                   component="h1"
                   gutterBottom
                   sx={{ mb: 1, fontWeight: 600 }}
@@ -314,7 +331,7 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
             </Box>
           </Collapse>
 
-          <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+          <Paper elevation={1} sx={{ p: isMobile ? 1 : 2, mb: 1 }}>
             <Box
               sx={{
                 display: "flex",
@@ -323,51 +340,120 @@ export const BotsPage: React.FC<PageProps> = ({ developerMode }) => {
                 alignItems: "center",
               }}
             >
-              <TextField
-                label="Поиск по ID бота"
-                variant="outlined"
-                size="small"
-                value={botIdFilter}
-                onChange={(e) => dispatch(setBotIdFilter(e.target.value))}
-                placeholder="ID бота"
-                sx={{ minWidth: 200 }}
-              />
+              {isMobile ? (
+                <>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <IconButton onClick={() => setSearchOpen(!searchOpen)}>
+                      <SearchIcon />
+                    </IconButton>
+                    <ResetFiltersButton onClick={resetAllFilters} />
+                  </Box>
+                  <Box sx={{ flexGrow: 1 }} />
+                  <Button
+                    variant="contained"
+                    onClick={() => setIsModalOpen(true)}
+                    startIcon={<AddIcon />}
+                    size="small"
+                    sx={{
+                      whiteSpace: "nowrap",
+                      backgroundColor: "#7353ae",
+                    }}
+                  >
+                    Добавить
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <TextField
+                    label="Поиск по ID бота"
+                    variant="outlined"
+                    size="small"
+                    value={botIdFilter}
+                    onChange={(e) => dispatch(setBotIdFilter(e.target.value))}
+                    placeholder="ID бота"
+                    sx={{ minWidth: 200 }}
+                  />
 
-              <TextField
-                label="Поиск по имени бота"
-                variant="outlined"
-                size="small"
-                value={botNameFilter}
-                onChange={(e) => dispatch(setBotNameFilter(e.target.value))}
-                placeholder="Например: my_bot"
-                sx={{ minWidth: 300 }}
-              />
+                  <TextField
+                    label="Поиск по имени бота"
+                    variant="outlined"
+                    size="small"
+                    value={botNameFilter}
+                    onChange={(e) => dispatch(setBotNameFilter(e.target.value))}
+                    placeholder="Например: my_bot"
+                    sx={{ minWidth: 300 }}
+                  />
 
-              {isSuperadmin && (
+                  {isSuperadmin && (
+                    <TextField
+                      label="Поиск по компании"
+                      variant="outlined"
+                      size="small"
+                      value={companyFilter}
+                      onChange={(e) =>
+                        dispatch(setCompanyFilter(e.target.value))
+                      }
+                      placeholder="Название компании"
+                      sx={{ minWidth: 300 }}
+                    />
+                  )}
+
+                  <ResetFiltersButton onClick={resetAllFilters} />
+
+                  <Box sx={{ flexGrow: 1 }} />
+
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setIsModalOpen(true)}
+                    style={{ backgroundColor: "#7353ae" }}
+                  >
+                    Добавить бота
+                  </Button>
+                </>
+              )}
+            </Box>
+            {isMobile && searchOpen && (
+              <Paper
+                sx={{
+                  mt: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  backgroundColor: "background.paper",
+                }}
+              >
                 <TextField
-                  label="Поиск по компании"
+                  fullWidth
+                  label="Поиск по ID бота"
                   variant="outlined"
                   size="small"
-                  value={companyFilter}
-                  onChange={(e) => dispatch(setCompanyFilter(e.target.value))}
-                  placeholder="Название компании"
-                  sx={{ minWidth: 300 }}
+                  value={botIdFilter}
+                  onChange={(e) => dispatch(setBotIdFilter(e.target.value))}
+                  placeholder="ID бота"
                 />
-              )}
-
-              <ResetFiltersButton onClick={resetAllFilters} />
-
-              <Box sx={{ flexGrow: 1 }} />
-
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setIsModalOpen(true)}
-                style={{ backgroundColor: "#7353ae" }}
-              >
-                Добавить бота
-              </Button>
-            </Box>
+                <TextField
+                  fullWidth
+                  label="Поиск по имени бота"
+                  variant="outlined"
+                  size="small"
+                  value={botNameFilter}
+                  onChange={(e) => dispatch(setBotNameFilter(e.target.value))}
+                  placeholder="Имя бота"
+                />
+                {isSuperadmin && (
+                  <TextField
+                    fullWidth
+                    label="Поиск по компании"
+                    variant="outlined"
+                    size="small"
+                    value={companyFilter}
+                    onChange={(e) => dispatch(setCompanyFilter(e.target.value))}
+                    placeholder="Компания"
+                  />
+                )}
+              </Paper>
+            )}
           </Paper>
 
           <Paper elevation={1} sx={{ overflow: "hidden" }}>

@@ -57,7 +57,7 @@ import { logoutUser } from "../api/authApi";
 import { useCompanyMap } from "../hooks/maps/useCompanyMap";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import GroupIcon from "@mui/icons-material/Group";
-
+import HotelClassIcon from "@mui/icons-material/HotelClass";
 const drawerWidth = 205; // Уменьшил ширину сайдбара
 const LOGO_AVATAR_SIZE = 35;
 const LOGO_TEXT_VARIANT = "h6";
@@ -112,6 +112,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       { text: "Telegram Боты", icon: <SmartToy />, path: "/bots" },
       { text: "Telegram аккаунты", icon: <GroupIcon />, path: "/accounts" },
       { text: "Чаты", icon: <QuestionAnswerIcon />, path: "/chats" },
+      { text: "Подписки", icon: <HotelClassIcon />, path: "/subscriptions" },
       {
         text: "Справка",
         icon: <Info />,

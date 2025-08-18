@@ -36,6 +36,7 @@ import { TermsPage } from "./pages/termsPage/termsPage";
 import { ResetPasswordPage } from "./pages/loginPage/resetPasswordPage";
 import { AcceptInvitePage } from "./pages/acceptInvitePage/acceptInvitePage";
 import { InviteRegistrationPage } from "./hooks/invite/inviteRegistrationPage";
+import { SubscriptionsPage } from "./pages/subscriptionsPage/subscriptionsPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -127,6 +128,11 @@ const AppContent: React.FC = () => {
                     path="/companies/:companyId"
                     element={<CompaniesPage developerMode={developerMode} />}
                   />
+                  <Route
+                    path="/subscriptions"
+                    element={<SubscriptionsPage />}
+                  />
+
                   <Route path="/help" element={<HelpPage />} />
                   <Route path="/home" element={<HomePage />} />
                   <Route path="*" element={<Navigate to="/home" />} />

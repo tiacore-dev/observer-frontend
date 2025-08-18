@@ -1,9 +1,19 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Typography, Box, TextField, Paper, Alert, Chip } from "@mui/material";
+import {
+  Typography,
+  Box,
+  TextField,
+  Paper,
+  Alert,
+  Chip,
+  IconButton,
+  useMediaQuery,
+  Theme,
+} from "@mui/material";
 import type { PageProps } from "../../App";
 import { useAccountsQuery } from "../../hooks/accounts/useAccountsQuery";
 import { AccountsTable } from "./accountsTable";
@@ -24,9 +34,14 @@ import {
 import type { RootState } from "../../redux/store";
 import GroupIcon from "@mui/icons-material/Group";
 import { useThemeMode } from "../../context/themeContext";
+import SearchIcon from "@mui/icons-material/Search";
 
 export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const dispatch = useDispatch();
   const {
@@ -142,7 +157,16 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+    <Box
+      sx={{
+        pl: isMobile ? 1 : 2,
+        pr: isMobile ? 1 : 2,
+        mt: -1,
+        mb: -2,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       {isLoading ? (
         <PageSkeleton filterCount={3} pagination={true} hasAddButton={false} />
       ) : (
@@ -150,7 +174,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
           <Paper
             elevation={1}
             sx={{
-              p: 3,
+              p: isMobile ? 2 : 3,
               mb: 1,
               background: theme.isDarkMode
                 ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
@@ -159,10 +183,10 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <GroupIcon sx={{ fontSize: 40 }} />
+              <GroupIcon sx={{ fontSize: isMobile ? 32 : 40 }} />
               <Box>
                 <Typography
-                  variant="h4"
+                  variant={isMobile ? "h5" : "h4"}
                   component="h1"
                   gutterBottom
                   sx={{ mb: 1, fontWeight: 600 }}
@@ -171,15 +195,15 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
                   Telegram аккаунты
                 </Typography>
                 <Typography variant="body1" sx={{ opacity: 0.9 }} color="white">
-                  Просмотр и управление участниками Telegram чатов. Здесь вы
-                  можете задавать удобные имена пользователей, например с
-                  указанием их роли в проекте.
+                  {isMobile
+                    ? "Просмотр и управление участниками Telegram чатов."
+                    : "Просмотр и управление участниками Telegram чатов. Здесь вы можете задавать удобные имена пользователей, например с указанием их роли в проекте."}
                 </Typography>
               </Box>
             </Box>
           </Paper>
 
-          <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+          <Paper elevation={1} sx={{ p: isMobile ? 1 : 2, mb: 1 }}>
             <Box
               sx={{
                 display: "flex",
@@ -188,36 +212,89 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
                 alignItems: "center",
               }}
             >
-              <TextField
-                label="Поиск по ID аккаунта"
-                variant="outlined"
-                size="small"
-                value={idFilter}
-                onChange={(e) => dispatch(setIdFilter(e.target.value))}
-                placeholder="Например: 123456"
-                sx={{ minWidth: 250 }}
-              />
-              <TextField
-                label="Поиск по названию аккаунта"
-                variant="outlined"
-                size="small"
-                value={nameFilter}
-                onChange={(e) => dispatch(setNameFilter(e.target.value))}
-                placeholder="Например: Мой рабочий аккаунт"
-                sx={{ minWidth: 250 }}
-              />
-              <TextField
-                label="Поиск по имени пользователя"
-                variant="outlined"
-                size="small"
-                value={usernameFilter}
-                onChange={(e) => dispatch(setUsernameFilter(e.target.value))}
-                placeholder="Например: @username"
-                sx={{ minWidth: 250 }}
-              />
-
-              <ResetFiltersButton onClick={resetAllFilters} />
+              {isMobile ? (
+                <>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <IconButton onClick={() => setSearchOpen(!searchOpen)}>
+                      <SearchIcon />
+                    </IconButton>
+                    <ResetFiltersButton onClick={resetAllFilters} />
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <TextField
+                    label="Поиск по ID аккаунта"
+                    variant="outlined"
+                    size="small"
+                    value={idFilter}
+                    onChange={(e) => dispatch(setIdFilter(e.target.value))}
+                    placeholder="Например: 123456"
+                    sx={{ minWidth: 250 }}
+                  />
+                  <TextField
+                    label="Поиск по названию аккаунта"
+                    variant="outlined"
+                    size="small"
+                    value={nameFilter}
+                    onChange={(e) => dispatch(setNameFilter(e.target.value))}
+                    placeholder="Например: Мой рабочий аккаунт"
+                    sx={{ minWidth: 250 }}
+                  />
+                  <TextField
+                    label="Поиск по имени пользователя"
+                    variant="outlined"
+                    size="small"
+                    value={usernameFilter}
+                    onChange={(e) =>
+                      dispatch(setUsernameFilter(e.target.value))
+                    }
+                    placeholder="Например: @username"
+                    sx={{ minWidth: 250 }}
+                  />
+                  <ResetFiltersButton onClick={resetAllFilters} />
+                </>
+              )}
             </Box>
+            {isMobile && searchOpen && (
+              <Paper
+                sx={{
+                  mt: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  backgroundColor: "background.paper",
+                }}
+              >
+                <TextField
+                  fullWidth
+                  label="Поиск по ID аккаунта"
+                  variant="outlined"
+                  size="small"
+                  value={idFilter}
+                  onChange={(e) => dispatch(setIdFilter(e.target.value))}
+                  placeholder="Например: 123456"
+                />
+                <TextField
+                  fullWidth
+                  label="Поиск по названию аккаунта"
+                  variant="outlined"
+                  size="small"
+                  value={nameFilter}
+                  onChange={(e) => dispatch(setNameFilter(e.target.value))}
+                  placeholder="Например: Мой рабочий аккаунт"
+                />
+                <TextField
+                  fullWidth
+                  label="Поиск по имени пользователя"
+                  variant="outlined"
+                  size="small"
+                  value={usernameFilter}
+                  onChange={(e) => dispatch(setUsernameFilter(e.target.value))}
+                  placeholder="Например: @username"
+                />
+              </Paper>
+            )}
           </Paper>
 
           <Paper elevation={1} sx={{ overflow: "hidden" }}>
@@ -227,6 +304,7 @@ export const AccountsPage: React.FC<PageProps> = ({ developerMode }) => {
               sortField={sortField}
               sortDirection={sortDirection}
               onSort={handleSort}
+              isMobile={isMobile}
             />
             {totalPages > 1 && (
               <PaginationControls

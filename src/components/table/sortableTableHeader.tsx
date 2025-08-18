@@ -1,5 +1,5 @@
 import React from "react";
-import { TableCell, TableSortLabel } from "@mui/material";
+import { TableCell, TableSortLabel, useMediaQuery, Theme } from "@mui/material";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
@@ -21,6 +21,10 @@ export function SortableTableHeader<T extends string>({
   label,
   defaultDirection = "asc",
 }: SortableTableHeaderProps<T>) {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
+
   const getSortIcon = () => {
     if (currentSortField !== field) return <UnfoldMoreIcon fontSize="small" />;
     return sortDirection === "asc" ? (
@@ -34,8 +38,9 @@ export function SortableTableHeader<T extends string>({
     <TableCell
       sortDirection={currentSortField === field ? sortDirection : false}
       sx={{
-        minWidth: 150, // Установите минимальную ширину для заголовков
-        width: "auto", // Или фиксированную ширину
+        minWidth: isMobile ? 100 : 150,
+        width: "auto",
+        px: isMobile ? 1 : 2,
       }}
     >
       <TableSortLabel
@@ -49,9 +54,10 @@ export function SortableTableHeader<T extends string>({
           "& .MuiTableSortLabel-icon": {
             opacity: 1,
           },
+          fontSize: isMobile ? "0.875rem" : "inherit",
         }}
       >
-        {label}
+        {isMobile ? label.split(" ")[0] : label}
       </TableSortLabel>
     </TableCell>
   );

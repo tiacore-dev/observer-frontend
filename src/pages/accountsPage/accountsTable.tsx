@@ -12,9 +12,9 @@ import {
   Tooltip,
   Box,
   Typography,
+  Avatar,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-// import ddd from "@mui/icons-material/ddd";
 import { IAccount } from "../../api/accountsApi";
 import { EditAccountModal } from "./editAccountModal";
 import { useUpdateAccount } from "../../hooks/accounts/useAccountsQuery";
@@ -27,6 +27,7 @@ interface AccountsTableProps {
   onSort: (
     field: "account_id" | "account_name" | "username" | "created_at"
   ) => void;
+  isMobile?: boolean;
 }
 
 export const AccountsTable: React.FC<AccountsTableProps> = ({
@@ -35,6 +36,7 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   sortField,
   sortDirection,
   onSort,
+  isMobile = false,
 }) => {
   const [editingAccount, setEditingAccount] = useState<{
     id: string;
@@ -73,9 +75,8 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      // console.log("Скопировано:", text);
     } catch (err) {
-      // console.error("Ошибка при копировании:", err);
+      console.error("Ошибка при копировании:", err);
     }
   };
 
@@ -84,121 +85,191 @@ export const AccountsTable: React.FC<AccountsTableProps> = ({
     copyToClipboard(text);
   };
 
+  const getAccountAvatar = (username: string) => {
+    const initials = username ? username.charAt(0).toUpperCase() : "U";
+    return (
+      <Avatar
+        sx={{
+          width: 32,
+          height: 32,
+          bgcolor: "primary.main",
+          color: "white",
+          fontSize: "0.875rem",
+          fontWeight: 600,
+        }}
+      >
+        {initials}
+      </Avatar>
+    );
+  };
+
   return (
     <>
       <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === "account_id"}
-                  direction={sortDirection}
-                  onClick={() => onSort("account_id")}
-                >
-                  ID
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === "account_name"}
-                  direction={sortDirection}
-                  onClick={() => onSort("account_name")}
-                >
-                  Имя аккаунта
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === "username"}
-                  direction={sortDirection}
-                  onClick={() => onSort("username")}
-                >
-                  Имя пользователя
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>
-                <TableSortLabel
-                  active={sortField === "created_at"}
-                  direction={sortDirection}
-                  onClick={() => onSort("created_at")}
-                >
-                  Дата создания
-                </TableSortLabel>
-              </TableCell>
-              <TableCell> </TableCell>
-            </TableRow>
-          </TableHead>
+        <Table sx={{ minWidth: isMobile ? 300 : 650 }}>
+          {!isMobile && (
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === "account_id"}
+                    direction={sortDirection}
+                    onClick={() => onSort("account_id")}
+                  >
+                    ID
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === "account_name"}
+                    direction={sortDirection}
+                    onClick={() => onSort("account_name")}
+                  >
+                    Имя аккаунта
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === "username"}
+                    direction={sortDirection}
+                    onClick={() => onSort("username")}
+                  >
+                    Имя пользователя
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>
+                  <TableSortLabel
+                    active={sortField === "created_at"}
+                    direction={sortDirection}
+                    onClick={() => onSort("created_at")}
+                  >
+                    Дата создания
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell> </TableCell>
+              </TableRow>
+            </TableHead>
+          )}
           <TableBody>
             {accounts.map((account) => (
               <TableRow key={account.account_id}>
-                <TableCell
-                  onClick={(e) =>
-                    handleCellClick(e, account.account_id.toString())
-                  }
-                >
-                  <Tooltip title="Копировать ID" arrow>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography
-                        variant="body2"
-                        component="span"
-                        sx={{
-                          cursor: "pointer",
-                          fontFamily: "monospace",
-                          bgcolor: "grey.100",
-                          p: 0.5,
-                          borderRadius: 1,
-                          "&:hover": {
-                            bgcolor: "grey.300",
-                          },
-                        }}
-                      >
-                        {account.account_id}
-                      </Typography>
-                    </Box>
-                  </Tooltip>
-                </TableCell>
-                <TableCell
-                  onClick={(e) =>
-                    account.account_name &&
-                    handleCellClick(e, `@${account.account_name}`)
-                  }
-                >
-                  {account.account_name ? (
-                    <Tooltip title="Копировать ID" arrow>
-                      <Box
-                        sx={{
-                          cursor: "pointer",
-
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          "&:hover": {
-                            textDecoration: "underline",
-                          },
-                        }}
-                      >
-                        @{account.account_name}
-                      </Box>
-                    </Tooltip>
-                  ) : (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="body2">Не указано</Typography>
-                    </Box>
-                  )}
-                </TableCell>
-                <TableCell>{account.username || "Не указано"}</TableCell>
-                <TableCell>{formatDate(account.created_at)}</TableCell>
-                <TableCell>
-                  <Tooltip title="Редактировать имя">
-                    <IconButton
-                      onClick={() => handleEditClick(account)}
-                      size="small"
+                {isMobile ? (
+                  <TableCell sx={{ p: 1.5 }}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
                     >
-                      <EditIcon fontSize="small" sx={{ color: "#667eea" }} />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
+                      {getAccountAvatar(account.username || "U")}
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 0.5,
+                          }}
+                        >
+                          {account.username && (
+                            <Typography>{account.username}</Typography>
+                          )}
+                          <IconButton
+                            onClick={() => handleEditClick(account)}
+                            size="small"
+                            sx={{ ml: "auto" }}
+                          >
+                            <EditIcon
+                              fontSize="small"
+                              sx={{ color: "#667eea" }}
+                            />
+                          </IconButton>
+                        </Box>
+                        <Typography variant="body2" fontWeight={500}>
+                          {account.account_name
+                            ? `@${account.account_name}`
+                            : "Не указано"}
+                        </Typography>
+                        <Tooltip title="Копировать ID" arrow>
+                          <Typography
+                            variant="caption"
+                            component="span"
+                            onClick={(e) =>
+                              handleCellClick(e, account.account_id.toString())
+                            }
+                            sx={{
+                              cursor: "pointer",
+                              fontFamily: "monospace",
+                              bgcolor: "grey.100",
+                              p: 0.5,
+                              borderRadius: 1,
+                              "&:hover": {
+                                bgcolor: "grey.300",
+                              },
+                            }}
+                          >
+                            ID: {account.account_id}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                ) : (
+                  <>
+                    <TableCell
+                      onClick={(e) =>
+                        handleCellClick(e, account.account_id.toString())
+                      }
+                    >
+                      <Tooltip title="Копировать ID" arrow>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            sx={{
+                              cursor: "pointer",
+                              fontFamily: "monospace",
+                              bgcolor: "grey.100",
+                              p: 0.5,
+                              borderRadius: 1,
+                              "&:hover": {
+                                bgcolor: "grey.300",
+                              },
+                            }}
+                          >
+                            {account.account_id}
+                          </Typography>
+                        </Box>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        {getAccountAvatar(account.username || "U")}
+                        <Typography variant="body1" fontWeight={500}>
+                          {account.account_name
+                            ? `@${account.account_name}`
+                            : "Не указано"}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>{account.username || "Не указано"}</TableCell>
+                    <TableCell>{formatDate(account.created_at)}</TableCell>
+                    <TableCell>
+                      <Tooltip title="Редактировать имя">
+                        <IconButton
+                          onClick={() => handleEditClick(account)}
+                          size="small"
+                        >
+                          <EditIcon
+                            fontSize="small"
+                            sx={{ color: "#667eea" }}
+                          />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </>
+                )}
               </TableRow>
             ))}
           </TableBody>

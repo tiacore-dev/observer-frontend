@@ -14,6 +14,9 @@ import {
   Autocomplete,
   Paper,
   Alert,
+  IconButton,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import type { PageProps } from "../../App";
 import { AnalysisTable } from "./analysisTable";
@@ -28,21 +31,14 @@ import { PageSkeleton } from "../../components/skeleton/pageSkeleton";
 import { useAuth } from "../../context/authContext";
 import { ResetFiltersButton } from "../../components/table/resetFiltersButton";
 import { PaginationControls } from "../../components/table/paginationControls";
-import { Analytics } from "@mui/icons-material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { Analytics, Search } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ru } from "date-fns/locale";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  setChatFilter,
   setChatSelectFilter,
-  setPromptFilter,
   setPromptSelectFilter,
-  setCompanyFilter,
-  setCompanySelectFilter,
-  setDateFrom,
-  setDateTo,
   setPage,
   setRowsPerPage,
   setSortField,
@@ -55,26 +51,26 @@ import { useThemeMode } from "../../context/themeContext";
 
 export type ModelId = "yandex-gpt-mini" | "yandex-gpt-pro" | null;
 
-// 2. Определяем тип для объекта опции
 export interface ModelOption {
   id: ModelId;
   name: string;
 }
 
-// 3. Создаем константу с доступными опциями
 export const MODEL_OPTIONS: ModelOption[] = [
   { id: "yandex-gpt-mini", name: "Yandex GPT Mini" },
   { id: "yandex-gpt-pro", name: "Yandex GPT Pro" },
   { id: null, name: "Все модели" },
 ];
+
 export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
-  const { isSuperadmin, selectedCompanyId } = useAuth();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
+  const { isSuperadmin } = useAuth();
   const dispatch = useDispatch();
   const {
-    chatFilter,
     chatSelectFilter,
-    promptFilter,
     promptSelectFilter,
     companyFilter,
     companySelectFilter,
@@ -85,8 +81,8 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     sortField,
     sortDirection,
   } = useSelector((state: RootState) => state.analysis);
-  // 1. Определяем тип для возможных значений моделей
   const [selectedModel, setSelectedModel] = useState<ModelOption | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const {
     data: analysisData,
@@ -128,7 +124,6 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     dispatch(resetFilters());
   };
 
-  // Получаем списки чатов и промптов для Autocomplete
   const chatOptions = useMemo(() => {
     return (
       chatsData?.chats?.map((chat) => ({
@@ -147,7 +142,6 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     );
   }, [promptsData]);
 
-  // Получаем выбранные чат и промпт
   const selectedChat = useMemo(() => {
     return chatOptions.find((chat) => chat.id === chatSelectFilter) || null;
   }, [chatOptions, chatSelectFilter]);
@@ -156,9 +150,8 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
     return (
       promptOptions.find((prompt) => prompt.id === promptSelectFilter) || null
     );
-  }, [promptOptions, promptSelectFilter]);
+  }, [promptsData, promptSelectFilter]);
 
-  // Фильтрация теперь происходит на сервере, поэтому просто используем полученные данные
   const filteredAnalysis = analysisData?.analysis || [];
   const totalItems = analysisData?.total || 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
@@ -214,7 +207,16 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ru}>
-      <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+      <Box
+        sx={{
+          pl: isMobile ? 1 : 2,
+          pr: isMobile ? 1 : 2,
+          mt: -1,
+          mb: -2,
+          maxWidth: 1600,
+          mx: "auto",
+        }}
+      >
         {isLoading ? (
           <PageSkeleton
             filterCount={isSuperadmin ? 5 : 4}
@@ -226,7 +228,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
             <Paper
               elevation={1}
               sx={{
-                p: 3,
+                p: isMobile ? 2 : 3,
                 mb: 1,
                 background: theme.isDarkMode
                   ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
@@ -235,10 +237,10 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Analytics sx={{ fontSize: 40 }} />
+                <Analytics sx={{ fontSize: isMobile ? 32 : 40 }} />
                 <Box>
                   <Typography
-                    variant="h4"
+                    variant={isMobile ? "h5" : "h4"}
                     component="h1"
                     gutterBottom
                     sx={{ mb: 1, fontWeight: 600 }}
@@ -258,7 +260,7 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
               </Box>
             </Paper>
 
-            <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+            <Paper elevation={1} sx={{ p: isMobile ? 1 : 2, mb: 1 }}>
               <Box
                 sx={{
                   display: "flex",
@@ -267,77 +269,178 @@ export const AnalysisPage: React.FC<PageProps> = ({ developerMode }) => {
                   alignItems: "center",
                 }}
               >
-                <Autocomplete
-                  options={chatOptions}
-                  getOptionLabel={(option) => option.name}
-                  value={selectedChat}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Выберите чат"
-                      variant="outlined"
+                {isMobile ? (
+                  <>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <IconButton onClick={() => setSearchOpen(!searchOpen)}>
+                        <Search />
+                      </IconButton>
+                      <ResetFiltersButton onClick={resetAllFilters} />
+                    </Box>
+                    <Box sx={{ flexGrow: 1 }} />
+                    <Button
+                      variant="contained"
+                      onClick={() => setIsModalOpen(true)}
+                      startIcon={<AddIcon />}
                       size="small"
-                      sx={{ width: 250 }}
+                      sx={{
+                        whiteSpace: "nowrap",
+                        backgroundColor: "#7353ae",
+                        "& .MuiButton-startIcon": {
+                          marginRight: 0.5,
+                        },
+                      }}
+                    >
+                      Новый анализ
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Autocomplete
+                      options={chatOptions}
+                      getOptionLabel={(option) => option.name}
+                      value={selectedChat}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Чат"
+                          variant="outlined"
+                          size="small"
+                          sx={{ width: 250 }}
+                        />
+                      )}
+                      onChange={(_, value) => {
+                        dispatch(setChatSelectFilter(value?.id || null));
+                      }}
                     />
-                  )}
-                  onChange={(_, value) => {
-                    dispatch(setChatSelectFilter(value?.id || null));
-                  }}
-                />
 
-                <Autocomplete
-                  options={promptOptions}
-                  getOptionLabel={(option) => option.name}
-                  value={selectedPrompt}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Выберите промпт"
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: 250 }}
+                    <Autocomplete
+                      options={promptOptions}
+                      getOptionLabel={(option) => option.name}
+                      value={selectedPrompt}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Промпт"
+                          variant="outlined"
+                          size="small"
+                          sx={{ width: 250 }}
+                        />
+                      )}
+                      onChange={(_, value) => {
+                        dispatch(setPromptSelectFilter(value?.id || null));
+                      }}
                     />
-                  )}
-                  onChange={(_, value) => {
-                    dispatch(setPromptSelectFilter(value?.id || null));
+                    {isSuperadmin && (
+                      <Autocomplete<ModelOption>
+                        options={MODEL_OPTIONS}
+                        getOptionLabel={(option) => option.name}
+                        value={selectedModel}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Модель"
+                            variant="outlined"
+                            size="small"
+                            sx={{ width: 250 }}
+                          />
+                        )}
+                        onChange={(_, value) => {
+                          setSelectedModel(value);
+                          dispatch(setModelFilter(value?.id ?? null));
+                        }}
+                        isOptionEqualToValue={(option, value) =>
+                          option.id === value?.id
+                        }
+                      />
+                    )}
+                    <ResetFiltersButton onClick={resetAllFilters} />
+                    <Box sx={{ flexGrow: 1 }} />
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={() => setIsModalOpen(true)}
+                      style={{ backgroundColor: "#7353ae" }}
+                    >
+                      Новый анализ
+                    </Button>
+                  </>
+                )}
+              </Box>
+              {isMobile && searchOpen && (
+                <Paper
+                  sx={{
+                    mt: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    backgroundColor: "background.paper",
                   }}
-                />
-                {isSuperadmin && (
-                  <Autocomplete<ModelOption>
-                    options={MODEL_OPTIONS}
+                >
+                  <Autocomplete
+                    sx={{ width: "100%" }}
+                    options={chatOptions}
                     getOptionLabel={(option) => option.name}
-                    value={selectedModel}
+                    value={selectedChat}
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label="Выберите модель"
+                        label="Чат"
                         variant="outlined"
                         size="small"
-                        sx={{ width: 250 }}
+                        fullWidth
                       />
                     )}
                     onChange={(_, value) => {
-                      setSelectedModel(value);
-                      dispatch(setModelFilter(value?.id ?? null));
+                      dispatch(setChatSelectFilter(value?.id || null));
                     }}
-                    isOptionEqualToValue={(option, value) =>
-                      option.id === value?.id
-                    }
                   />
-                )}
-                <ResetFiltersButton onClick={resetAllFilters} />
 
-                <Box sx={{ flexGrow: 1 }} />
+                  <Autocomplete
+                    sx={{ width: "100%" }}
+                    options={promptOptions}
+                    getOptionLabel={(option) => option.name}
+                    value={selectedPrompt}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Промпт"
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                      />
+                    )}
+                    onChange={(_, value) => {
+                      dispatch(setPromptSelectFilter(value?.id || null));
+                    }}
+                  />
 
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setIsModalOpen(true)}
-                  style={{ backgroundColor: "#7353ae" }}
-                >
-                  Новый анализ
-                </Button>
-              </Box>
+                  {isSuperadmin && (
+                    <Autocomplete<ModelOption>
+                      sx={{ width: "100%" }}
+                      options={MODEL_OPTIONS}
+                      getOptionLabel={(option) => option.name}
+                      value={selectedModel}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Модель"
+                          variant="outlined"
+                          size="small"
+                          fullWidth
+                        />
+                      )}
+                      onChange={(_, value) => {
+                        setSelectedModel(value);
+                        dispatch(setModelFilter(value?.id ?? null));
+                      }}
+                      isOptionEqualToValue={(option, value) =>
+                        option.id === value?.id
+                      }
+                    />
+                  )}
+                </Paper>
+              )}
             </Paper>
 
             <Paper elevation={1} sx={{ overflow: "hidden" }}>

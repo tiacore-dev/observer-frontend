@@ -12,6 +12,8 @@ import {
   Box,
   Typography,
   Avatar,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import { Description as DescriptionIcon } from "@mui/icons-material";
 import type { ICompany } from "../../api/companiesApi";
@@ -20,7 +22,7 @@ import { ContextMenu } from "./contextMenu";
 import { useDeleteCompany } from "../../hooks/companies/useCompaniesMutations";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { EditCompanyModal } from "./editCompanyModal";
-import { useNavigate } from "react-router-dom"; // Добавьте этот импорт
+import { useNavigate } from "react-router-dom";
 
 type SortField = "company_name" | "description";
 
@@ -39,7 +41,10 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
   sortDirection,
   onSort,
 }) => {
-  const navigate = useNavigate(); // Добавьте этот хук
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [selectedCompany, setSelectedCompany] = React.useState<ICompany | null>(
@@ -66,7 +71,6 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
     setDeleteDialogOpen(true);
   };
 
-  // Добавьте эту функцию для обработки клика по компании
   const handleCompanyClick = (companyId: string) => {
     navigate(`/companies/${companyId}`);
   };
@@ -82,11 +86,11 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
     return (
       <Avatar
         sx={{
-          width: 40,
-          height: 40,
+          width: isMobile ? 32 : 40,
+          height: isMobile ? 32 : 40,
           bgcolor: "primary.main",
           color: "white",
-          fontSize: "1rem",
+          fontSize: "0.875rem",
           fontWeight: 600,
         }}
       >
@@ -98,10 +102,13 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
   return (
     <Paper elevation={2} sx={{ overflow: "hidden" }}>
       <TableContainer>
-        <Table sx={{ minWidth: 650 }} aria-label="companies table">
+        <Table
+          sx={{ minWidth: isMobile ? 300 : 650 }}
+          aria-label="companies table"
+        >
           <TableHead>
             <TableRow>
-              {developerMode && (
+              {developerMode && !isMobile && (
                 <TableCell sx={{ fontWeight: 600 }}>ID</TableCell>
               )}
               <SortableTableHeader<SortField>
@@ -111,16 +118,15 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                 onSort={onSort}
                 label="Название компании"
               />
-              <SortableTableHeader<SortField>
-                field="description"
-                currentSortField={sortField}
-                sortDirection={sortDirection}
-                onSort={onSort}
-                label="Описание и назначение"
-              />
-              {/* <TableCell width={50} sx={{ fontWeight: 600 }}>
-                Действия
-              </TableCell> */}
+              {!isMobile && (
+                <SortableTableHeader<SortField>
+                  field="description"
+                  currentSortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={onSort}
+                  label="Описание"
+                />
+              )}
             </TableRow>
           </TableHead>
 
@@ -132,13 +138,13 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                   "&:last-child td, &:last-child th": { border: 0 },
                   "&:hover": {
                     backgroundColor: "action.hover",
-                    cursor: "pointer", // Добавьте курсор-указатель
+                    cursor: "pointer",
                   },
                   transition: "background-color 0.2s ease",
                 }}
-                onClick={() => handleCompanyClick(company.company_id)} // Добавьте обработчик клика
+                onClick={() => handleCompanyClick(company.company_id)}
               >
-                {developerMode && (
+                {developerMode && !isMobile && (
                   <TableCell component="th" scope="row">
                     <Typography
                       variant="body2"
@@ -151,57 +157,66 @@ export const CompaniesTable: React.FC<CompaniesTableProps> = ({
                 )}
 
                 <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: isMobile ? 1 : 2,
+                    }}
+                  >
                     {getCompanyAvatar(company.company_name)}
                     <Box>
                       <Typography
-                        variant="body1"
+                        variant={isMobile ? "body2" : "body1"}
                         fontWeight={500}
-                        sx={{ mb: 0.5 }}
+                        sx={{ mb: isMobile ? 0 : 0.5 }}
                       >
                         {company.company_name}
                       </Typography>
+                      {isMobile && company.description && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {company.description}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 </TableCell>
 
-                <TableCell>
-                  {company.description ? (
-                    <Box>
-                      <Typography variant="body2" sx={{ mb: 0.5 }}>
-                        {company.description}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                    >
-                      <DescriptionIcon
-                        sx={{ fontSize: 14, color: "text.disabled" }}
-                      />
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        fontStyle="italic"
+                {!isMobile && (
+                  <TableCell>
+                    {company.description ? (
+                      <Box>
+                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                          {company.description}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
                       >
-                        Описание не указано
-                      </Typography>
-                    </Box>
-                  )}
-                </TableCell>
-
-                {/* <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Box display="flex" justifyContent="center">
-                    <ContextMenu
-                      onEdit={(e: React.MouseEvent) =>
-                        handleEditClick(company, e)
-                      }
-                      onDelete={(e: React.MouseEvent) =>
-                        handleDeleteClick(company, e)
-                      }
-                    />
-                  </Box>
-                </TableCell> */}
+                        <DescriptionIcon
+                          sx={{ fontSize: 14, color: "text.disabled" }}
+                        />
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          fontStyle="italic"
+                        >
+                          Описание не указано
+                        </Typography>
+                      </Box>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

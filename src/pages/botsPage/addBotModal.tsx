@@ -20,6 +20,8 @@ import {
   CircularProgress,
   Collapse,
   Tooltip,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   SmartToy as BotIcon,
@@ -43,6 +45,9 @@ interface AddBotModalProps {
 }
 
 export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const { isSuperadmin, selectedCompanyId } = useAuth();
   const [botData, setBotData] = useState({
     token: "",
@@ -78,13 +83,11 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
     company_id: "",
   });
 
-  // Проверка формата токена
   const validateTokenFormat = (token: string): boolean => {
     const tokenRegex = /^\d{9,10}:[a-zA-Z0-9_-]{35}$/;
     return tokenRegex.test(token);
   };
 
-  // Проверка токена через API Telegram
   const validateTokenWithApi = async (token: string): Promise<boolean> => {
     try {
       const response = await axios.get(
@@ -114,7 +117,6 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
   const tokenStatus = getTokenValidationStatus(botData.token);
 
   const handleSubmit = async () => {
-    // Проверка обязательных полей
     const newErrors = {
       token: !botData.token
         ? "Токен обязателен"
@@ -128,7 +130,6 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
 
     if (Object.values(newErrors).some((e) => e)) return;
 
-    // Проверка токена через API Telegram
     setIsValidatingToken(true);
     try {
       const isValid = await validateTokenWithApi(botData.token);
@@ -137,7 +138,6 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
         return;
       }
 
-      // Если токен валиден, создаем бота
       await createBot.mutateAsync(botData);
       onClose();
       setBotData({ token: "", company_id: "", comment: "" });
@@ -178,11 +178,19 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <BotIcon color="primary" />
-          Добавить Telegram-бота
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Добавить Telegram-бота
+          </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button
             variant="text"
@@ -190,7 +198,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
             endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
             size="small"
           >
-            Инструкция по созданию бота
+            {isMobile ? "Помощь" : "Инструкция по созданию бота"}
           </Button>
         </Box>
       </DialogTitle>
@@ -309,7 +317,7 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
             value={botData.comment}
             onChange={handleChange}
             multiline
-            rows={3}
+            rows={isMobile ? 3 : 4}
             helperText="Краткое описание назначения бота"
             placeholder="Например: Бот для отправки еженедельных отчетов по чату поддержки"
           />
@@ -335,23 +343,17 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
       </DialogContent>
       <DialogActions
         sx={{
-          paddingBottom: 3,
-          paddingTop: 0,
-          paddingRight: 3,
-          justifyContent: "flex-end",
+          p: isMobile ? 2 : 3,
+          justifyContent: "space-between",
         }}
       >
-        <Button onClick={onClose}>Отмена</Button>
+        <Button onClick={onClose} fullWidth={isMobile}>
+          Отмена
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
-          disabled={
-            !botData.token ||
-            // !botData.company_id ||
-            // tokenStatus.status !== "success" ||
-            // isValidatingToken ||
-            createBot.isPending
-          }
+          disabled={!botData.token || createBot.isPending}
           startIcon={
             createBot.isPending || isValidatingToken ? (
               <CircularProgress size={16} />
@@ -359,12 +361,14 @@ export const AddBotModal: React.FC<AddBotModalProps> = ({ open, onClose }) => {
               <BotIcon />
             )
           }
+          fullWidth={isMobile}
+          sx={isMobile ? { ml: 1 } : {}}
         >
           {createBot.isPending
-            ? "Создание бота..."
+            ? "Создание..."
             : isValidatingToken
-            ? "Проверка токена..."
-            : "Создать бота"}
+            ? "Проверка..."
+            : "Создать"}
         </Button>
       </DialogActions>
     </Dialog>

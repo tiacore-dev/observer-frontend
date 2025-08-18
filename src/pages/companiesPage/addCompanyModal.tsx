@@ -15,6 +15,8 @@ import {
   Typography,
   Collapse,
   Tooltip,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   Business as BusinessIcon,
@@ -39,6 +41,9 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const [companyData, setCompanyData] = useState({
     company_name: "",
     description: "",
@@ -55,14 +60,12 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
     const { name, value } = e.target;
     setCompanyData((prev) => ({ ...prev, [name]: value }));
 
-    // Очищаем ошибку при вводе
     if (name === "company_name" && value.trim()) {
       setErrors((prev) => ({ ...prev, company_name: "" }));
     }
   };
 
   const handleSubmit = async () => {
-    // Валидация
     const newErrors = {
       company_name: !companyData.company_name.trim()
         ? "Название компании обязательно"
@@ -76,9 +79,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
     try {
       await createCompany.mutateAsync(companyData, {
         onSuccess: (data) => {
-          // Добавляем новую компанию в список доступных
           addAvailableCompany(data.company_id);
-
           onClose();
           setCompanyData({ company_name: "", description: "" });
           if (onSuccess) onSuccess();
@@ -94,11 +95,19 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <BusinessIcon color="primary" />
-          Создать новую компанию
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Создать новую компанию
+          </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button
             variant="text"
@@ -106,7 +115,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
             endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
             size="small"
           >
-            Что такое компания?
+            {isMobile ? "Помощь" : "Что такое компания?"}
           </Button>
         </Box>
       </DialogTitle>
@@ -139,9 +148,9 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
             value={companyData.description}
             onChange={handleChange}
             multiline
-            rows={4}
+            rows={isMobile ? 3 : 4}
             helperText="Краткое описание"
-            placeholder="Например: Розничная торговля электроникой, консультационные услуги..."
+            placeholder="Например: Розничная торговля электроникой..."
           />
         </Box>
 
@@ -154,13 +163,13 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
       </DialogContent>
       <DialogActions
         sx={{
-          paddingBottom: 3,
-          paddingTop: 0,
-          paddingRight: 3, // Добавляем отступ справа, сдвигая кнопки левее
-          justifyContent: "flex-end", // Сохраняем выравнивание по правому краю, но с отступом
+          p: isMobile ? 2 : 3,
+          justifyContent: "space-between",
         }}
       >
-        <Button onClick={onClose}>Отмена</Button>
+        <Button onClick={onClose} fullWidth={isMobile}>
+          Отмена
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
@@ -172,8 +181,10 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
               <BusinessIcon />
             )
           }
+          fullWidth={isMobile}
+          sx={isMobile ? { ml: 1 } : {}}
         >
-          {createCompany.isPending ? "Создание..." : "Создать компанию"}
+          {createCompany.isPending ? "Создание..." : "Создать"}
         </Button>
       </DialogActions>
     </Dialog>

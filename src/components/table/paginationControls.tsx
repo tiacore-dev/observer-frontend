@@ -5,10 +5,11 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
   Typography,
   Stack,
   SelectChangeEvent,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 
 interface PaginationControlsProps {
@@ -28,6 +29,10 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   onRowsPerPageChange,
   totalItems,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
+
   const handleRowsPerPageChange = (event: SelectChangeEvent<number>) => {
     onRowsPerPageChange(Number(event.target.value));
   };
@@ -41,24 +46,65 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
 
   return (
     <Stack
-      direction="row"
-      spacing={2}
+      direction={isMobile ? "column" : "row"}
+      spacing={isMobile ? 1 : 2}
       alignItems="center"
       justifyContent="space-between"
       sx={{
-        mt: 3,
-        px: 2,
+        mt: 2,
+        px: isMobile ? 1 : 2,
         py: 1,
         backgroundColor: "background.paper",
         borderRadius: 1,
         width: "100%",
       }}
     >
-      <Box display="flex" alignItems="center" gap={2}>
-        <Typography variant="body2" color="text.secondary">
-          Строк на странице:
-        </Typography>
+      {!isMobile && (
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="body2" color="text.secondary">
+            Строк на странице:
+          </Typography>
 
+          <FormControl size="small" sx={{ minWidth: 80 }}>
+            <Select
+              value={rowsPerPage}
+              onChange={handleRowsPerPageChange}
+              variant="outlined"
+              sx={{
+                "& .MuiSelect-select": {
+                  py: 1,
+                },
+              }}
+            >
+              {[10, 25, 50, 100].map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+      )}
+
+      <Pagination
+        count={count}
+        page={page}
+        onChange={(_, value) => onPageChange(value)}
+        color="primary"
+        shape="rounded"
+        showFirstButton={!isMobile}
+        showLastButton={!isMobile}
+        siblingCount={isMobile ? 0 : 1}
+        boundaryCount={isMobile ? 1 : 2}
+        size={isMobile ? "small" : "medium"}
+        sx={{
+          "& .MuiPaginationItem-root": {
+            fontSize: "0.875rem",
+          },
+        }}
+      />
+
+      {isMobile && (
         <FormControl size="small" sx={{ minWidth: 80 }}>
           <Select
             value={rowsPerPage}
@@ -72,33 +118,12 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           >
             {[10, 25, 50, 100].map((option) => (
               <MenuItem key={option} value={option}>
-                {option}
+                {option} на странице
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-
-        {/* {totalItems && (
-          <Typography variant="body2" color="text.secondary">
-            {getPaginationLabel()}
-          </Typography>
-        )} */}
-      </Box>
-
-      <Pagination
-        count={count}
-        page={page}
-        onChange={(_, value) => onPageChange(value)}
-        color="primary"
-        shape="rounded"
-        showFirstButton
-        showLastButton
-        sx={{
-          "& .MuiPaginationItem-root": {
-            fontSize: "0.875rem",
-          },
-        }}
-      />
+      )}
     </Stack>
   );
 };

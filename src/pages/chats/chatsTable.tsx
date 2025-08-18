@@ -13,11 +13,13 @@ import {
   Box,
   Typography,
   Tooltip,
+  IconButton,
 } from "@mui/material";
 import type { IChat } from "../../api/chatsApi";
 import { TableSkeleton } from "../../components/skeleton/tableSkeleton";
 import { SortableTableHeader } from "../../components/table/sortableTableHeader";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import InfoIcon from "@mui/icons-material/Info";
 
 type SortField = "chat_id" | "chat_name" | "created_at";
 
@@ -28,6 +30,7 @@ interface ChatsTableProps {
   sortDirection: "asc" | "desc";
   onSort: (field: SortField) => void;
   isLoading?: boolean;
+  isMobile?: boolean;
 }
 
 export const ChatsTable: React.FC<ChatsTableProps> = ({
@@ -37,6 +40,7 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
   sortDirection,
   onSort,
   isLoading = false,
+  isMobile = false,
 }) => {
   if (isLoading) {
     return (
@@ -92,9 +96,8 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      // console.log("Скопировано:", text);
     } catch (err) {
-      // console.error("Ошибка при копировании:", err);
+      console.error("Ошибка при копировании:", err);
     }
   };
 
@@ -105,120 +108,200 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
 
   return (
     <TableContainer>
-      <Table sx={{ minWidth: 650 }} aria-label="таблица чатов">
-        <TableHead>
-          <TableRow>
-            <SortableTableHeader<SortField>
-              field="chat_name"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label="Название чата"
-            />
-            <SortableTableHeader<SortField>
-              field="chat_id"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label="ID"
-            />
-            <SortableTableHeader<SortField>
-              field="created_at"
-              currentSortField={sortField}
-              sortDirection={sortDirection}
-              onSort={onSort}
-              label="Дата добавления"
-              defaultDirection="desc"
-            />
-          </TableRow>
-        </TableHead>
-
+      <Table sx={{ minWidth: isMobile ? 300 : 650 }} aria-label="таблица чатов">
+        {!isMobile && (
+          <TableHead>
+            <TableRow>
+              <SortableTableHeader<SortField>
+                field="chat_name"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Название чата"
+              />
+              <SortableTableHeader<SortField>
+                field="chat_id"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="ID"
+              />
+              <SortableTableHeader<SortField>
+                field="created_at"
+                currentSortField={sortField}
+                sortDirection={sortDirection}
+                onSort={onSort}
+                label="Дата добавления"
+                defaultDirection="desc"
+              />
+            </TableRow>
+          </TableHead>
+        )}
         <TableBody>
           {chats.map((chat) => (
             <TableRow
               key={chat.chat_id}
               sx={{
                 "&:last-child td, &:last-child th": { border: 0 },
-                "&:hover": {}, // Оставьте пустым, стили будут из темы
+                "&:hover": {},
                 transition: "background-color 0.2s ease",
               }}
             >
-              <TableCell>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Avatar
-                    sx={{
-                      bgcolor: getChatTypeColor(chat.chat_id.toString()),
-                      width: 40,
-                      height: 40,
-                      fontSize: "0.9rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {getChatInitials(chat.chat_name)}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {chat.chat_name}
-                    </Typography>
-                    <Box
+              {isMobile ? (
+                <TableCell sx={{ p: 1.5 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        mt: 0.5,
+                        bgcolor: getChatTypeColor(chat.chat_id.toString()),
+                        width: 40,
+                        height: 40,
+                        fontSize: "0.9rem",
+                        fontWeight: 600,
                       }}
                     >
-                      <Chip
-                        label={getChatType(chat.chat_id.toString())}
-                        size="small"
-                        variant="outlined"
+                      {getChatInitials(chat.chat_name)}
+                    </Avatar>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {chat.chat_name}
+                      </Typography>
+                      <Box
                         sx={{
-                          fontSize: "0.7rem",
-                          height: 20,
-                          borderColor: getChatTypeColor(
-                            chat.chat_id.toString()
-                          ),
-                          color: getChatTypeColor(chat.chat_id.toString()),
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: 0.5,
+                          flexWrap: "wrap",
                         }}
-                      />
+                      >
+                        <Chip
+                          label={getChatType(chat.chat_id.toString())}
+                          size="small"
+                          variant="outlined"
+                          sx={{
+                            fontSize: "0.7rem",
+                            height: 20,
+                            borderColor: getChatTypeColor(
+                              chat.chat_id.toString()
+                            ),
+                            color: getChatTypeColor(chat.chat_id.toString()),
+                          }}
+                        />
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: 0.5,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          component="span"
+                          onClick={(e) =>
+                            handleCellClick(e, chat.chat_id.toString())
+                          }
+                          sx={{
+                            cursor: "pointer",
+                            fontFamily: "monospace",
+                            bgcolor: "grey.100",
+                            p: 0.5,
+                            borderRadius: 1,
+                            "&:hover": {
+                              bgcolor: "grey.300",
+                            },
+                          }}
+                        >
+                          ID: {chat.chat_id}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              </TableCell>
-              <TableCell
-                onClick={(e) => handleCellClick(e, chat.chat_id.toString())}
-              >
-                <Tooltip title="Копировать ID чата" arrow>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        cursor: "pointer",
-                        fontFamily: "monospace",
-                        fontSize: "0.85rem",
-                        bgcolor: "grey.100",
-                        p: 0.5,
-                        borderRadius: 1,
-                        "&:hover": {
-                          bgcolor: "grey.300",
-                        },
-                      }}
-                    >
-                      {chat.chat_id}
-                    </Typography>
-                  </Box>
-                </Tooltip>
-              </TableCell>
-              <TableCell>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CalendarTodayIcon
-                    sx={{ color: "text.secondary", fontSize: 18 }}
-                  />
-                  <Typography variant="body2" color="text.secondary">
-                    {formatDate(chat.created_at.toString())}
-                  </Typography>
-                </Box>
-              </TableCell>
+                </TableCell>
+              ) : (
+                <>
+                  <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: getChatTypeColor(chat.chat_id.toString()),
+                          width: 40,
+                          height: 40,
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {getChatInitials(chat.chat_name)}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                          {chat.chat_name}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mt: 0.5,
+                          }}
+                        >
+                          <Chip
+                            label={getChatType(chat.chat_id.toString())}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              fontSize: "0.7rem",
+                              height: 20,
+                              borderColor: getChatTypeColor(
+                                chat.chat_id.toString()
+                              ),
+                              color: getChatTypeColor(chat.chat_id.toString()),
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell
+                    onClick={(e) => handleCellClick(e, chat.chat_id.toString())}
+                  >
+                    <Tooltip title="Копировать ID чата" arrow>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            cursor: "pointer",
+                            fontFamily: "monospace",
+                            bgcolor: "grey.100",
+                            p: 0.5,
+                            borderRadius: 1,
+                            "&:hover": {
+                              bgcolor: "grey.300",
+                            },
+                          }}
+                        >
+                          {chat.chat_id}
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CalendarTodayIcon
+                        sx={{ color: "text.secondary", fontSize: 18 }}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDate(chat.created_at.toString())}
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </>
+              )}
             </TableRow>
           ))}
         </TableBody>

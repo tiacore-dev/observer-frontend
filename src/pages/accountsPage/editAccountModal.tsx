@@ -13,6 +13,8 @@ import {
   Typography,
   InputAdornment,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   AccountCircle as AccountIcon,
@@ -35,24 +37,38 @@ export const EditAccountModal: React.FC<EditAccountModalProps> = ({
   onSave,
   isLoading = false,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [newName, setNewName] = React.useState(accountName);
+  const [error, setError] = React.useState("");
 
   React.useEffect(() => {
     setNewName(accountName);
   }, [accountName]);
 
   const handleSave = () => {
-    if (newName.trim()) {
-      onSave(newName);
+    if (!newName.trim()) {
+      setError("Имя аккаунта обязательно");
+      return;
     }
+    setError("");
+    onSave(newName);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <EditIcon color="primary" />
-          Редактировать отображаемое имя пользователя
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Редактировать имя пользователя
+          </Typography>
         </Box>
       </DialogTitle>
 
@@ -68,8 +84,15 @@ export const EditAccountModal: React.FC<EditAccountModalProps> = ({
           fullWidth
           label="Имя аккаунта"
           value={newName}
-          onChange={(e) => setNewName(e.target.value)}
+          onChange={(e) => {
+            setNewName(e.target.value);
+            if (error) setError("");
+          }}
           margin="normal"
+          error={!!error}
+          helperText={
+            error || "Используйте удобное для вас имя для отображения в системе"
+          }
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -77,26 +100,22 @@ export const EditAccountModal: React.FC<EditAccountModalProps> = ({
               </InputAdornment>
             ),
           }}
-          helperText="Используйте удобное для вас имя для отображения в системе"
+          sx={{ mb: 2 }}
         />
-
-        <Box sx={{ mt: 2, display: "flex", alignItems: "center", gap: 1 }}>
-          <InfoIcon color="info" fontSize="small" />
-          <Typography variant="body2" color="text.secondary">
-            Например: "Менеджер поддержки", "Аккаунт для тестов" и т.д.
-          </Typography>
-        </Box>
       </DialogContent>
 
       <DialogActions
         sx={{
-          paddingBottom: 3,
+          padding: isMobile ? 2 : 3,
           paddingTop: 0,
-          paddingRight: 3,
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
         }}
       >
-        <Button onClick={onClose} disabled={isLoading}>
+        <Button
+          onClick={onClose}
+          disabled={isLoading}
+          size={isMobile ? "medium" : "small"}
+        >
           Отмена
         </Button>
         <Button
@@ -104,6 +123,7 @@ export const EditAccountModal: React.FC<EditAccountModalProps> = ({
           variant="contained"
           disabled={isLoading || !newName.trim()}
           startIcon={isLoading ? <CircularProgress size={16} /> : <EditIcon />}
+          size={isMobile ? "medium" : "small"}
         >
           {isLoading ? "Сохранение..." : "Сохранить"}
         </Button>

@@ -15,6 +15,9 @@ import {
   Alert,
   Chip,
   Avatar,
+  IconButton,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { AddPromptModal } from "./addPromptModal";
@@ -43,9 +46,13 @@ import {
 } from "../../redux/slice/promptsSlice";
 import type { RootState } from "../../redux/store";
 import { useThemeMode } from "../../context/themeContext";
+import SearchIcon from "@mui/icons-material/Search";
 
 export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   const theme = useThemeMode();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
 
   const { isSuperadmin } = useAuth();
   const dispatch = useDispatch();
@@ -68,6 +75,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   } = usePromptsQuery();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
@@ -203,11 +211,20 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+    <Box
+      sx={{
+        pl: isMobile ? 1 : 2,
+        pr: isMobile ? 1 : 2,
+        mt: -1,
+        mb: -2,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       <Paper
         elevation={1}
         sx={{
-          p: 3,
+          p: isMobile ? 2 : 3,
           mb: 1,
           background: theme.isDarkMode
             ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
@@ -216,10 +233,10 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Psychology sx={{ fontSize: 40 }} />
+          <Psychology sx={{ fontSize: isMobile ? 32 : 40 }} />
           <Box>
             <Typography
-              variant="h4"
+              variant={isMobile ? "h5" : "h4"}
               component="h1"
               gutterBottom
               sx={{ mb: 1, fontWeight: 600 }}
@@ -235,7 +252,7 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
         </Box>
       </Paper>
 
-      <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
+      <Paper elevation={1} sx={{ p: isMobile ? 1 : 2, mb: 1 }}>
         <Box
           sx={{
             display: "flex",
@@ -244,72 +261,139 @@ export const PromptsPage: React.FC<PageProps> = ({ developerMode }) => {
             alignItems: "center",
           }}
         >
-          <Autocomplete
-            freeSolo
-            options={promptNames}
-            value={nameSelectFilter || nameFilter}
-            renderInput={(params) => (
+          {isMobile ? (
+            <>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <IconButton onClick={() => setSearchOpen(!searchOpen)}>
+                  <SearchIcon />
+                </IconButton>
+                <ResetFiltersButton onClick={resetAllFilters} />
+              </Box>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button
+                variant="contained"
+                onClick={() => setIsModalOpen(true)}
+                startIcon={<AddIcon />}
+                size="small"
+                sx={{
+                  whiteSpace: "nowrap",
+                  backgroundColor: "#7353ae",
+                }}
+              >
+                Добавить
+              </Button>
+            </>
+          ) : (
+            <>
+              <Autocomplete
+                freeSolo
+                options={promptNames}
+                value={nameSelectFilter || nameFilter}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Поиск по названию"
+                    variant="outlined"
+                    size="small"
+                    onChange={(e) => {
+                      dispatch(setNameFilter(e.target.value));
+                    }}
+                    sx={{ width: 250 }}
+                  />
+                )}
+                onChange={(_, value) => {
+                  dispatch(setNameSelectFilter(value || ""));
+                }}
+              />
+
               <TextField
-                {...params}
-                label="Поиск по названию"
+                label="Поиск по тексту"
                 variant="outlined"
                 size="small"
-                onChange={(e) => {
-                  dispatch(setNameFilter(e.target.value));
-                }}
+                value={textFilter}
+                onChange={(e) => dispatch(setTextFilter(e.target.value))}
                 sx={{ width: 250 }}
               />
-            )}
-            onChange={(_, value) => {
-              dispatch(setNameSelectFilter(value || ""));
-            }}
-          />
 
-          <TextField
-            label="Поиск по тексту"
-            variant="outlined"
-            size="small"
-            value={textFilter}
-            onChange={(e) => dispatch(setTextFilter(e.target.value))}
-            sx={{ width: 250 }}
-          />
-
-          {isSuperadmin && (
-            <Autocomplete
-              freeSolo
-              options={Array.from(companyMap.values())}
-              value={companySelectFilter || companyFilter}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Поиск по компании"
-                  variant="outlined"
-                  size="small"
-                  onChange={(e) => {
-                    dispatch(setCompanyFilter(e.target.value));
+              {isSuperadmin && (
+                <Autocomplete
+                  freeSolo
+                  options={Array.from(companyMap.values())}
+                  value={companySelectFilter || companyFilter}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Поиск по компании"
+                      variant="outlined"
+                      size="small"
+                      onChange={(e) => {
+                        dispatch(setCompanyFilter(e.target.value));
+                      }}
+                      sx={{ width: 250 }}
+                    />
+                  )}
+                  onChange={(_, value) => {
+                    dispatch(setCompanySelectFilter(value || ""));
                   }}
-                  sx={{ width: 250 }}
                 />
               )}
-              onChange={(_, value) => {
-                dispatch(setCompanySelectFilter(value || ""));
-              }}
-            />
+
+              <ResetFiltersButton onClick={resetAllFilters} />
+
+              <Box sx={{ flexGrow: 1 }} />
+
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setIsModalOpen(true)}
+                style={{ backgroundColor: "#7353ae" }}
+              >
+                Добавить промпт
+              </Button>
+            </>
           )}
-
-          <ResetFiltersButton onClick={resetAllFilters} />
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setIsModalOpen(true)}
-            style={{ backgroundColor: "#7353ae" }}
-          >
-            Добавить промпт
-          </Button>
         </Box>
+        {isMobile && searchOpen && (
+          <Paper
+            sx={{
+              mt: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              backgroundColor: "background.paper",
+            }}
+          >
+            <TextField
+              fullWidth
+              label="Поиск по названию"
+              variant="outlined"
+              size="small"
+              value={nameFilter}
+              onChange={(e) => dispatch(setNameFilter(e.target.value))}
+              placeholder="Введите название"
+            />
+            <TextField
+              fullWidth
+              label="Поиск по тексту"
+              variant="outlined"
+              size="small"
+              value={textFilter}
+              onChange={(e) => dispatch(setTextFilter(e.target.value))}
+              placeholder="Введите текст"
+            />
+            {isSuperadmin && (
+              <TextField
+                fullWidth
+                label="Поиск по компании"
+                variant="outlined"
+                size="small"
+                value={companyFilter}
+                onChange={(e) => dispatch(setCompanyFilter(e.target.value))}
+                placeholder="Введите компанию"
+              />
+            )}
+          </Paper>
+        )}
       </Paper>
 
       <Paper elevation={1} sx={{ overflow: "hidden" }}>
