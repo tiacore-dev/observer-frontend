@@ -25,16 +25,17 @@ import { useAuth } from "../../context/authContext";
 import { useUserDetailsQuery } from "../../hooks/users/useUsersQuery";
 import { IUserEdit, useUpdateUser } from "../../hooks/users/useUserMutations";
 import { EditUserModal } from "./userFormModal";
+import { getInitials } from "../../components/AppLayout";
 
-const getInitials = (fullName?: string) => {
-  if (!fullName) return "?";
-  return fullName
-    .split(" ")
-    .map((name) => name.charAt(0))
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-};
+// const getInitials = (fullName?: string) => {
+//   if (!fullName) return "?";
+//   return fullName
+//     .split(" ")
+//     .map((name) => name.charAt(0))
+//     .join("")
+//     .toUpperCase()
+//     .slice(0, 2);
+// };
 
 export const AccountPage: React.FC = () => {
   const { user, updateUser: updateAuthUser } = useAuth();

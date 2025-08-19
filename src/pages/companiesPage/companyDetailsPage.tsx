@@ -1,6 +1,12 @@
 // src/pages/companyDetailsPage.tsx
 import React from "react";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  Typography,
+  useMediaQuery,
+  Theme,
+} from "@mui/material";
 import { useCompanyDetailsQuery } from "../../hooks/companies/useCompaniesQuery";
 import { CompanyCard } from "./companyCard";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
@@ -14,6 +20,9 @@ export const CompanyDetailsPage: React.FC<CompanyDetailsPageProps> = ({
   companyId,
   developerMode,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const { data: company, isLoading, error } = useCompanyDetailsQuery(companyId);
 
   if (isLoading) {
@@ -32,5 +41,11 @@ export const CompanyDetailsPage: React.FC<CompanyDetailsPageProps> = ({
     );
   }
 
-  return <CompanyCard company={company} developerMode={developerMode} />;
+  return (
+    <CompanyCard
+      company={company}
+      developerMode={developerMode}
+      isMobile={isMobile}
+    />
+  );
 };

@@ -19,6 +19,8 @@ import {
   Chip,
   IconButton,
   Divider,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   SmartToy,
@@ -50,7 +52,9 @@ import { useThemeMode } from "../../context/themeContext";
 
 export const HomePage: React.FC = () => {
   const theme = useThemeMode();
-
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const navigate = useNavigate();
   const { user, isSuperadmin, availableCompanies } = useAuth();
   const [showTour, setShowTour] = useState(false);
@@ -191,40 +195,60 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1600, mx: "auto", mt: -3 }}>
+    <Box
+      sx={{
+        p: { xs: 1, sm: 3 },
+        maxWidth: 1600,
+        mx: "auto",
+        mt: { xs: -2, sm: -3 },
+      }}
+    >
       {/* Приветствие */}
       <Paper
         sx={{
-          p: 4,
-          mb: 2,
+          p: { xs: 2, sm: 3 },
+          mb: { xs: 1, sm: 2 },
           background: theme.isDarkMode
             ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
             : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
           color: "white",
           borderRadius: 1,
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+          overflow: "hidden",
         }}
       >
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: { xs: "flex-start", sm: "flex-start" },
             width: "100%",
+            position: "relative",
+            minHeight: { xs: "auto", sm: "100px" },
+            gap: { xs: 2, sm: 0 },
           }}
         >
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Typography
-              variant="h4"
-              component="h1"
+              variant="h5"
+              component="h5"
               gutterBottom
-              sx={{ fontWeight: 700, color: "white" }}
+              sx={{
+                fontWeight: 600,
+                color: "white",
+                fontSize: { xs: "1.5rem", sm: "1.7rem", md: "1.9rem" },
+                lineHeight: { xs: 1.2, sm: 1.3 },
+              }}
             >
               Добро пожаловать в систему управления Observer
             </Typography>
             <Typography
-              variant="body1"
-              sx={{ opacity: 0.9, mb: 2, color: "white" }}
+              sx={{
+                mb: 0,
+                color: "white",
+                fontSize: { xs: "0.9rem", sm: "1rem" },
+              }}
             >
               Сервис анализа Telegram-чатов
             </Typography>
@@ -248,10 +272,35 @@ export const HomePage: React.FC = () => {
                 backgroundImage: "none",
                 boxShadow: "none",
                 transition: "background-color 0.2s ease",
+                alignSelf: { xs: "stretch", sm: "flex-start" },
+                minWidth: { xs: "100%", sm: "auto" },
+                mt: { xs: 1, sm: 0 },
+                order: { xs: 2, sm: 1 },
               }}
             >
               Начать ознакомительный тур
             </Button>
+          )}
+
+          {!isMobile && (
+            <Typography
+              variant="body1"
+              sx={{
+                position: { xs: "static", sm: "absolute" },
+                right: { sm: -1 },
+                bottom: { sm: -4 },
+                opacity: 0.9,
+                color: "white",
+                textAlign: "right",
+                fontStyle: "italic",
+                maxWidth: { xs: "100%", sm: "500px" },
+                mt: { xs: 2, sm: 0 },
+                fontSize: { xs: "0.875rem", sm: "1rem" },
+                order: { xs: 3, sm: 2 },
+              }}
+            >
+              Контролируйте обсуждения, не погружаясь в рутину.{" "}
+            </Typography>
           )}
         </Box>
       </Paper>
@@ -268,8 +317,8 @@ export const HomePage: React.FC = () => {
         sx={{
           display: "flex",
           flexWrap: "wrap",
-          gap: 2,
-          mb: 2,
+          gap: { xs: 1, sm: 2 },
+          mb: { xs: 1, sm: 2 },
           "& > *": {
             flex: "1 1 calc(100% - 24px)",
             minWidth: 0,
@@ -289,6 +338,7 @@ export const HomePage: React.FC = () => {
             key={index}
             sx={{
               height: "100%",
+              minHeight: "120px",
               display: "flex",
               flexDirection: "column",
               opacity: feature.enabled ? 1 : 0.6,
@@ -302,19 +352,49 @@ export const HomePage: React.FC = () => {
             }}
             onClick={feature.enabled ? feature.action : undefined}
           >
-            <CardContent
+            <Box
               sx={{
                 p: 3,
                 flexGrow: 1,
                 display: "flex",
                 flexDirection: "column",
+                position: "relative", // Добавляем относительное позиционирование
               }}
             >
+              {/* Кнопка в правом верхнем углу */}
+              {feature.enabled && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Предотвращаем срабатывание onClick карточки
+                      feature.action();
+                    }}
+                    sx={{
+                      color: feature.color,
+                      "&:hover": {
+                        backgroundColor: "rgba(99, 102, 241, 0.08)",
+                      },
+                    }}
+                  >
+                    <ArrowForward />
+                  </IconButton>
+                </Box>
+              )}
+
               <Box
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  mb: 2,
+                  mb: 0,
+                  mt: -2,
+                  pr: feature.enabled ? 4 : 0, // Добавляем отступ справа для иконки
                 }}
               >
                 <Box
@@ -333,27 +413,11 @@ export const HomePage: React.FC = () => {
               <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ mb: 2, flexGrow: 1 }}
+                sx={{ ml: 0, mt: 0 }}
               >
                 {feature.description}
               </Typography>
-              {feature.enabled && (
-                <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                  <Button
-                    size="small"
-                    endIcon={<ArrowForward />}
-                    sx={{
-                      color: feature.color,
-                      "&:hover": {
-                        backgroundColor: "rgba(99, 102, 241, 0.08)",
-                      },
-                    }}
-                  >
-                    Перейти
-                  </Button>
-                </Box>
-              )}
-            </CardContent>
+            </Box>
           </Card>
         ))}
       </Box>

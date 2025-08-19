@@ -157,6 +157,7 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
                         height: 40,
                         fontSize: "0.9rem",
                         fontWeight: 600,
+                        color: "white",
                       }}
                     >
                       {getChatInitials(chat.chat_name)}
@@ -232,6 +233,7 @@ export const ChatsTable: React.FC<ChatsTableProps> = ({
                           height: 40,
                           fontSize: "0.9rem",
                           fontWeight: 600,
+                          color: "white",
                         }}
                       >
                         {getChatInitials(chat.chat_name)}

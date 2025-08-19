@@ -1,4 +1,4 @@
-// Создайте файл EditBotDescriptionModal.tsx
+// src/components/editBotDescriptionModal.tsx
 "use client";
 
 import React from "react";
@@ -12,6 +12,8 @@ import {
   Box,
   CircularProgress,
   Typography,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import { Comment as CommentIcon, Edit as EditIcon } from "@mui/icons-material";
 
@@ -21,11 +23,19 @@ interface EditBotDescriptionModalProps {
   description: string;
   onSave: (newDescription: string) => void;
   isLoading?: boolean;
+  isMobile?: boolean;
 }
 
 export const EditBotDescriptionModal: React.FC<
   EditBotDescriptionModalProps
-> = ({ open, onClose, description, onSave, isLoading = false }) => {
+> = ({
+  open,
+  onClose,
+  description,
+  onSave,
+  isLoading = false,
+  isMobile = false,
+}) => {
   const [newDescription, setNewDescription] = React.useState(description);
 
   React.useEffect(() => {
@@ -37,18 +47,26 @@ export const EditBotDescriptionModal: React.FC<
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <EditIcon color="primary" />
-          Редактировать описание бота
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Редактировать описание бота
+          </Typography>
         </Box>
       </DialogTitle>
       <DialogContent>
         <TextField
           fullWidth
           multiline
-          rows={6}
+          rows={isMobile ? 6 : 8}
           label="Описание бота"
           value={newDescription}
           onChange={(e) => setNewDescription(e.target.value)}
@@ -58,13 +76,11 @@ export const EditBotDescriptionModal: React.FC<
       </DialogContent>
       <DialogActions
         sx={{
-          paddingBottom: 3,
-          paddingTop: 0,
-          paddingRight: 3,
-          justifyContent: "flex-end",
+          p: isMobile ? 2 : 3,
+          justifyContent: isMobile ? "space-between" : "flex-end",
         }}
       >
-        <Button onClick={onClose} disabled={isLoading}>
+        <Button onClick={onClose} disabled={isLoading} fullWidth={isMobile}>
           Отмена
         </Button>
         <Button
@@ -72,6 +88,8 @@ export const EditBotDescriptionModal: React.FC<
           variant="contained"
           disabled={isLoading}
           startIcon={isLoading ? <CircularProgress size={16} /> : <EditIcon />}
+          fullWidth={isMobile}
+          sx={isMobile ? { ml: 1 } : {}}
         >
           {isLoading ? "Сохранение..." : "Сохранить"}
         </Button>

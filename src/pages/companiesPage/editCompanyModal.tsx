@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,13 +12,16 @@ import {
   CircularProgress,
   Alert,
   Typography,
-  Divider,
+  Collapse,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   Edit as EditIcon,
   Business as BusinessIcon,
   Description as DescriptionIcon,
-  Info as InfoIcon,
+  ExpandMore,
+  ExpandLess,
 } from "@mui/icons-material";
 import { useUpdateCompany } from "../../hooks/companies/useCompaniesMutations";
 import type { ICompany } from "../../api/companiesApi";
@@ -36,6 +39,9 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
   onClose,
   company,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const [companyData, setCompanyData] = React.useState({
     company_name: company.company_name,
     description: company.description || "",
@@ -44,6 +50,8 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
   const [errors, setErrors] = React.useState({
     company_name: "",
   });
+
+  const [showHelp, setShowHelp] = useState(false);
 
   const updateCompany = useUpdateCompany();
 
@@ -85,29 +93,46 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <EditIcon color="primary" />
-          Редактировать компанию
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Редактировать компанию
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="text"
+            onClick={() => setShowHelp(!showHelp)}
+            endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
+            size="small"
+          >
+            {isMobile ? "Помощь" : "Информация"}
+          </Button>
         </Box>
       </DialogTitle>
       <DialogContent>
-        {/* <InfoCard
-          // icon={<InfoIcon />}
-          type="info"
-          title="Редактирование компании"
-          description="Здесь вы можете изменить название и описание компании. Изменения применятся ко всем связанным ботам и анализам."
-        />
+        <Collapse in={showHelp}>
+          <InfoCard
+            type="info"
+            title="Редактирование компании"
+            description="Здесь вы можете изменить название и описание компании. Изменения применятся ко всем связанным ботам и анализам."
+          />
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              <strong>Внимание:</strong> Изменение названия компании может
+              повлиять на отчёты и уведомления.
+            </Typography>
+          </Alert>
+        </Collapse>
 
-        <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
-          <Typography variant="body2">
-            <strong>Внимание:</strong> Изменение названия компании может
-            повлиять на отчёты и уведомления.
-          </Typography>
-        </Alert> */}
-
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
           <TextField
             fullWidth
             label="Название компании"
@@ -134,7 +159,7 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
             value={companyData.description}
             onChange={handleChange}
             multiline
-            rows={4}
+            rows={isMobile ? 3 : 4}
             helperText="Обновите описание"
             InputProps={{
               startAdornment: (
@@ -151,8 +176,6 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
           />
         </Box>
 
-        {/* <Divider sx={{ my: 2 }} /> */}
-
         <Alert severity="info" variant="outlined" sx={{ mt: 2 }}>
           <Typography variant="body2">
             Все боты, чаты и анализы останутся привязанными к этой компании
@@ -162,13 +185,13 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
       </DialogContent>
       <DialogActions
         sx={{
-          paddingBottom: 3,
-          paddingTop: 0,
-          paddingRight: 3, // Добавляем отступ справа, сдвигая кнопки левее
-          justifyContent: "flex-end", // Сохраняем выравнивание по правому краю, но с отступом
+          p: isMobile ? 2 : 3,
+          justifyContent: "space-between",
         }}
       >
-        <Button onClick={onClose}>Отмена</Button>
+        <Button onClick={onClose} fullWidth={isMobile}>
+          Отмена
+        </Button>
         <Button
           onClick={handleSubmit}
           variant="contained"
@@ -180,8 +203,10 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
               <EditIcon />
             )
           }
+          fullWidth={isMobile}
+          sx={isMobile ? { ml: 1 } : {}}
         >
-          {updateCompany.isPending ? "Сохранение..." : "Сохранить изменения"}
+          {updateCompany.isPending ? "Сохранение..." : "Сохранить"}
         </Button>
       </DialogActions>
     </Dialog>

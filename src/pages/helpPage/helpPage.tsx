@@ -5,8 +5,6 @@ import { useState } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -15,10 +13,10 @@ import {
   ListItemIcon,
   ListItemText,
   Alert,
-  Grid,
   Divider,
-  Chip,
   Paper,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   ExpandMore,
@@ -26,19 +24,19 @@ import {
   Business,
   Schedule,
   Description,
-  Group,
-  Settings,
-  HelpOutline,
-  PlayArrow,
   CheckCircle,
   Info,
   Analytics,
+  HelpOutline,
+  PlayArrow,
 } from "@mui/icons-material";
 
 export const HelpPage: React.FC = () => {
   const [expandedSection, setExpandedSection] = useState<string | false>(
     "getting-started"
   );
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleAccordionChange =
     (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -96,47 +94,62 @@ export const HelpPage: React.FC = () => {
       content: (
         <Box>
           <Typography variant="h6" gutterBottom>
-            Краткое руководство по началу работы
+            Краткое руководство
           </Typography>
 
-          <Typography paragraph>
+          <Typography variant="body2" paragraph>
             Observer — это платформа для автоматического анализа информации в
             чатах и группах Telegram. Мы помогаем сотрудникам получать краткие и
             полезные отчёты по заранее заданным сценариям.
           </Typography>
 
-          <Alert severity="info" sx={{ mb: 3 }}>
+          <Alert
+            severity="info"
+            sx={{ mb: 2, fontSize: isMobile ? "0.8rem" : "inherit" }}
+          >
             Для работы системы вам понадобится Telegram-бот. Создайте его через
             @BotFather в Telegram.
           </Alert>
 
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle2" gutterBottom>
             Основные шаги:
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemIcon>
+          <List dense sx={{ py: 0 }}>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
                 <CheckCircle color="success" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="1. Добавьте компанию" />
+              <ListItemText
+                primary="1. Добавьте компанию"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemIcon>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
                 <CheckCircle color="success" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="2. Подключите бота" />
+              <ListItemText
+                primary="2. Подключите бота"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemIcon>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
                 <CheckCircle color="success" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="3. Создайте промпт" />
+              <ListItemText
+                primary="3. Создайте промпт"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemIcon>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemIcon sx={{ minWidth: 36 }}>
                 <CheckCircle color="success" fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="4. Настройте расписание" />
+              <ListItemText
+                primary="4. Настройте расписание"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
           </List>
         </Box>
@@ -152,31 +165,43 @@ export const HelpPage: React.FC = () => {
             Работа с компаниями
           </Typography>
 
-          <Typography paragraph>
+          <Typography variant="body2" paragraph>
             Компания — это организация, для которой вы настраиваете ботов,
             промпты и анализ. Пока в системе нет ни одной компании, другие
             функции будут недоступны.
           </Typography>
 
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle2" gutterBottom>
             Как добавить компанию:
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemText primary="1. Перейдите в раздел 'Компании'" />
+          <List dense sx={{ py: 0 }}>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="1. Перейдите в раздел 'Компании'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="2. Нажмите кнопку '+ Добавить компанию'" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="2. Нажмите '+ Добавить компанию'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="3. Введите название и описание (необязательно)" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="3. Введите название и описание"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="4. Сохраните компанию" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="4. Сохраните компанию"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
           </List>
 
-          <Typography paragraph sx={{ mt: 2 }}>
+          <Typography variant="body2" paragraph sx={{ mt: 1 }}>
             После создания компания появится в списке, а в шапке сайта можно
             выбрать её из выпадающего списка.
           </Typography>
@@ -193,31 +218,52 @@ export const HelpPage: React.FC = () => {
             Управление ботами
           </Typography>
 
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle2" gutterBottom>
             Как подключить бота:
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemText primary="1. Создайте бота через @BotFather в Telegram" />
+          <List dense sx={{ py: 0 }}>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="1. Создайте бота через @BotFather"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="2. Добавьте бота в нужные чаты как администратора" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="2. Добавьте бота в чаты как администратора"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="3. В интерфейсе Observer откройте раздел 'Боты'" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="3. В Observer откройте раздел 'Боты'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="4. Нажмите '+ Добавить бота'" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="4. Нажмите '+ Добавить бота'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="5. Введите имя и токен бота" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="5. Введите имя и токен бота"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="6. Сохраните изменения" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="6. Сохраните изменения"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
           </List>
 
-          <Alert severity="warning" sx={{ mt: 2 }}>
+          <Alert
+            severity="warning"
+            sx={{ mt: 1, fontSize: isMobile ? "0.8rem" : "inherit" }}
+          >
             Никогда не делитесь токеном бота с посторонними. Это ключ доступа к
             вашему боту.
           </Alert>
@@ -234,47 +280,74 @@ export const HelpPage: React.FC = () => {
             Создание промптов
           </Typography>
 
-          <Typography paragraph>
+          <Typography variant="body2" paragraph>
             Промпт — это шаблон текста, который указывает, что именно нужно
             проанализировать в чате.
           </Typography>
 
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle2" gutterBottom>
             Примеры промптов:
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemText primary="«Перечисли самые обсуждаемые темы за день»" />
+          <List dense sx={{ py: 0 }}>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="«Перечисли самые обсуждаемые темы за день»"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="«Найди негативные комментарии»" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="«Найди негативные комментарии»"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="«Найди и перечисли все вопросы, которые задавали в чате сегодня»" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="«Найди все вопросы за сегодня»"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
           </List>
 
-          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
             Как создать промпт:
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemText primary="1. Перейдите в раздел 'Промпты'" />
+          <List dense sx={{ py: 0 }}>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="1. Перейдите в раздел 'Промпты'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="2. Нажмите '+ Добавить промпт'" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="2. Нажмите '+ Добавить промпт'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="3. Выберите компанию из списка" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="3. Выберите компанию из списка"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="4. Укажите название промпта" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="4. Укажите название промпта"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="5. Введите текст инструкции для анализа" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="5. Введите текст инструкции"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="6. Сохраните промпт" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="6. Сохраните промпт"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
           </List>
         </Box>
@@ -287,40 +360,64 @@ export const HelpPage: React.FC = () => {
       content: (
         <Box>
           <Typography variant="h6" gutterBottom>
-            Настройка расписаний анализа
+            Настройка расписаний
           </Typography>
 
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle2" gutterBottom>
             Как настроить расписание:
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemText primary="1. Перейдите в раздел 'Расписания'" />
+          <List dense sx={{ py: 0 }}>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="1. Перейдите в раздел 'Расписания'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="2. Нажмите '+ Добавить расписание'" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="2. Нажмите '+ Добавить расписание'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="3. Выберите компанию, бота, чат и промпт" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="3. Выберите компанию, бота, чат и промпт"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="4. Укажите чат для отчёта (бот должен быть добавлен в него)" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="4. Укажите чат для отчёта"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="5. Выберите тип расписания (ежедневно, одноразово и т.д.)" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="5. Выберите тип расписания"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="6. Укажите время выполнения" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="6. Укажите время выполнения"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="7. Установите статус (включено/выключено)" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="7. Установите статус"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="8. Сохраните расписание" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="8. Сохраните расписание"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
           </List>
 
-          <Typography paragraph sx={{ mt: 2 }}>
+          <Typography variant="body2" paragraph sx={{ mt: 1 }}>
             После сохранения расписание появится в списке и будет выполняться
             согласно заданным параметрам.
           </Typography>
@@ -334,36 +431,54 @@ export const HelpPage: React.FC = () => {
       content: (
         <Box>
           <Typography variant="h6" gutterBottom>
-            Просмотр результатов анализа
+            Просмотр результатов
           </Typography>
 
-          <Typography paragraph>
+          <Typography variant="body2" paragraph>
             В этом разделе вы можете просмотреть все выполненные анализы и их
             результаты.
           </Typography>
 
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle2" gutterBottom>
             Как работать с анализом:
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemText primary="1. Перейдите в раздел 'Анализ'" />
+          <List dense sx={{ py: 0 }}>
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="1. Перейдите в раздел 'Анализ'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="2. Выберите компанию из списка" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="2. Выберите компанию из списка"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="3. Используйте фильтры для поиска нужных отчётов" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="3. Используйте фильтры для поиска"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="4. Для нового анализа выберите промпт, период и чат" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="4. Для нового анализа выберите промпт и период"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
-            <ListItem>
-              <ListItemText primary="5. Нажмите 'Запустить'" />
+            <ListItem sx={{ px: 1 }}>
+              <ListItemText
+                primary="5. Нажмите 'Запустить'"
+                primaryTypographyProps={{ variant: "body2" }}
+              />
             </ListItem>
           </List>
 
-          <Alert severity="info" sx={{ mt: 2 }}>
+          <Alert
+            severity="info"
+            sx={{ mt: 1, fontSize: isMobile ? "0.8rem" : "inherit" }}
+          >
             Если данных за выбранный период нет, попробуйте выбрать другой
             интервал или чат.
           </Alert>
@@ -381,17 +496,27 @@ export const HelpPage: React.FC = () => {
           </Typography>
 
           {faqItems.map((item, index) => (
-            <Accordion key={index} sx={{ mb: 1 }}>
+            <Accordion key={index} sx={{ mb: 0.5 }}>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="subtitle2">{item.question}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {item.question}
+                </Typography>
               </AccordionSummary>
-              <AccordionDetails>
-                <Typography variant="body2">{item.answer}</Typography>
+              <AccordionDetails sx={{ pt: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: isMobile ? "0.8rem" : "inherit" }}
+                >
+                  {item.answer}
+                </Typography>
               </AccordionDetails>
             </Accordion>
           ))}
 
-          <Alert severity="info" sx={{ mt: 3 }}>
+          <Alert
+            severity="info"
+            sx={{ mt: 2, fontSize: isMobile ? "0.8rem" : "inherit" }}
+          >
             Не нашли ответ на свой вопрос? Обратитесь в службу поддержки.
           </Alert>
         </Box>
@@ -400,18 +525,34 @@ export const HelpPage: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -3, maxWidth: 1600, mx: "auto" }}>
-      <Paper elevation={1} sx={{ p: 2, mb: 1 }}>
-        <Typography variant="h3" component="h1" gutterBottom>
+    <Box
+      sx={{
+        p: isMobile ? 1 : 2,
+        mt: isMobile ? 0 : -1,
+        mb: isMobile ? 2 : -3,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
+      <Paper elevation={isMobile ? 0 : 1} sx={{ p: isMobile ? 1.5 : 2 }}>
+        <Typography
+          variant={isMobile ? "h4" : "h3"}
+          component="h1"
+          gutterBottom
+        >
           Справочная система
         </Typography>
-        <Typography variant="h6" color="text.secondary" gutterBottom>
+        <Typography
+          variant={isMobile ? "body1" : "h6"}
+          color="text.secondary"
+          gutterBottom
+        >
           Полное руководство по использованию Observer
         </Typography>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider sx={{ my: 2 }} />
 
-        <Typography variant="body1" paragraph>
+        <Typography variant="body2" paragraph>
           Observer помогает находить главное в ваших чатах и экономить время.
           Настраивайте ботов для сбора сообщений, создавайте промпты для
           анализа, получайте отчёты по расписанию и следите за активностью
@@ -426,12 +567,16 @@ export const HelpPage: React.FC = () => {
             sx={{ mb: 1 }}
           >
             <AccordionSummary expandIcon={<ExpandMore />}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 {section.icon}
-                <Typography variant="h6">{section.title}</Typography>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  {section.title}
+                </Typography>
               </Box>
             </AccordionSummary>
-            <AccordionDetails>{section.content}</AccordionDetails>
+            <AccordionDetails sx={{ p: isMobile ? 1.5 : 2 }}>
+              {section.content}
+            </AccordionDetails>
           </Accordion>
         ))}
       </Paper>

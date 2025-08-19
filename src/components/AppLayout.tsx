@@ -33,6 +33,8 @@ import {
   useTheme,
   alpha,
   Link,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -48,6 +50,7 @@ import {
   DeveloperMode,
   DarkMode,
   LightMode,
+  Close,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
@@ -77,7 +80,14 @@ interface AppMenuItem {
   children?: AppMenuItem[];
   badge?: number;
 }
-
+export const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
 const AppLayout: React.FC<AppLayoutProps> = ({
   children,
   developerMode,
@@ -102,9 +112,34 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
 
   const isHomePage = location.pathname === "/home";
-
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const menuItems: AppMenuItem[] = useMemo(() => {
     const baseItems: AppMenuItem[] = [
+      ...(isMobile
+        ? [
+            {
+              text: " Главная",
+              icon: (
+                <Avatar
+                  sizes="small"
+                  sx={{
+                    bgcolor: theme.palette.primary.main,
+                    width: LOGO_AVATAR_SIZE - 10,
+                    height: LOGO_AVATAR_SIZE - 10,
+                    fontWeight: "bold",
+                    fontSize: 12,
+                    color: "white",
+                  }}
+                >
+                  O
+                </Avatar>
+              ),
+              path: "/home",
+            },
+          ]
+        : []),
       { text: "Компании", icon: <Business />, path: "/companies" },
       { text: "Результаты анализов", icon: <Analytics />, path: "/analysis" },
       { text: "Расписания", icon: <Schedule />, path: "/schedules" },
@@ -122,13 +157,37 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
     if (!isSuperadmin && availableCompanies.length === 0) {
       return [
+        // Добавляем "Главная" только для мобильных устройств
+        ...(isMobile
+          ? [
+              {
+                text: " Главная",
+                icon: (
+                  <Avatar
+                    sizes="small"
+                    sx={{
+                      bgcolor: theme.palette.primary.main,
+                      width: LOGO_AVATAR_SIZE - 10,
+                      height: LOGO_AVATAR_SIZE - 10,
+                      fontWeight: "bold",
+                      fontSize: 12,
+                      color: "white",
+                    }}
+                  >
+                    O
+                  </Avatar>
+                ),
+                path: "/home",
+              },
+            ]
+          : []),
         { text: "Компании", icon: <Business />, path: "/companies" },
         { text: "Справка", icon: <Info />, path: "/help" },
       ];
     }
 
     return baseItems;
-  }, [isSuperadmin, availableCompanies.length]);
+  }, [isSuperadmin, availableCompanies.length, isMobile]); // Добавляем isMobile в зависимости
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -165,13 +224,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
     await checkAuth();
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+  const handleMenuItemClick = (path?: string) => {
+    if (path) {
+      navigate(path);
+    }
+    setMobileOpen(false);
   };
 
   const drawer = (
@@ -182,6 +239,54 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         flexDirection: "column",
       }}
     >
+      {/* Заголовок для мобильной версии */}
+      <Box
+        sx={{
+          display: { xs: "flex", sm: "none" },
+          alignItems: "center",
+          justifyContent: "space-between",
+          p: 2,
+          borderBottom: 1,
+          borderColor: "divider",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: LOGO_CONTAINER_GAP,
+          }}
+        >
+          <Avatar
+            sx={{
+              bgcolor: theme.palette.primary.main,
+              width: LOGO_AVATAR_SIZE,
+              height: LOGO_AVATAR_SIZE,
+              fontWeight: "bold",
+              color: "white",
+            }}
+          >
+            O
+          </Avatar>
+          {/* {!isMobile && ( */}
+          <Typography
+            variant={LOGO_TEXT_VARIANT}
+            noWrap
+            component="div"
+            sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
+          >
+            Observer
+          </Typography>
+          {/* )} */}
+        </Box>
+        <IconButton
+          onClick={() => setMobileOpen(false)}
+          sx={{ display: { sm: "none" } }}
+        >
+          <Close />
+        </IconButton>
+      </Box>
+
       <Box sx={{ flexGrow: 1, overflow: "auto", py: 0 }}>
         {/* Уменьшил вертикальный padding */}
         <List sx={{ px: 0 }}>
@@ -197,7 +302,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         location.pathname.startsWith(child.path || "")
                       )}
                       onClick={() =>
-                        item.children && navigate(item.children[0].path || "/")
+                        item.children &&
+                        handleMenuItemClick(item.children[0].path)
                       }
                       sx={{
                         borderRadius: 1, // Уменьшил радиус скругления
@@ -248,7 +354,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                         selected={location.pathname.startsWith(
                           child.path || ""
                         )}
-                        onClick={() => navigate(child.path || "/")}
+                        onClick={() => handleMenuItemClick(child.path)}
                         sx={{
                           borderRadius: 0.5,
                           mx: 1, // Уменьшил горизонтальные отступы
@@ -298,7 +404,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                   {/* Уменьшил отступ снизу */}
                   <ListItemButton
                     selected={location.pathname.startsWith(item.path || "")}
-                    onClick={() => navigate(item.path || "/")}
+                    onClick={() => handleMenuItemClick(item.path)}
                     sx={{
                       borderRadius: 0.5,
                       mx: 0.5, // Уменьшил горизонтальные отступы
@@ -349,37 +455,64 @@ const AppLayout: React.FC<AppLayoutProps> = ({
 
       {/* Добавленные ссылки внизу сайдбара */}
       <Box sx={{ py: 0.75, px: 1.5 }}>
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          <Link
-            href="/privacy"
-            variant="body2"
-            color="grey.400"
-            sx={{
-              fontSize: "12px",
-              textDecoration: "none",
-              "&:hover": {
-                color: "primary.main",
-                textDecoration: "underline",
-              },
-            }}
-          >
-            Политика конфиденциальности
-          </Link>
-          <Link
-            href="/terms"
-            variant="body2"
-            color="grey.400"
-            sx={{
-              fontSize: "12px",
-              textDecoration: "none",
-              "&:hover": {
-                color: "primary.main",
-                textDecoration: "underline",
-              },
-            }}
-          >
-            Пользовательское соглашение
-          </Link>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between", // Распределение пространства
+            alignItems: "center", // Выравнивание по центру
+            width: "100%",
+          }}
+        >
+          {/* Левая часть - ссылки */}
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Link
+              href="/privacy"
+              variant="body2"
+              color="grey.400"
+              sx={{
+                fontSize: "12px",
+                textDecoration: "none",
+                "&:hover": {
+                  color: "primary.main",
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              Политика конфиденциальности
+            </Link>
+            <Link
+              href="/terms"
+              variant="body2"
+              color="grey.400"
+              sx={{
+                fontSize: "12px",
+                textDecoration: "none",
+                "&:hover": {
+                  color: "primary.main",
+                  textDecoration: "underline",
+                },
+              }}
+            >
+              Пользовательское соглашение
+            </Link>
+          </Box>
+
+          {/* Правая часть - кнопка темы */}
+          {isMobile && (
+            <IconButton
+              onClick={toggleTheme}
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                "&:hover": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.2),
+                },
+                borderRadius: 1,
+                mb: 1,
+              }}
+            >
+              {isDarkMode ? <LightMode /> : <DarkMode />}
+            </IconButton>
+          )}
         </Box>
       </Box>
     </Box>
@@ -394,7 +527,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         elevation={0}
         sx={{
           width: "100%",
-          zIndex: (theme) => theme.zIndex.drawer - 1,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
           borderBottom: 1,
           borderColor: "divider",
           backgroundColor: isDarkMode
@@ -405,7 +538,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         }}
       >
         <Toolbar sx={{ minHeight: "70px !important" }}>
-          {!isHomePage && (
+          {isMobile && (
             <IconButton
               color="inherit"
               edge="start"
@@ -436,40 +569,49 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               }}
               onClick={handleLogoClick}
             >
-              <Avatar
-                sx={{
-                  bgcolor: theme.palette.primary.main,
-                  width: LOGO_AVATAR_SIZE,
-                  height: LOGO_AVATAR_SIZE,
-                  fontWeight: "bold",
-                  color: "white",
-                }}
-              >
-                O
-              </Avatar>
-              <Typography
-                variant={LOGO_TEXT_VARIANT}
-                noWrap
-                component="div"
-                sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
-              >
-                Observer
-              </Typography>
+              {!isMobile && (
+                <>
+                  <Avatar
+                    sx={{
+                      bgcolor: theme.palette.primary.main,
+                      width: LOGO_AVATAR_SIZE,
+                      height: LOGO_AVATAR_SIZE,
+                      fontWeight: "bold",
+                      color: "white",
+                    }}
+                  >
+                    O
+                  </Avatar>
+                  <Typography
+                    variant={LOGO_TEXT_VARIANT}
+                    noWrap
+                    component="div"
+                    sx={{
+                      fontWeight: "bold",
+                      color: theme.palette.primary.main,
+                    }}
+                  >
+                    Observer
+                  </Typography>
+                </>
+              )}
             </Box>
-            <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
-              <IconButton
-                onClick={toggleTheme}
-                sx={{
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
-                  "&:hover": {
-                    bgcolor: alpha(theme.palette.primary.main, 0.2),
-                  },
-                  borderRadius: 1,
-                }}
-              >
-                {isDarkMode ? <LightMode /> : <DarkMode />}
-              </IconButton>
-            </Tooltip>
+            {!isMobile && (
+              <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
+                <IconButton
+                  onClick={toggleTheme}
+                  sx={{
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    "&:hover": {
+                      bgcolor: alpha(theme.palette.primary.main, 0.2),
+                    },
+                    borderRadius: 1,
+                  }}
+                >
+                  {isDarkMode ? <LightMode /> : <DarkMode />}
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -528,6 +670,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                                     height: 24,
                                     fontSize: "0.7rem",
                                     bgcolor: theme.palette.primary.main,
+                                    color: "white",
                                   }}
                                 >
                                   {companyMap.get(companyId)
@@ -575,20 +718,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 )}
               </>
             )}
-            {/* <Tooltip title={isDarkMode ? "Светлая тема" : "Темная тема"}>
-              <IconButton
-                onClick={toggleTheme}
-                sx={{
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
-                  "&:hover": {
-                    bgcolor: alpha(theme.palette.primary.main, 0.2),
-                  },
-                  borderRadius: 1,
-                }}
-              >
-                {isDarkMode ? <LightMode /> : <DarkMode />}
-              </IconButton>
-            </Tooltip> */}
             {isSuperadmin && (
               <Tooltip
                 title={
@@ -648,31 +777,24 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                     height: 32,
                     bgcolor: theme.palette.primary.main,
                     fontSize: "0.8rem",
+                    color: "white",
                   }}
                 >
                   {user?.full_name ? getInitials(user.full_name) : "U"}
                 </Avatar>
-                {/* </IconButton>
-            </Tooltip> */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 600, marginLeft: 1 }}
-                    >
-                      {" "}
-                      {user?.full_name || "Пользователь"}
-                    </Typography>
-                    {/* {isSuperadmin && (
-                      <Chip
-                        label="Суперадмин"
-                        size="small"
-                        color="primary"
-                        sx={{ height: 20, fontSize: "0.7rem", borderRadius: 1 }}
-                      />
-                    )} */}
+                {!isMobile && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ fontWeight: 600, marginLeft: 1 }}
+                      >
+                        {" "}
+                        {user?.full_name || "Пользователь"}
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
+                )}
               </IconButton>
             </Tooltip>
           </Box>
@@ -739,7 +861,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </MenuItem>
       </Menu>
 
-      {!isHomePage && (
+      {((!isHomePage && !isMobile) || isMobile) && (
         <Box
           component="nav"
           sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -756,13 +878,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               display: { xs: "block", sm: "none" },
               "& .MuiDrawer-paper": {
                 boxSizing: "border-box",
-                width: drawerWidth,
+                width: "100%",
+                height: "100%",
                 border: "none",
-                boxShadow: theme.shadows[8],
-                left: "8px",
-                borderRadius: 1,
-                top: "82px",
-                height: "calc(100% - 90px)",
+                backgroundColor: isDarkMode
+                  ? theme.palette.background.default
+                  : theme.palette.background.paper,
+                zIndex: (theme) => theme.zIndex.drawer + 5,
               },
             }}
           >

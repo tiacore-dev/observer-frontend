@@ -13,6 +13,13 @@ import {
   Divider,
   Card,
   CardContent,
+  IconButton,
+  useTheme,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  useMediaQuery,
+  Theme,
 } from "@mui/material";
 import {
   useUpdatePrompt,
@@ -30,12 +37,16 @@ import { EditPromptModal } from "./editPromptModal";
 import { DeleteDialog } from "../../components/deleteDialog";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 import { useThemeMode } from "../../context/themeContext";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { getInitials } from "../../components/AppLayout";
 
 export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
 }) => {
   const theme = useThemeMode();
-
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
   const { promptId } = useParams<{ promptId: string }>();
   const navigate = useNavigate();
   const {
@@ -48,6 +59,7 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [editData, setEditData] = useState({
     prompt_name: "",
     text: "",
@@ -61,6 +73,14 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
       });
     }
   }, [prompt]);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleEditSubmit = async () => {
     if (!promptId) return;
@@ -167,130 +187,235 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+    <Box
+      sx={{
+        pl: isMobile ? 1 : 2,
+        pr: isMobile ? 1 : 2,
+        mt: -1,
+        mb: -2,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       {/* Заголовок с основной информацией */}
       <Paper
         sx={{
-          p: 3,
+          p: isMobile ? 2 : 3,
           mb: 1,
           background: theme.isDarkMode
             ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
             : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          position: "relative",
         }}
       >
+        {isMobile && (
+          <>
+            <IconButton
+              onClick={() => navigate(-1)}
+              size="small"
+              sx={{
+                position: "absolute",
+                top: 8,
+                left: 8,
+                zIndex: 1,
+                color: "white",
+                // backgroundColor: "rgba(255,255,255,0.2)",
+                "&:hover": {
+                  backgroundColor: "rgba(255,255,255,0.1)",
+                },
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleMenuOpen}
+              size="small"
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 1,
+                color: "white",
+                backgroundColor: "rgba(255,255,255,0.1)",
+                "&:hover": {
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                },
+              }}
+            >
+              <MoreVertIcon />
+            </IconButton>
+          </>
+        )}
+
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "center" : "center",
             justifyContent: "space-between",
             color: "white",
+            gap: isMobile ? 2 : 0,
+            pt: isMobile ? 4 : 0,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                bgcolor: "rgba(255,255,255,0.2)",
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                mr: 3,
-              }}
-            >
-              ПР
-            </Avatar>
-            <Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: isMobile ? "column" : "row",
+              textAlign: isMobile ? "center" : "left",
+              gap: isMobile ? 2 : 3,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {!isMobile && (
+                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    fontSize: "1.5rem",
+                    fontWeight: "bold",
+                    color: "white",
+                    mr: 3,
+                  }}
+                >
+                  {getInitials(prompt.prompt_name)}
+                </Avatar>
+              )}
+              {/* <Box> */}
               <Typography
-                variant="h4"
+                variant={isMobile ? "h5" : "h4"}
                 gutterBottom
                 sx={{ fontWeight: "bold", color: "white" }}
               >
                 {prompt.prompt_name}
               </Typography>
-              <Typography
-                variant="h6"
-                sx={{ opacity: 0.9, mb: 1, color: "white" }}
-              >
-                Промпт
-              </Typography>
             </Box>
           </Box>
 
           {/* Кнопки действий */}
-          <Stack direction="row" spacing={1}>
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(-1)}
-              variant="contained"
-              sx={{
-                backgroundColor: "white",
-                color: "#764ba2",
-                "&:hover": {
-                  backgroundColor: "#ffffffec",
-                  backgroundImage: "none",
-                },
-                "& .MuiSvgIcon-root": {
+          {!isMobile && (
+            <Stack direction="row" spacing={1}>
+              <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate(-1)}
+                variant="contained"
+                sx={{
+                  backgroundColor: "white",
                   color: "#764ba2",
-                },
-                backgroundImage: "none",
-                boxShadow: "none",
-                transition: "background-color 0.2s ease",
-              }}
-            >
-              Назад
-            </Button>
-            <Button
-              startIcon={<EditIcon />}
-              onClick={() => setIsEditModalOpen(true)}
-              variant="contained"
-              sx={{
-                backgroundColor: "white",
-                color: "#764ba2",
-                "&:hover": {
-                  backgroundColor: "#ffffffec",
+                  "&:hover": {
+                    backgroundColor: "#ffffffec",
+                    backgroundImage: "none",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#764ba2",
+                  },
                   backgroundImage: "none",
-                },
-                "& .MuiSvgIcon-root": {
+                  boxShadow: "none",
+                  transition: "background-color 0.2s ease",
+                }}
+              >
+                Назад
+              </Button>
+              <Button
+                startIcon={<EditIcon />}
+                onClick={() => setIsEditModalOpen(true)}
+                variant="contained"
+                sx={{
+                  backgroundColor: "white",
                   color: "#764ba2",
-                },
-                backgroundImage: "none",
-                boxShadow: "none",
-                transition: "background-color 0.2s ease",
-              }}
-            >
-              Изменить
-            </Button>
-            <Button
-              startIcon={<DeleteIcon />}
-              onClick={() => setIsDeleteDialogOpen(true)}
-              variant="contained"
-              sx={{
-                backgroundColor: "#ffffff",
-                color: "#dc2626",
-                "&:hover": {
-                  backgroundColor: "#ffffffec",
+                  "&:hover": {
+                    backgroundColor: "#ffffffec",
+                    backgroundImage: "none",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#764ba2",
+                  },
                   backgroundImage: "none",
-                },
-                "& .MuiSvgIcon-root": {
+                  boxShadow: "none",
+                  transition: "background-color 0.2s ease",
+                }}
+              >
+                Изменить
+              </Button>
+              <Button
+                startIcon={<DeleteIcon />}
+                onClick={() => setIsDeleteDialogOpen(true)}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#ffffff",
                   color: "#dc2626",
-                },
-                backgroundImage: "none",
-                boxShadow: "none",
-                transition: "background-color 0.2s ease",
-              }}
-            >
-              Удалить
-            </Button>
-          </Stack>
+                  "&:hover": {
+                    backgroundColor: "#ffffffec",
+                    backgroundImage: "none",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#dc2626",
+                  },
+                  backgroundImage: "none",
+                  boxShadow: "none",
+                  transition: "background-color 0.2s ease",
+                }}
+              >
+                Удалить
+              </Button>
+            </Stack>
+          )}
         </Box>
       </Paper>
+
+      {/* Меню для мобильных */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        sx={{
+          "& .MuiPaper-root": {
+            minWidth: 180,
+            boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.15)",
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            setIsEditModalOpen(true);
+            handleMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          Изменить
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setIsDeleteDialogOpen(true);
+            handleMenuClose();
+          }}
+          sx={{ color: "error.main" }}
+        >
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          Удалить
+        </MenuItem>
+      </Menu>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {/* Основные параметры */}
         <Card>
           <CardContent sx={{ p: 2 }}>
             <Typography
-              variant="h6"
+              variant={isMobile ? "subtitle1" : "h6"}
               gutterBottom
               sx={{ display: "flex", alignItems: "center" }}
             >
@@ -309,8 +434,6 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 backgroundColor: "rgba(0, 0, 0, 0.02)",
                 p: 2,
                 borderRadius: 1,
-                // borderLeft: "4px solid",
-                // borderColor: "primary.main",
               }}
             >
               {prompt.text}
@@ -323,7 +446,7 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
           <Card>
             <CardContent sx={{ p: 2 }}>
               <Typography
-                variant="h6"
+                variant={isMobile ? "subtitle1" : "h6"}
                 gutterBottom
                 sx={{ display: "flex", alignItems: "center" }}
               >
@@ -334,7 +457,7 @@ export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
               <Box
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: { sm: "1fr 1fr" },
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
                   gap: 3,
                 }}
               >

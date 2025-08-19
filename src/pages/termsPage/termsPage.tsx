@@ -1,36 +1,64 @@
 "use client";
 
 import type React from "react";
-import { Box, Typography, Paper, Divider } from "@mui/material";
+import { Box, Typography, Paper, Divider, IconButton } from "@mui/material";
 import { useThemeMode } from "../../context/themeContext";
 import DescriptionIcon from "@mui/icons-material/Description";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useNavigate } from "react-router-dom";
 
 export const TermsPage: React.FC = () => {
   const theme = useThemeMode();
+  const navigate = useNavigate();
 
   return (
     <Box
       sx={{
-        flexGrow: 1, // Позволяет этому Box занимать все доступное пространство
+        flexGrow: 1,
         display: "flex",
         flexDirection: "column",
-        alignItems: "center", // Центрирует Paper по горизонтали
+        alignItems: "center",
         backgroundColor: "background.paper",
-        py: 1, // Вертикальные отступы вокруг "документа"
-        minHeight: "100vh", // Гарантирует, что фон занимает всю высоту экрана
+        py: 1,
+        minHeight: "100vh",
+        position: "relative", // Для позиционирования кнопки назад
       }}
     >
-      <Paper
-        elevation={3} // Увеличиваем тень для более выраженного вида "бумаги"
+      {/* Кнопка "Назад" - закрепленная в левом верхнем углу */}
+      <IconButton
+        onClick={() => navigate(-1)}
         sx={{
-          p: { xs: 3, sm: 5, md: 8 }, // Адаптивные внутренние отступы для контента "документа"
-          maxWidth: { xs: "95%", sm: 700, md: 800 }, // Максимальная ширина для вида "документа"
-          mx: "auto", // Центрирует Paper внутри его контейнера
+          position: "fixed",
+          top: { xs: 16, sm: 24 }, // Адаптивные отступы для мобильных и десктопа
+          left: { sm: 24 },
+          right: { xs: 16 },
+
+          zIndex: 1000, // Чтобы кнопка была поверх других элементов
           backgroundColor: "background.paper",
-          borderRadius: "12px", // Немного более скругленные углы
+          boxShadow: 2,
+          "&:hover": {
+            backgroundColor: "action.hover",
+          },
+          width: { xs: 48, sm: 56 }, // Адаптивный размер для мобильных
+          height: { xs: 48, sm: 56 },
+        }}
+        aria-label="вернуться назад"
+      >
+        <ArrowBackIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+      </IconButton>
+
+      <Paper
+        elevation={3}
+        sx={{
+          p: { xs: 3, sm: 5, md: 8 },
+          maxWidth: { xs: "95%", sm: 700, md: 800 },
+          mx: "auto",
+          backgroundColor: "background.paper",
+          borderRadius: "12px",
           boxShadow: theme.isDarkMode
-            ? "0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.4)" // Более выраженная тень для темной темы
-            : "0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08)", // Более выраженная тень для светлой темы
+            ? "0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.4)"
+            : "0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08)",
+          // mt: { xs: 6, sm: 0 }, // Добавляем отступ сверху для мобильных, чтобы кнопка не перекрывала контент
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>

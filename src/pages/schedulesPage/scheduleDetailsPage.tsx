@@ -15,6 +15,12 @@ import {
   Card,
   Divider,
   Avatar,
+  useMediaQuery,
+  Theme,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
@@ -50,11 +56,16 @@ import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkelet
 import { daysOfWeek, convertToLocalTime } from "./helpers/scheduleUtils";
 import { useThemeMode } from "../../context/themeContext";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { getInitials } from "../../components/AppLayout";
 
 export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
 }) => {
   const theme = useThemeMode();
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
 
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const navigate = useNavigate();
@@ -71,6 +82,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const { companyMap, isLoadingCompanyMap } = useCompanyMap();
   const { chatMap, isLoadingChatsMap } = useChatMap();
@@ -199,6 +211,14 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     }
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   const CompactDetailItem = ({
     icon,
     label,
@@ -252,16 +272,16 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
     if (schedule?.schedule_strategy === "notification") return "УВ";
     return "РС";
   };
-  const getInitials = (str: string) => {
-    if (!str || typeof str !== "string") return "";
+  // const getInitials = (str: string) => {
+  //   if (!str || typeof str !== "string") return "";
 
-    const words = str.trim().split(/\s+/);
+  //   const words = str.trim().split(/\s+/);
 
-    if (words.length === 0) return "";
-    if (words.length === 1) return words[0][0].toUpperCase();
+  //   if (words.length === 0) return "";
+  //   if (words.length === 1) return words[0][0].toUpperCase();
 
-    return (words[0][0] + words[1][0]).toUpperCase();
-  };
+  //   return (words[0][0] + words[1][0]).toUpperCase();
+  // };
 
   if (isLoadingAll) {
     return (
@@ -288,165 +308,290 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   }
 
   return (
-    <Box sx={{ pl: 2, pr: 1, mt: -1, mb: -2, maxWidth: 1600, mx: "auto" }}>
+    <Box
+      sx={{
+        pl: isMobile ? 1 : 2,
+        pr: isMobile ? 1 : 2,
+        mt: -1,
+        mb: -2,
+        maxWidth: 1600,
+        mx: "auto",
+      }}
+    >
       {/* Заголовок с основной информацией */}
       <Paper
         sx={{
-          p: 3,
+          p: isMobile ? 2 : 3,
           mb: 1,
           background: theme.isDarkMode
             ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
             : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          position: "relative",
         }}
       >
+        {isMobile && (
+          <>
+            <IconButton
+              onClick={() => navigate(-1)}
+              size="small"
+              sx={{
+                position: "absolute",
+                top: 8,
+                left: 8,
+                zIndex: 1,
+                color: "white",
+                // backgroundColor: "rgba(255,255,255,0.1)",
+                "&:hover": {
+                  backgroundColor: "rgba(255,255,255,0.1)",
+                },
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleMenuOpen}
+              size="small"
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                zIndex: 1,
+                color: "white",
+                backgroundColor: "rgba(255,255,255,0.1)",
+                "&:hover": {
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                },
+              }}
+            >
+              <MoreVertIcon />
+            </IconButton>
+          </>
+        )}
+
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "center" : "center",
             justifyContent: "space-between",
             color: "white",
+            gap: isMobile ? 2 : 0,
+            pt: isMobile ? 4 : 0,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                bgcolor: "rgba(255,255,255,0.2)",
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                mr: 3,
-                color: "white",
-              }}
-            >
-              {getInitials(schedule.schedule_name || "Не указано")}
-            </Avatar>
-            <Box>
-              <Typography
-                variant="h3"
-                gutterBottom
-                sx={{ fontWeight: "bold", color: "white" }}
-              >
-                {schedule.schedule_name || "Не указано"}
-              </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: isMobile ? "column" : "row",
+              textAlign: isMobile ? "center" : "left",
+              gap: isMobile ? 2 : 3,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {!isMobile && (
+                <Avatar
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: "rgba(255,255,255,0.2)",
+                    fontSize: "1.5rem",
+                    fontWeight: "bold",
+                    mr: 3,
+                    color: "white",
+                  }}
+                >
+                  {getInitials(schedule.schedule_name || "Не указано")}
+                </Avatar>
+              )}
+              <Box>
+                <Typography
+                  variant={isMobile ? "h5" : "h4"}
+                  gutterBottom
+                  sx={{ fontWeight: "bold", color: "white" }}
+                >
+                  {schedule.schedule_name || "Не указано"}
+                </Typography>
 
-              <Chip
-                icon={
-                  schedule.enabled ? <CheckCircleIcon /> : <PauseCircleIcon />
-                }
-                label={schedule.enabled ? "Активно" : "Приоставновлено"}
-                sx={{
-                  bgcolor: "rgba(255,255,255,0.9)",
-                  color: schedule.enabled ? "#059669" : "#dc2626",
-                  fontWeight: "bold",
-                  "& .MuiSvgIcon-root": {
+                <Chip
+                  icon={
+                    schedule.enabled ? <CheckCircleIcon /> : <PauseCircleIcon />
+                  }
+                  label={schedule.enabled ? "Активно" : "Приоставновлено"}
+                  sx={{
+                    bgcolor: "rgba(255,255,255,0.9)",
                     color: schedule.enabled ? "#059669" : "#dc2626",
-                  },
-                }}
-              />
+                    fontWeight: "bold",
+                    "& .MuiSvgIcon-root": {
+                      color: schedule.enabled ? "#059669" : "#dc2626",
+                    },
+                  }}
+                />
+              </Box>
             </Box>
           </Box>
 
           {/* Кнопки действий */}
-          <Stack direction="row" spacing={1}>
-            <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(-1)}
-              variant="contained"
-              sx={{
-                backgroundColor: "white",
-                color: "#764ba2",
-                "&:hover": {
-                  backgroundColor: "#ffffffec",
-                  backgroundImage: "none",
-                },
-                "& .MuiSvgIcon-root": {
+          {!isMobile && (
+            <Stack direction="row" spacing={1}>
+              <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={() => navigate(-1)}
+                variant="contained"
+                sx={{
+                  backgroundColor: "white",
                   color: "#764ba2",
-                },
-                backgroundImage: "none",
-                boxShadow: "none",
-                transition: "background-color 0.2s ease",
-              }}
-            >
-              Назад
-            </Button>
-            <Button
-              startIcon={<PowerSettingsNewIcon />}
-              onClick={handleToggle}
-              variant="contained"
-              sx={{
-                backgroundColor: "#ffffff",
-                color: schedule.enabled ? "#dc2626" : "#059669",
-                "&:hover": {
-                  backgroundColor: "#ffffffec",
+                  "&:hover": {
+                    backgroundColor: "#ffffffec",
+                    backgroundImage: "none",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#764ba2",
+                  },
                   backgroundImage: "none",
-                },
-                "& .MuiSvgIcon-root": {
+                  boxShadow: "none",
+                  transition: "background-color 0.2s ease",
+                }}
+              >
+                Назад
+              </Button>
+              <Button
+                startIcon={<PowerSettingsNewIcon />}
+                onClick={handleToggle}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#ffffff",
                   color: schedule.enabled ? "#dc2626" : "#059669",
-                },
-                backgroundImage: "none",
-                boxShadow: "none",
-                transition: "background-color 0.2s ease",
-              }}
-              disabled={toggleScheduleMutation.isPending}
-            >
-              {schedule.enabled ? "Выключить" : "Запустить"}
-              {toggleScheduleMutation.isPending && (
-                <CircularProgress size={20} sx={{ ml: 1, color: "white" }} />
-              )}
-            </Button>
-            <Button
-              startIcon={<EditIcon />}
-              onClick={() => setIsEditModalOpen(true)}
-              variant="contained"
-              sx={{
-                backgroundColor: "white",
-                color: "#764ba2",
-                "&:hover": {
-                  backgroundColor: "#ffffffec",
+                  "&:hover": {
+                    backgroundColor: "#ffffffec",
+                    backgroundImage: "none",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: schedule.enabled ? "#dc2626" : "#059669",
+                  },
                   backgroundImage: "none",
-                },
-                "& .MuiSvgIcon-root": {
+                  boxShadow: "none",
+                  transition: "background-color 0.2s ease",
+                }}
+                disabled={toggleScheduleMutation.isPending}
+              >
+                {schedule.enabled ? "Выключить" : "Запустить"}
+                {toggleScheduleMutation.isPending && (
+                  <CircularProgress size={20} sx={{ ml: 1, color: "white" }} />
+                )}
+              </Button>
+              <Button
+                startIcon={<EditIcon />}
+                onClick={() => setIsEditModalOpen(true)}
+                variant="contained"
+                sx={{
+                  backgroundColor: "white",
                   color: "#764ba2",
-                },
-                backgroundImage: "none",
-                boxShadow: "none",
-                transition: "background-color 0.2s ease",
-              }}
-            >
-              Изменить
-            </Button>
-            <Button
-              startIcon={<DeleteIcon />}
-              onClick={() => setIsDeleteDialogOpen(true)}
-              variant="contained"
-              sx={{
-                backgroundColor: "#ffffff",
-                color: "#dc2626",
-                "&:hover": {
-                  backgroundColor: "#ffffffec",
+                  "&:hover": {
+                    backgroundColor: "#ffffffec",
+                    backgroundImage: "none",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#764ba2",
+                  },
                   backgroundImage: "none",
-                },
-                "& .MuiSvgIcon-root": {
+                  boxShadow: "none",
+                  transition: "background-color 0.2s ease",
+                }}
+              >
+                Изменить
+              </Button>
+              <Button
+                startIcon={<DeleteIcon />}
+                onClick={() => setIsDeleteDialogOpen(true)}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#ffffff",
                   color: "#dc2626",
-                },
-                backgroundImage: "none",
-                boxShadow: "none",
-                transition: "background-color 0.2s ease",
-              }}
-            >
-              Удалить
-            </Button>
-          </Stack>
+                  "&:hover": {
+                    backgroundColor: "#ffffffec",
+                    backgroundImage: "none",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "#dc2626",
+                  },
+                  backgroundImage: "none",
+                  boxShadow: "none",
+                  transition: "background-color 0.2s ease",
+                }}
+              >
+                Удалить
+              </Button>
+            </Stack>
+          )}
         </Box>
       </Paper>
+
+      {/* Меню для мобильных */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        sx={{
+          "& .MuiPaper-root": {
+            minWidth: 180,
+            boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.15)",
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleToggle();
+            handleMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <PowerSettingsNewIcon
+              fontSize="small"
+              color={schedule.enabled ? "error" : "success"}
+            />
+          </ListItemIcon>
+          {schedule.enabled ? "Выключить" : "Запустить"}
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setIsEditModalOpen(true);
+            handleMenuClose();
+          }}
+        >
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          Изменить
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setIsDeleteDialogOpen(true);
+            handleMenuClose();
+          }}
+          sx={{ color: "error.main" }}
+        >
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          Удалить
+        </MenuItem>
+      </Menu>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {/* Основная информация */}
         <Card>
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: 2 }}>
             <Typography
-              variant="h6"
+              variant={isMobile ? "subtitle1" : "h6"}
               gutterBottom
               sx={{ fontWeight: "bold", mb: 3 }}
             >
@@ -454,7 +599,13 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
             </Typography>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box sx={{ display: "flex", gap: 4 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: isMobile ? "column" : "row",
+                  gap: 4,
+                }}
+              >
                 <Box sx={{ flex: 1 }}>
                   {isSuperadmin && (
                     <CompactDetailItem
@@ -466,12 +617,6 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                       }
                     />
                   )}
-                  {/* <CompactDetailItem
-                    icon={<FingerprintIcon color="primary" fontSize="small" />}
-                    label="Название"
-                    value={schedule.schedule_name || "Не указано"}
-                  /> */}
-
                   <CompactDetailItem
                     icon={<SmartToyIcon color="primary" fontSize="small" />}
                     label="Telegram Бот"
@@ -511,9 +656,9 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
         {/* Детали задачи */}
         <Card>
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: 2 }}>
             <Typography
-              variant="h6"
+              variant={isMobile ? "subtitle1" : "h6"}
               gutterBottom
               sx={{ fontWeight: "bold", mb: 1 }}
             >
@@ -533,7 +678,13 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
               </Box>
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Box sx={{ display: "flex", gap: 4 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
+                    gap: 4,
+                  }}
+                >
                   <Box sx={{ flex: 1 }}>
                     {schedule.chat_id && (
                       <CompactDetailItem
@@ -588,13 +739,7 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
                 )}
               </Box>
             )}
-            {/* </CardContent>
-        </Card> */}
-
-            {/* Чаты для отправки */}
-            {/* <Card>
-          <CardContent sx={{ p: 3 }}> */}
-            <Typography sx={{ fontWeight: "bold", mb: 1 }}>
+            <Typography sx={{ fontWeight: "bold", mb: 1, mt: 2 }}>
               Чаты для получения результатов
             </Typography>
 
@@ -620,9 +765,9 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
         {/* Расписание */}
         <Card>
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: 2 }}>
             <Typography
-              variant="h6"
+              variant={isMobile ? "subtitle1" : "h6"}
               gutterBottom
               sx={{ fontWeight: "bold", mb: 1 }}
             >
@@ -660,7 +805,13 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
               {/* Время отправки (только для анализа) */}
               {schedule.schedule_strategy === "analysis" && (
-                <Box sx={{ display: "flex", gap: 4 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
+                    gap: 4,
+                  }}
+                >
                   <Box sx={{ flex: 1 }}>
                     <CompactDetailItem
                       icon={<AccessTimeIcon color="primary" fontSize="small" />}
@@ -699,9 +850,9 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
 
         {/* Статус и история */}
         <Card>
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: 2 }}>
             <Typography
-              variant="h6"
+              variant={isMobile ? "subtitle1" : "h6"}
               gutterBottom
               sx={{ fontWeight: "bold", mb: 1 }}
             >
@@ -722,7 +873,13 @@ export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
               />
 
               {schedule.last_run_at && (
-                <Box sx={{ display: "flex", gap: 4 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
+                    gap: 4,
+                  }}
+                >
                   <Box sx={{ flex: 1 }}>
                     <CompactDetailItem
                       icon={

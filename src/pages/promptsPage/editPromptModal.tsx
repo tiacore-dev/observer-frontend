@@ -16,9 +16,14 @@ import {
   AccordionSummary,
   AccordionDetails,
   Alert,
+  useMediaQuery,
+  Theme,
+  Collapse,
 } from "@mui/material";
 import { ModalSkeleton } from "../../components/skeleton/modalSkeleton";
-import { Psychology, Code, ExpandMore } from "@mui/icons-material";
+import { Psychology, Code, ExpandMore, ExpandLess } from "@mui/icons-material";
+import { InfoCard } from "../../components/infoCard";
+import { useState } from "react";
 
 interface EditPromptModalProps {
   open: boolean;
@@ -42,19 +47,58 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
   isSubmitting,
   isLoading = false,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
+  const [showHelp, setShowHelp] = useState(false);
+
   if (isLoading) {
     return <ModalSkeleton fieldCount={2} hasActions={true} />;
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      fullScreen={isMobile}
+    >
       <DialogTitle>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Psychology color="primary" />
-          Редактировать промпт
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Редактировать промпт
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="text"
+            onClick={() => setShowHelp(!showHelp)}
+            endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
+            size="small"
+          >
+            {isMobile ? "Помощь" : "Информация"}
+          </Button>
         </Box>
       </DialogTitle>
       <DialogContent>
+        <Collapse in={showHelp}>
+          <InfoCard
+            type="info"
+            title="Редактирование промпта"
+            description="Здесь вы можете изменить название и текст промпта. Промпт используется для анализа сообщений в чатах."
+          />
+          <Alert severity="info" sx={{ mb: 1 }}>
+            <Typography variant="body2">
+              💡 <strong>Советы для хорошего промпта:</strong>
+              <br />• Будьте конкретны в инструкциях
+              <br />• Укажите желаемый формат ответа
+              <br />• Приведите примеры, если нужно
+              <br />• Используйте простой и понятный язык
+            </Typography>
+          </Alert>
+        </Collapse>
+
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
           {isLoading ? (
             <>
@@ -81,8 +125,8 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
                 value={editData.text}
                 onChange={(e) => onEditDataChange("text", e.target.value)}
                 multiline
-                minRows={8}
-                maxRows={20}
+                minRows={isMobile ? 6 : 8}
+                maxRows={isMobile ? 12 : 20}
                 required
                 helperText={`Опишите подробно, что должен делать ИИ при анализе сообщений`}
                 placeholder="Например: Проанализируй сообщения в чате и найди все упоминания проблем с продуктом. Классифицируй проблемы по категориям и предложи решения..."
@@ -93,47 +137,31 @@ export const EditPromptModal: React.FC<EditPromptModalProps> = ({
                   },
                 }}
               />
-              {/* <Alert severity="info" variant="outlined">
-                <Typography variant="body2">
-                  💡 <strong>Советы для хорошего промпта:</strong>
-                  <br />• Будьте конкретны в инструкциях
-                  <br />• Укажите желаемый формат ответа
-                  <br />• Приведите примеры, если нужно
-                  <br />• Используйте простой и понятный язык
-                </Typography>
-              </Alert> */}
             </>
           )}
         </Box>
       </DialogContent>
       <DialogActions
         sx={{
-          paddingBottom: 3,
-          paddingTop: 0,
-          paddingRight: 3,
-          justifyContent: "flex-end",
+          p: isMobile ? 2 : 3,
+          justifyContent: "space-between",
         }}
       >
-        {isLoading ? (
-          <>
-            <Skeleton variant="rectangular" width={64} height={36} />
-            <Skeleton variant="rectangular" width={96} height={36} />
-          </>
-        ) : (
-          <>
-            <Button onClick={onClose}>Отмена</Button>
-            <Button
-              onClick={onSubmit}
-              variant="contained"
-              disabled={isSubmitting}
-              startIcon={
-                isSubmitting ? <CircularProgress size={16} /> : <Psychology />
-              }
-            >
-              {isSubmitting ? "Сохранение..." : "Сохранить промпт"}
-            </Button>
-          </>
-        )}
+        <Button onClick={onClose} fullWidth={isMobile}>
+          Отмена
+        </Button>
+        <Button
+          onClick={onSubmit}
+          variant="contained"
+          disabled={isSubmitting || !editData.prompt_name.trim()}
+          startIcon={
+            isSubmitting ? <CircularProgress size={16} /> : <Psychology />
+          }
+          fullWidth={isMobile}
+          sx={isMobile ? { ml: 1 } : {}}
+        >
+          {isSubmitting ? "Сохранение..." : "Сохранить"}
+        </Button>
       </DialogActions>
     </Dialog>
   );

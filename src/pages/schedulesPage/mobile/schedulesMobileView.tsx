@@ -76,7 +76,7 @@ export const SchedulesMobileView: React.FC<SchedulesMobileViewProps> = ({
   }
 
   return (
-    <Paper style={{ backgroundColor: "#efeef5" }}>
+    <>
       {schedules.map((schedule) => (
         <ScheduleCard
           key={schedule.schedule_id}
@@ -86,6 +86,6 @@ export const SchedulesMobileView: React.FC<SchedulesMobileViewProps> = ({
           onToggle={handleToggle}
         />
       ))}
-    </Paper>
+    </>
   );
 };
