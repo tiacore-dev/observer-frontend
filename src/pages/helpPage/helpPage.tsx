@@ -528,7 +528,7 @@ export const HelpPage: React.FC = () => {
     <Box
       sx={{
         p: isMobile ? 1 : 2,
-        mt: isMobile ? 0 : -1,
+        mt: isMobile ? 0 : -3,
         mb: isMobile ? 2 : -3,
         maxWidth: 1600,
         mx: "auto",

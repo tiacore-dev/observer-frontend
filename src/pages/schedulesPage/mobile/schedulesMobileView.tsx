@@ -61,20 +61,6 @@ export const SchedulesMobileView: React.FC<SchedulesMobileViewProps> = ({
     );
   }
 
-  if (schedules.length === 0) {
-    return (
-      <Paper elevation={1} sx={{ p: 2, textAlign: "center", mb: 1 }}>
-        <ScheduleIcon sx={{ fontSize: 64, color: "text.secondary", mt: 2 }} />
-        <Typography variant="h6" gutterBottom color="text.secondary">
-          Нет доступных расписаний
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Создайте первое расписание
-        </Typography>
-      </Paper>
-    );
-  }
-
   return (
     <>
       {schedules.map((schedule) => (

@@ -202,7 +202,7 @@ const getTheme = (mode: "light" | "dark") => {
           contained: {
             background:
               mode === "dark"
-                ? "linear-gradient(135deg, #818cf822 0%, #a78bfa22 100%)"
+                ? "linear-gradient(135deg, #818cf825 0%, #a78bfa25 100%)"
                 : "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
             "&:hover": {
               background:

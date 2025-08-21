@@ -15,10 +15,19 @@ import {
   Checkbox,
   FormControlLabel,
   Link,
+  useMediaQuery,
+  Theme,
+  Collapse,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { useRegisterMutation } from "../../hooks/register/useRegisterMutations";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import {
+  Visibility,
+  VisibilityOff,
+  ExpandMore,
+  ExpandLess,
+} from "@mui/icons-material";
+import { InfoCard } from "../../components/infoCard";
 
 interface UserRegistrationModalProps {
   open: boolean;
@@ -41,6 +50,13 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down("sm")
+  );
+  const [showHelp, setShowHelp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -54,8 +70,6 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
     },
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const registerMutation = useRegisterMutation();
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -78,13 +92,50 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
   const privacyAccepted = watch("privacyAccepted");
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Регистрация</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+    >
+      <DialogTitle>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant={isMobile ? "h6" : "inherit"}>
+            Регистрация
+          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="text"
+            onClick={() => setShowHelp(!showHelp)}
+            endIcon={showHelp ? <ExpandLess /> : <ExpandMore />}
+            size="small"
+          >
+            {isMobile ? "Помощь" : "Информация о регистрации"}
+          </Button>
+        </Box>
+      </DialogTitle>
       <DialogContent>
+        <Collapse in={showHelp}>
+          <Box sx={{ mb: 3 }}>
+            <InfoCard type="info" title="Для регистрации:" description=" ">
+              <Box component="ol" sx={{ pl: 2, mt: 1, mb: 0 }}>
+                <li>Пароль должен содержать минимум 6 символов</li>
+                <li>Пароли должны совпадать</li>
+                <li>
+                  Необходимо принять условия соглашения и политики
+                  конфиденциальности
+                </li>
+                <li>После регистрации необходимо подтвердить Email</li>
+              </Box>
+            </InfoCard>
+          </Box>
+        </Collapse>
+
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
-          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}
+          sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
           autoComplete="off"
         >
           <Controller
@@ -111,6 +162,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                   autocapitalize: "none",
                   spellcheck: "false",
                 }}
+                size={isMobile ? "small" : "medium"}
               />
             )}
           />
@@ -132,6 +184,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                   autocapitalize: "words",
                   spellcheck: "false",
                 }}
+                size={isMobile ? "small" : "medium"}
               />
             )}
           />
@@ -167,12 +220,14 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                         aria-label="toggle password visibility"
                         onClick={handleClickShowPassword}
                         edge="end"
+                        size={isMobile ? "small" : "medium"}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),
                 }}
+                size={isMobile ? "small" : "medium"}
               />
             )}
           />
@@ -206,6 +261,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                         aria-label="toggle confirm password visibility"
                         onClick={handleClickShowConfirmPassword}
                         edge="end"
+                        size={isMobile ? "small" : "medium"}
                       >
                         {showConfirmPassword ? (
                           <VisibilityOff />
@@ -216,6 +272,7 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
                     </InputAdornment>
                   ),
                 }}
+                size={isMobile ? "small" : "medium"}
               />
             )}
           />
@@ -227,12 +284,22 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
             render={({ field }) => (
               <FormControlLabel
                 control={
-                  <Checkbox {...field} checked={field.value} color="primary" />
+                  <Checkbox
+                    {...field}
+                    checked={field.value}
+                    color="primary"
+                    size={isMobile ? "small" : "medium"}
+                  />
                 }
                 label={
-                  <Typography>
+                  <Typography variant={isMobile ? "body2" : "body1"}>
                     Я принимаю условия{" "}
-                    <Link href="/terms" target="_blank" rel="noopener">
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener"
+                      variant={isMobile ? "body2" : "body1"}
+                    >
                       Пользовательского соглашения
                     </Link>
                   </Typography>
@@ -248,12 +315,22 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
             render={({ field }) => (
               <FormControlLabel
                 control={
-                  <Checkbox {...field} checked={field.value} color="primary" />
+                  <Checkbox
+                    {...field}
+                    checked={field.value}
+                    color="primary"
+                    size={isMobile ? "small" : "medium"}
+                  />
                 }
                 label={
-                  <Typography>
+                  <Typography variant={isMobile ? "body2" : "body1"}>
                     Я принимаю условия{" "}
-                    <Link href="/privacy" target="_blank" rel="noopener">
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener"
+                      variant={isMobile ? "body2" : "body1"}
+                    >
                       Политики конфиденциальности
                     </Link>
                   </Typography>
@@ -263,14 +340,30 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
           />
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Отмена</Button>
+      <DialogActions
+        sx={{
+          p: isMobile ? 2 : 3,
+          justifyContent: "space-between",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? 1 : 0,
+        }}
+      >
+        <Button
+          onClick={onClose}
+          fullWidth={isMobile}
+          size={isMobile ? "medium" : "large"}
+        >
+          Отмена
+        </Button>
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
           disabled={
             registerMutation.isPending || !termsAccepted || !privacyAccepted
           }
+          fullWidth={isMobile}
+          size={isMobile ? "medium" : "large"}
+          sx={isMobile ? {} : { ml: 1 }}
         >
           {registerMutation.isPending ? (
             <CircularProgress size={24} />

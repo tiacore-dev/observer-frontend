@@ -176,13 +176,13 @@ export const BotsTable: React.FC<BotsTableProps> = ({
 
   return (
     <TableContainer
-      component={Paper}
-      elevation={2}
-      sx={{
-        borderRadius: 1,
-        overflow: "hidden",
-        mb: 4,
-      }}
+    // component={Paper}
+    // elevation={2}
+    // sx={{
+    //   borderRadius: 1,
+    //   overflow: "hidden",
+    //   mb: 4,
+    // }}
     >
       {isMobile ? (
         <Box>

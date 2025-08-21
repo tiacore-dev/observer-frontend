@@ -90,7 +90,7 @@ export const LoginPage: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "background.paper",
       }}
     >
       <Paper
@@ -109,7 +109,7 @@ export const LoginPage: React.FC = () => {
               display: "grid",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "#fff0f0",
+              backgroundColor: "#f9949400",
               borderRadius: 1,
             }}
           >
@@ -135,7 +135,7 @@ export const LoginPage: React.FC = () => {
         )}
 
         <Typography variant="h4" component="h1" gutterBottom align="center">
-          Вход
+          Observer
         </Typography>
 
         <form onSubmit={handleSubmit(onSubmit)}>

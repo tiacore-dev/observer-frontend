@@ -119,13 +119,13 @@ export const AnalysisTable: React.FC<AnalysisTableProps> = ({
 
   return (
     <TableContainer
-      component={Paper}
-      elevation={2}
-      sx={{
-        borderRadius: 1,
-        overflow: "hidden",
-        mb: 4,
-      }}
+    // component={Paper}
+    // elevation={2}
+    // sx={{
+    //   borderRadius: 1,
+    //   overflow: "hidden",
+    //   // mb: 4,
+    // }}
     >
       <Table
         sx={{
