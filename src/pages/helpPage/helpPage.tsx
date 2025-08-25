@@ -17,6 +17,12 @@ import {
   Paper,
   useTheme,
   useMediaQuery,
+  Button,
+  Card,
+  CardContent,
+  TextField,
+  InputAdornment,
+  Chip,
 } from "@mui/material";
 import {
   ExpandMore,
@@ -29,12 +35,19 @@ import {
   Analytics,
   HelpOutline,
   PlayArrow,
+  Search,
+  Telegram,
+  Email,
+  MenuBook,
+  Support,
+  LiveHelp,
 } from "@mui/icons-material";
 
 export const HelpPage: React.FC = () => {
   const [expandedSection, setExpandedSection] = useState<string | false>(
     "getting-started"
   );
+  const [searchQuery, setSearchQuery] = useState("");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -42,6 +55,10 @@ export const HelpPage: React.FC = () => {
     (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
       setExpandedSection(isExpanded ? panel : false);
     };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
 
   const faqItems = [
     {
@@ -84,6 +101,13 @@ export const HelpPage: React.FC = () => {
       answer:
         "Все результаты доступны в разделе 'Анализ'. Вы можете фильтровать их по компании, чату или промпту.",
     },
+  ];
+
+  const popularTopics = [
+    { label: "Создание бота", icon: <SmartToy />, section: "bots" },
+    { label: "Настройка расписания", icon: <Schedule />, section: "schedules" },
+    { label: "Проблемы с анализом", icon: <Analytics />, section: "analysis" },
+    { label: "Безопасность", icon: <Info />, section: "faq" },
   ];
 
   const sections = [
@@ -259,14 +283,6 @@ export const HelpPage: React.FC = () => {
               />
             </ListItem>
           </List>
-
-          <Alert
-            severity="warning"
-            sx={{ mt: 1, fontSize: isMobile ? "0.8rem" : "inherit" }}
-          >
-            Никогда не делитесь токеном бота с посторонними. Это ключ доступа к
-            вашему боту.
-          </Alert>
         </Box>
       ),
     },
@@ -540,17 +556,158 @@ export const HelpPage: React.FC = () => {
           component="h1"
           gutterBottom
         >
-          Справочная система
+          Центр помощи
         </Typography>
         <Typography
           variant={isMobile ? "body1" : "h6"}
           color="text.secondary"
           gutterBottom
         >
-          Полное руководство по использованию Observer
+          Справка, поддержка и ответы на вопросы
         </Typography>
 
         <Divider sx={{ my: 2 }} />
+
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{ display: "flex", alignItems: "center", gap: 1 }}
+          >
+            <LiveHelp color="primary" />
+            Быстрая помощь
+          </Typography>
+
+          <TextField
+            fullWidth
+            placeholder="Поиск по справке..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            sx={{ mb: 2 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Typography variant="subtitle2" gutterBottom>
+            Популярные темы:
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+            {popularTopics.map((topic) => (
+              <Chip
+                key={topic.label}
+                icon={topic.icon}
+                label={topic.label}
+                onClick={() => setExpandedSection(topic.section)}
+                variant="outlined"
+                sx={{ cursor: "pointer" }}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{ display: "flex", alignItems: "center", gap: 1 }}
+          >
+            <Support color="primary" />
+            Получить помощь
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              gap: 2,
+            }}
+          >
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                >
+                  <Telegram color="primary" />
+                  <Typography variant="h6">Telegram поддержка</Typography>
+                </Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  Напишите нашему боту для быстрой помощи
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<Telegram />}
+                  href="https://t.me/tiacore_support_bot"
+                  target="_blank"
+                  fullWidth
+                  sx={{ textTransform: "none" }}
+                >
+                  Написать в Telegram
+                </Button>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  Обычно отвечаем в течение 15 минут
+                </Typography>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <Box
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+                >
+                  <Email color="primary" />
+                  <Typography variant="h6">Email поддержка</Typography>
+                </Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  Отправьте подробное описание проблемы
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<Email />}
+                  href="mailto:support@observer.com"
+                  fullWidth
+                  sx={{ textTransform: "none" }}
+                >
+                  Написать на email
+                </Button>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 1, display: "block" }}
+                >
+                  Ответим в течение 24 часов
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+        >
+          <MenuBook color="primary" />
+          Справочная информация
+        </Typography>
 
         <Typography variant="body2" paragraph>
           Observer помогает находить главное в ваших чатах и экономить время.

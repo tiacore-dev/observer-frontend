@@ -121,7 +121,6 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({
             <InfoCard type="info" title="Для регистрации:" description=" ">
               <Box component="ol" sx={{ pl: 2, mt: 1, mb: 0 }}>
                 <li>Пароль должен содержать минимум 6 символов</li>
-                <li>Пароли должны совпадать</li>
                 <li>
                   Необходимо принять условия соглашения и политики
                   конфиденциальности

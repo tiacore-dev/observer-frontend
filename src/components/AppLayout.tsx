@@ -17,7 +17,6 @@ import {
   Typography,
   Menu,
   MenuItem,
-  Chip,
   Switch,
   FormControlLabel,
   Tooltip,
@@ -34,7 +33,7 @@ import {
   alpha,
   Link,
   useMediaQuery,
-  Theme,
+  type Theme,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -61,6 +60,7 @@ import { useCompanyMap } from "../hooks/maps/useCompanyMap";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import GroupIcon from "@mui/icons-material/Group";
 import HotelClassIcon from "@mui/icons-material/HotelClass";
+import { FloatingHelpButton } from "./floatingHelpButton"; // добавлен импорт FloatingHelpButton
 const drawerWidth = 205; // Уменьшил ширину сайдбара
 const LOGO_AVATAR_SIZE = 35;
 const LOGO_TEXT_VARIANT = "h6";
@@ -927,6 +927,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         }}
       >
         {children}
+        <FloatingHelpButton />
       </Box>
     </Box>
   );

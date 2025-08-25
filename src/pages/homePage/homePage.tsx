@@ -473,7 +473,7 @@ export const HomePage: React.FC = () => {
       )}
 
       {/* Кнопка помощи */}
-      <Zoom in={!showTour}>
+      {/* <Zoom in={!showTour}>
         <Fab
           color="primary"
           sx={{
@@ -493,7 +493,7 @@ export const HomePage: React.FC = () => {
         >
           <Help />
         </Fab>
-      </Zoom>
+      </Zoom> */}
 
       {/* Guided Tour */}
       <GuidedTour

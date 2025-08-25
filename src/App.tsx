@@ -37,6 +37,7 @@ import { ResetPasswordPage } from "./pages/loginPage/resetPasswordPage";
 import { AcceptInvitePage } from "./pages/acceptInvitePage/acceptInvitePage";
 import { InviteRegistrationPage } from "./hooks/invite/inviteRegistrationPage";
 import { SubscriptionsPage } from "./pages/subscriptionsPage/subscriptionsPage";
+import { LandingPage } from "./pages/landingPage";
 
 export interface PageProps {
   developerMode: boolean;
@@ -56,6 +57,7 @@ const AppContent: React.FC = () => {
           <Router>
             <AuthProvider>
               <Routes>
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
@@ -137,7 +139,7 @@ const AppContent: React.FC = () => {
                   <Route path="/home" element={<HomePage />} />
                   <Route path="*" element={<Navigate to="/home" />} />
                 </Route>
-                <Route path="*" element={<Navigate to="/login" />} />
+                <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </AuthProvider>
           </Router>
