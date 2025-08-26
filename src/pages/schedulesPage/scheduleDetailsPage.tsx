@@ -57,7 +57,7 @@ import { daysOfWeek, convertToLocalTime } from "./helpers/scheduleUtils";
 import { useThemeMode } from "../../context/themeContext";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getInitials } from "../../components/AppLayout";
+import { getInitials } from "../../components/appLayout/appLayout";
 
 export const ScheduleDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,

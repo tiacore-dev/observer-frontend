@@ -203,7 +203,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       selectedCompanyId: null,
       availableCompanies: [],
     });
-    navigate("/login");
+    // navigate("/login");
+    navigate("/");
   }, [navigate]);
 
   const checkAuth = useCallback(async () => {

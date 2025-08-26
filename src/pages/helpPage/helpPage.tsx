@@ -20,9 +20,15 @@ import {
   Button,
   Card,
   CardContent,
-  TextField,
-  InputAdornment,
-  Chip,
+  Stack,
+  alpha,
+  Fade,
+  TableCell,
+  TableRow,
+  TableBody,
+  TableContainer,
+  Table,
+  TableHead,
 } from "@mui/material";
 import {
   ExpandMore,
@@ -34,18 +40,22 @@ import {
   Info,
   Analytics,
   HelpOutline,
-  PlayArrow,
-  Search,
   Telegram,
-  Email,
   MenuBook,
   Support,
-  LiveHelp,
+  ContactSupport,
+  ArrowForward,
+  Speed,
+  TipsAndUpdates,
+  BugReport,
+  School,
+  Rocket,
 } from "@mui/icons-material";
+import PublicPageLayout from "../../components/publicLayout/publicPageLayout";
 
 export const HelpPage: React.FC = () => {
   const [expandedSection, setExpandedSection] = useState<string | false>(
-    "getting-started"
+    "quick-start"
   );
   const [searchQuery, setSearchQuery] = useState("");
   const theme = useTheme();
@@ -83,13 +93,25 @@ export const HelpPage: React.FC = () => {
     },
     {
       question: "Как создать бота в Telegram?",
-      answer:
-        "Откройте чат с @BotFather, отправьте команду /newbot, придумайте имя и username для бота (должен заканчиваться на 'bot'). Получите токен и добавьте бота в нужные чаты как администратора.",
+      answer: (
+        <span>
+          1. Откройте чат с <em>@BotFather</em>, отправьте команду{" "}
+          <em>/newbot</em>
+          <br />
+          2. Придумайте имя и username для бота (должен заканчиваться на{" "}
+          <em>bot</em>)
+          <br />
+          3. Получите токен и добавьте бота в нужные чаты как администратора.
+          <br />
+          Теперь вы можете добавить бота в систему Observer в разделе{" "}
+          <strong>«Боты»</strong>
+        </span>
+      ),
     },
     {
-      question: "Сколько ботов можно подключить?",
+      question: "Как правильно настроить бота?",
       answer:
-        "Количество ботов не ограничено, но каждый бот должен быть уникальным и правильно настроенным в Telegram.",
+        "Для успешной работы бота его необходимо добавить в чат в качестве администратора. Убедитесь, что у него есть права на чтение и отправку сообщений. Также важно: после добавления бота в чате должно появиться хотя бы одно новое сообщение (от любого участника), чтобы система его активировала и он смог начать анализ.",
     },
     {
       question: "Как часто можно запускать анализ?",
@@ -98,8 +120,20 @@ export const HelpPage: React.FC = () => {
     },
     {
       question: "Где просмотреть результаты анализа?",
-      answer:
-        "Все результаты доступны в разделе 'Анализ'. Вы можете фильтровать их по компании, чату или промпту.",
+      answer: (
+        <span>
+          Результаты анализа доступны в двух местах:
+          <br />
+          1. В <strong>чате</strong>, для которого был запущен анализ (если вы
+          выбирали отправку отчета).
+          <br />
+          2. В разделе <strong>«Результаты анализов»</strong>. Туда сохраняются
+          все отчеты, в том числе те, что были запущены без отправки в чат.
+          <br /> <br />
+          Вы также можете в любой момент запустить новый анализ за любой период
+          и просмотреть его результат в этом разделе.
+        </span>
+      ),
     },
   ];
 
@@ -112,73 +146,329 @@ export const HelpPage: React.FC = () => {
 
   const sections = [
     {
-      id: "getting-started",
-      title: "Начало работы",
-      icon: <PlayArrow color="primary" />,
+      id: "quick-start",
+      title: "Быстрый старт",
+      icon: <Rocket color="primary" />,
       content: (
         <Box>
           <Typography variant="h6" gutterBottom>
-            Краткое руководство
+            Начните работу за 5 минут
           </Typography>
 
-          <Typography variant="body2" paragraph>
-            Observer — это платформа для автоматического анализа информации в
-            чатах и группах Telegram. Мы помогаем сотрудникам получать краткие и
-            полезные отчёты по заранее заданным сценариям.
-          </Typography>
-
-          <Alert
-            severity="info"
-            sx={{ mb: 2, fontSize: isMobile ? "0.8rem" : "inherit" }}
-          >
-            Для работы системы вам понадобится Telegram-бот. Создайте его через
-            @BotFather в Telegram.
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <strong>Важно:</strong> Для начала работы вам понадобится
+            Telegram-бот. Если у вас его еще нет, создайте через @BotFather.
           </Alert>
 
-          <Typography variant="subtitle2" gutterBottom>
-            Основные шаги:
-          </Typography>
-          <List dense sx={{ py: 0 }}>
-            <ListItem sx={{ px: 1 }}>
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <CheckCircle color="success" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="1. Добавьте компанию"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 1 }}>
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <CheckCircle color="success" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="2. Подключите бота"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 1 }}>
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <CheckCircle color="success" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="3. Создайте промпт"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 1 }}>
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <CheckCircle color="success" fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="4. Настройте расписание"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-          </List>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+              Пошаговое руководство:
+            </Typography>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="success" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="1. Создайте компанию в разделе 'Компании'"
+                  secondary="Это ваше рабочее пространство"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="success" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="2. Добавьте бота в разделе 'Боты'"
+                  secondary="Используйте токен от @BotFather"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="success" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="3. Создайте промпт в разделе 'Промпты'"
+                  secondary="Например: 'Найди основные темы обсуждения'"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="success" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="4. Настройте расписание в разделе 'Расписания'"
+                  secondary="Выберите куда и как часто запускать анализ"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="success" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="5. Запустите первый анализ"
+                  secondary="Проверьте что все работает корректно"
+                />
+              </ListItem>
+            </List>
+          </Box>
+
+          <Alert severity="success">
+            <strong>Готово!</strong> Теперь система будет автоматически
+            анализировать ваши чаты и присылать отчеты по расписанию.
+          </Alert>
         </Box>
       ),
     },
+    {
+      id: "glossary",
+      title: "Глоссарий",
+      icon: <School color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Термины и определения
+          </Typography>
+
+          <TableContainer component={Paper} variant="outlined">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <strong>Термин</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>Описание</strong>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    <strong>Промпт</strong>
+                  </TableCell>
+                  <TableCell>
+                    Инструкция для ИИ, описывающая что именно нужно
+                    анализировать в чате
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>
+                    <strong>Расписание</strong>
+                  </TableCell>
+                  <TableCell>
+                    Настройки автоматического запуска анализа по времени
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>
+                    <strong>Токен бота</strong>
+                  </TableCell>
+                  <TableCell>
+                    Уникальный ключ для доступа к вашему Telegram-боту
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>
+                    <strong>Чат для отчета</strong>
+                  </TableCell>
+                  <TableCell>
+                    Чат, в который будут отправляться результаты анализа
+                  </TableCell>
+                </TableRow>
+                {/* <TableRow>
+                  <TableCell>
+                    <strong>Период анализа</strong>
+                  </TableCell>
+                  <TableCell>
+                    Временной интервал сообщений для анализа (например, "за
+                    последние 24 часа")
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>
+                    <strong>Метаданные</strong>
+                  </TableCell>
+                  <TableCell>
+                    Информация о сообщениях (время, автор), без содержимого
+                  </TableCell>
+                </TableRow> */}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      ),
+    },
+    {
+      id: "troubleshooting",
+      title: "Решение проблем",
+      icon: <BugReport color="primary" />,
+      content: (
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Чек-лист решения частых проблем
+          </Typography>
+
+          <Box sx={{ mb: 3 }}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <strong>Проблема:</strong> Бот не отвечает / не работает
+            </Alert>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Проверьте что бот добавлен в чат как администратор с правом на чтение и отправку сообщений" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Убедитесь что после добавления бота в чате было новое сообщение" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Проверьте корректность токена бота" />
+              </ListItem>
+            </List>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <strong>Проблема:</strong> Анализ занимает слишком много времени
+            </Alert>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Уменьшите период анализа (например, анализируйте за 6 часов вместо 24)" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Упростите промпт - сделайте его более конкретным" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Для больших чатов используйте интервал анализа не менее 1 часа" />
+              </ListItem>
+            </List>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <strong>Проблема:</strong> Отчеты не приходят в чат
+            </Alert>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Проверьте настройки расписания - включено ли оно" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Убедитесь что бот включен и имеет права на отправку сообщений в целевом чате" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <CheckCircle color="primary" />
+                </ListItemIcon>
+                <ListItemText primary=" Проверьте не заблокирован ли бот в целевом чате" />
+              </ListItem>
+            </List>
+          </Box>
+
+          <Alert severity="info">
+            Если проблемы сохраняются, обратитесь в поддержку с описанием ошибки
+            и скриншотами настроек.
+          </Alert>
+        </Box>
+      ),
+    },
+    {
+      id: "advanced-tips",
+      title: "Советы",
+      icon: <TipsAndUpdates color="primary" />,
+      content: (
+        <Box>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+              Оптимизация производительности:
+            </Typography>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <Speed color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Используйте несколько простых промптов вместо одного сложного"
+                  secondary="Система обрабатывает их параллельно и быстрее"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <Schedule color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Настраивайте анализ в непиковые часы"
+                  secondary="Для рабочих чатов - рано утром или поздно вечером"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <Analytics color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Для мониторинга используйте разные промпты для разных целей"
+                  secondary="Отдельно для тем, отдельно для настроения, отдельно для вопросов"
+                />
+              </ListItem>
+            </List>
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+              Эффективные промпты:
+            </Typography>
+            <List dense>
+              <ListItem>
+                <ListItemIcon>
+                  <Description color="primary" />
+                </ListItemIcon>
+                <ListItemText primary="Будьте конкретны: 'Найди 5 самых обсуждаемых тем' вместо 'Проанализируй чат'" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <Description color="primary" />
+                </ListItemIcon>
+                <ListItemText primary="Указывайте формат ответа: 'Представь результат в виде списка с эмодзи'" />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon>
+                  <Description color="primary" />
+                </ListItemIcon>
+                <ListItemText primary="Используйте контекст: 'Учитывая что это чат поддержки, найди нерешенные вопросы'" />
+              </ListItem>
+            </List>
+          </Box>
+
+          <Alert severity="success">
+            Эти советы помогут вам получить максимальную отдачу от системы и
+            избежать распространенных проблем.
+          </Alert>
+        </Box>
+      ),
+    },
+
     {
       id: "companies",
       title: "Компании",
@@ -190,9 +480,10 @@ export const HelpPage: React.FC = () => {
           </Typography>
 
           <Typography variant="body2" paragraph>
-            Компания — это организация, для которой вы настраиваете ботов,
-            промпты и анализ. Пока в системе нет ни одной компании, другие
-            функции будут недоступны.
+            Компания - это ваше рабочее пространство, которое позволяет
+            группировать промпты, ботов и расписания для удобного использования.
+            Пока в системе нет ни одной компании, другие функции будут
+            недоступны.
           </Typography>
 
           <Typography variant="subtitle2" gutterBottom>
@@ -227,7 +518,7 @@ export const HelpPage: React.FC = () => {
 
           <Typography variant="body2" paragraph sx={{ mt: 1 }}>
             После создания компания появится в списке, а в шапке сайта можно
-            выбрать её из выпадающего списка.
+            переключаться между вашими компаниями.
           </Typography>
         </Box>
       ),
@@ -282,6 +573,14 @@ export const HelpPage: React.FC = () => {
                 primaryTypographyProps={{ variant: "body2" }}
               />
             </ListItem>
+            <Alert
+              severity="info"
+              sx={{ mt: 1, fontSize: isMobile ? "0.8rem" : "inherit" }}
+            >
+              Также важно: после добавления бота в чате должно появиться хотя бы
+              одно новое сообщение (от любого участника), чтобы система его
+              активировала и он смог начать анализ.
+            </Alert>
           </List>
         </Box>
       ),
@@ -328,7 +627,7 @@ export const HelpPage: React.FC = () => {
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 1 }}>
             Как создать промпт:
           </Typography>
-          <List dense sx={{ py: 0 }}>
+          <List dense sx={{ py: -1 }}>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
                 primary="1. Перейдите в раздел 'Промпты'"
@@ -343,25 +642,19 @@ export const HelpPage: React.FC = () => {
             </ListItem>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
-                primary="3. Выберите компанию из списка"
+                primary="3. Укажите название промпта"
                 primaryTypographyProps={{ variant: "body2" }}
               />
             </ListItem>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
-                primary="4. Укажите название промпта"
+                primary="4. Введите текст инструкции"
                 primaryTypographyProps={{ variant: "body2" }}
               />
             </ListItem>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
-                primary="5. Введите текст инструкции"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 1 }}>
-              <ListItemText
-                primary="6. Сохраните промпт"
+                primary="5. Сохраните промпт"
                 primaryTypographyProps={{ variant: "body2" }}
               />
             </ListItem>
@@ -447,17 +740,10 @@ export const HelpPage: React.FC = () => {
       content: (
         <Box>
           <Typography variant="h6" gutterBottom>
-            Просмотр результатов
-          </Typography>
-
-          <Typography variant="body2" paragraph>
-            В этом разделе вы можете просмотреть все выполненные анализы и их
-            результаты.
-          </Typography>
-
-          <Typography variant="subtitle2" gutterBottom>
             Как работать с анализом:
           </Typography>
+
+          <Typography variant="subtitle2" gutterBottom></Typography>
           <List dense sx={{ py: 0 }}>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
@@ -467,25 +753,19 @@ export const HelpPage: React.FC = () => {
             </ListItem>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
-                primary="2. Выберите компанию из списка"
+                primary="2. Используйте фильтры для поиска"
                 primaryTypographyProps={{ variant: "body2" }}
               />
             </ListItem>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
-                primary="3. Используйте фильтры для поиска"
+                primary="3. Для нового анализа выберите промпт и период"
                 primaryTypographyProps={{ variant: "body2" }}
               />
             </ListItem>
             <ListItem sx={{ px: 1 }}>
               <ListItemText
-                primary="4. Для нового анализа выберите промпт и период"
-                primaryTypographyProps={{ variant: "body2" }}
-              />
-            </ListItem>
-            <ListItem sx={{ px: 1 }}>
-              <ListItemText
-                primary="5. Нажмите 'Запустить'"
+                primary="4. Нажмите 'Запустить'"
                 primaryTypographyProps={{ variant: "body2" }}
               />
             </ListItem>
@@ -507,14 +787,10 @@ export const HelpPage: React.FC = () => {
       icon: <HelpOutline color="primary" />,
       content: (
         <Box>
-          <Typography variant="h6" gutterBottom>
-            Часто задаваемые вопросы
-          </Typography>
-
           {faqItems.map((item, index) => (
             <Accordion key={index} sx={{ mb: 0.5 }}>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {item.question}
                 </Typography>
               </AccordionSummary>
@@ -528,215 +804,219 @@ export const HelpPage: React.FC = () => {
               </AccordionDetails>
             </Accordion>
           ))}
-
-          <Alert
-            severity="info"
-            sx={{ mt: 2, fontSize: isMobile ? "0.8rem" : "inherit" }}
-          >
-            Не нашли ответ на свой вопрос? Обратитесь в службу поддержки.
-          </Alert>
         </Box>
       ),
     },
   ];
 
   return (
-    <Box
-      sx={{
-        p: isMobile ? 1 : 2,
-        mt: isMobile ? 0 : -3,
-        mb: isMobile ? 2 : -3,
-        maxWidth: 1600,
-        mx: "auto",
-      }}
-    >
-      <Paper elevation={isMobile ? 0 : 1} sx={{ p: isMobile ? 1.5 : 2 }}>
-        <Typography
-          variant={isMobile ? "h4" : "h3"}
-          component="h1"
-          gutterBottom
-        >
-          Центр помощи
-        </Typography>
-        <Typography
-          variant={isMobile ? "body1" : "h6"}
-          color="text.secondary"
-          gutterBottom
-        >
-          Справка, поддержка и ответы на вопросы
-        </Typography>
-
-        <Divider sx={{ my: 2 }} />
-
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            variant="h6"
-            gutterBottom
-            sx={{ display: "flex", alignItems: "center", gap: 1 }}
-          >
-            <LiveHelp color="primary" />
-            Быстрая помощь
-          </Typography>
-
-          <TextField
-            fullWidth
-            placeholder="Поиск по справке..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            sx={{ mb: 2 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
+    <PublicPageLayout maxWidth="lg">
+      <Paper
+        elevation={isMobile ? 0 : 1}
+        sx={{
+          p: isMobile ? 1.5 : 3,
+          borderRadius: 2,
+          background: theme.palette.background.paper,
+        }}
+      >
+        {/* Заголовок */}
+        <Box sx={{ textAlign: "center", mb: 4 }}>
+          <MenuBook
+            color="primary"
+            sx={{
+              fontSize: 48,
+              mb: 2,
+              color: theme.palette.primary.main,
             }}
           />
-
-          <Typography variant="subtitle2" gutterBottom>
-            Популярные темы:
-          </Typography>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-            {popularTopics.map((topic) => (
-              <Chip
-                key={topic.label}
-                icon={topic.icon}
-                label={topic.label}
-                onClick={() => setExpandedSection(topic.section)}
-                variant="outlined"
-                sx={{ cursor: "pointer" }}
-              />
-            ))}
-          </Box>
-        </Box>
-
-        <Box sx={{ mb: 3 }}>
           <Typography
-            variant="h6"
+            variant={isMobile ? "h4" : "h3"}
+            component="h1"
             gutterBottom
-            sx={{ display: "flex", alignItems: "center", gap: 1 }}
-          >
-            <Support color="primary" />
-            Получить помощь
-          </Typography>
-
-          <Box
             sx={{
-              display: "flex",
-              flexDirection: isMobile ? "column" : "row",
-              gap: 2,
+              fontWeight: 700,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              backgroundClip: "text",
+              textFillColor: "transparent",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
-            <Card sx={{ flex: 1 }}>
-              <CardContent>
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
-                >
-                  <Telegram color="primary" />
-                  <Typography variant="h6">Telegram поддержка</Typography>
-                </Box>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  Напишите нашему боту для быстрой помощи
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<Telegram />}
-                  href="https://t.me/tiacore_support_bot"
-                  target="_blank"
-                  fullWidth
-                  sx={{ textTransform: "none" }}
-                >
-                  Написать в Telegram
-                </Button>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 1, display: "block" }}
-                >
-                  Обычно отвечаем в течение 15 минут
-                </Typography>
-              </CardContent>
-            </Card>
-
-            <Card sx={{ flex: 1 }}>
-              <CardContent>
-                <Box
-                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
-                >
-                  <Email color="primary" />
-                  <Typography variant="h6">Email поддержка</Typography>
-                </Box>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  Отправьте подробное описание проблемы
-                </Typography>
-                <Button
-                  variant="outlined"
-                  startIcon={<Email />}
-                  href="mailto:support@observer.com"
-                  fullWidth
-                  sx={{ textTransform: "none" }}
-                >
-                  Написать на email
-                </Button>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mt: 1, display: "block" }}
-                >
-                  Ответим в течение 24 часов
-                </Typography>
-              </CardContent>
-            </Card>
-          </Box>
+            Центр помощи Observer
+          </Typography>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ maxWidth: 600, mx: "auto" }}
+          >
+            Все, что нужно знать для эффективной работы с системой
+          </Typography>
         </Box>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider sx={{ mb: 4 }} />
 
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-        >
-          <MenuBook color="primary" />
-          Справочная информация
-        </Typography>
-
-        <Typography variant="body2" paragraph>
-          Observer помогает находить главное в ваших чатах и экономить время.
-          Настраивайте ботов для сбора сообщений, создавайте промпты для
-          анализа, получайте отчёты по расписанию и следите за активностью
-          участников.
-        </Typography>
-
-        {sections.map((section) => (
-          <Accordion
-            key={section.id}
-            expanded={expandedSection === section.id}
-            onChange={handleAccordionChange(section.id)}
-            sx={{ mb: 1 }}
+        {/* Блок поддержки */}
+        <Fade in={true} timeout={800}>
+          <Card
+            sx={{
+              mb: 4,
+              background: `linear-gradient(135deg, ${alpha(
+                theme.palette.primary.main,
+                0.1
+              )} 0%, ${alpha(theme.palette.secondary.main, 0.1)} 100%)`,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              borderRadius: 2,
+            }}
           >
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                {section.icon}
-                <Typography variant={isMobile ? "subtitle1" : "h6"}>
-                  {section.title}
-                </Typography>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: isMobile ? 1.5 : 2 }}>
-              {section.content}
-            </AccordionDetails>
-          </Accordion>
-        ))}
+            <CardContent sx={{ p: 3 }}>
+              <Stack
+                direction={isMobile ? "column" : "row"}
+                spacing={3}
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Stack direction="row" alignItems="center" spacing={1} mb={1}>
+                    <ContactSupport color="primary" />
+                    <Typography variant="h6" fontWeight={600}>
+                      Нужна помощь или хотите поделиться идеей?
+                    </Typography>
+                  </Stack>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Прежде чем писать в поддержку, проверьте разделы "Быстрый
+                    старт" и "Решение проблем" - там есть ответы на большинство
+                    вопросов
+                  </Typography>
+
+                  <Button
+                    variant="contained"
+                    startIcon={<Telegram />}
+                    href="https://t.me/tiacore_support_bot"
+                    target="_blank"
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: 2,
+                      px: 3,
+                      py: 1,
+                    }}
+                  >
+                    Написать в поддержку
+                  </Button>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: { xs: "none", md: "block" },
+                    flexShrink: 0,
+                  }}
+                >
+                  {/* <Support
+                    sx={{
+                      fontSize: 80,
+                      color: alpha(theme.palette.primary.main, 0.3),
+                    }}
+                  /> */}
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Fade>
+
+        {/* Содержание справки */}
+        <Box>
+          {sections.map((section) => (
+            <Accordion
+              key={section.id}
+              expanded={expandedSection === section.id}
+              onChange={handleAccordionChange(section.id)}
+              sx={{
+                mb: 1,
+                borderRadius: "12px !important",
+                "&:before": {
+                  display: "none",
+                },
+                "&.Mui-expanded": {
+                  margin: "16px 0",
+                },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMore />}
+                sx={{
+                  borderRadius: 2,
+                  backgroundColor:
+                    expandedSection === section.id
+                      ? alpha(theme.palette.primary.main, 0.05)
+                      : "transparent",
+                  "&:hover": {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.03),
+                  },
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Box sx={{ color: theme.palette.primary.main }}>
+                    {section.icon}
+                  </Box>
+                  <Typography variant="h6" fontWeight={600}>
+                    {section.title}
+                  </Typography>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ p: 3 }}>
+                {section.content}
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
+
+        {/* Дополнительная помощь */}
+        <Fade in={true} timeout={1200}>
+          <Card
+            sx={{
+              mt: 4,
+              p: 3,
+              textAlign: "center",
+              background: `linear-gradient(135deg, ${alpha(
+                theme.palette.success.main,
+                0.1
+              )} 0%, ${alpha(theme.palette.info.main, 0.1)} 100%)`,
+              border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+              borderRadius: 2,
+            }}
+          >
+            <Support color="success" sx={{ fontSize: 48, mb: 2 }} />
+            <Typography variant="h6" gutterBottom fontWeight={600}>
+              Все еще нужна помощь?
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Если вы не нашли ответ в руководстве, наша команда поддержки
+              всегда готова помочь вам
+            </Typography>
+            <Button
+              variant="outlined"
+              endIcon={<ArrowForward />}
+              href="https://t.me/tiacore_support_bot"
+              target="_blank"
+              sx={{
+                textTransform: "none",
+                borderRadius: 2,
+                borderColor: theme.palette.success.main,
+                color: theme.palette.success.main,
+                "&:hover": {
+                  backgroundColor: alpha(theme.palette.success.main, 0.1),
+                  borderColor: theme.palette.success.dark,
+                },
+              }}
+            >
+              Связаться с поддержкой
+            </Button>
+          </Card>
+        </Fade>
       </Paper>
-    </Box>
+    </PublicPageLayout>
   );
 };

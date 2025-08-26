@@ -25,7 +25,7 @@ import { useAuth } from "../../context/authContext";
 import { useUserDetailsQuery } from "../../hooks/users/useUsersQuery";
 import { IUserEdit, useUpdateUser } from "../../hooks/users/useUserMutations";
 import { EditUserModal } from "./userFormModal";
-import { getInitials } from "../../components/AppLayout";
+import { getInitials } from "../../components/appLayout/appLayout";
 
 // const getInitials = (fullName?: string) => {
 //   if (!fullName) return "?";

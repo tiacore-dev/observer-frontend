@@ -64,7 +64,9 @@ const AppContent: React.FC = () => {
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/accept-invite" element={<AcceptInvitePage />} />
                 <Route path="/invite" element={<InviteRegistrationPage />} />
+                <Route path="/subscriptions" element={<SubscriptionsPage />} />
 
+                <Route path="/help" element={<HelpPage />} />
                 <Route
                   element={
                     <ProtectedRoute

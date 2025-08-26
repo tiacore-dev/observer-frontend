@@ -1,35 +1,26 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
 import {
   Box,
-  Button,
   Card,
   CardActions,
   CardContent,
   CardHeader,
   Container,
   Typography,
-  Divider,
   Stack,
-  Paper,
-  Avatar,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   useTheme,
   CircularProgress,
-  Collapse,
-  IconButton,
 } from "@mui/material";
 import { useSubscriptionsQuery } from "../../hooks/subscriptions/useSubscriptionsQuery";
 import { useSubscriptionDetailsBySubscriptionQuery } from "../../hooks/subscriptionDetails/useSubscriptionDetailsQuery";
 import StarIcon from "@mui/icons-material/StarBorder";
 import CheckIcon from "@mui/icons-material/Check";
-import BusinessIcon from "@mui/icons-material/Business";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import DescriptionIcon from "@mui/icons-material/Description";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import PublicPageLayout from "../../components/publicLayout/publicPageLayout";
 
 const SubscriptionCard = ({ subscription }: { subscription: any }) => {
   const theme = useTheme();
@@ -135,18 +126,18 @@ export const SubscriptionsPage = () => {
 
   if (isLoading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box display="flex" justifyContent="center">
+      <PublicPageLayout maxWidth="lg">
+        <Box display="flex" justifyContent="center" sx={{ py: 4 }}>
           <CircularProgress />
         </Box>
-      </Container>
+      </PublicPageLayout>
     );
   }
 
   const subscriptions = subscriptionsData?.subscriptions || [];
 
   return (
-    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
+    <PublicPageLayout maxWidth={false} disableGutters>
       {/* Hero Section */}
       <Box
         sx={{
@@ -197,6 +188,6 @@ export const SubscriptionsPage = () => {
           ))}
         </Stack>
       </Container>
-    </Box>
+    </PublicPageLayout>
   );
 };

@@ -4,7 +4,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/authContext";
-import AppLayout from "./components/AppLayout";
+import AppLayout from "./components/appLayout/appLayout";
 import { CircularProgress, Box } from "@mui/material";
 
 interface ProtectedRouteProps {
@@ -25,11 +25,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       try {
         const isAuth = await checkAuth();
         if (!isAuth) {
-          navigate("/login", { replace: true });
+          // navigate("/login", { replace: true });
+          navigate("/", { replace: true });
         }
       } catch (error) {
         console.error("Auth verification failed:", error);
-        navigate("/login", { replace: true });
+        // navigate("/login", { replace: true });
+        navigate("/", { replace: true });
       } finally {
         setIsLoading(false);
       }

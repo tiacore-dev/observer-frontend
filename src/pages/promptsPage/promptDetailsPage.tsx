@@ -38,7 +38,7 @@ import { DeleteDialog } from "../../components/deleteDialog";
 import { DetailsPageSkeleton } from "../../components/skeleton/detailsPageSkeleton";
 import { useThemeMode } from "../../context/themeContext";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { getInitials } from "../../components/AppLayout";
+import { getInitials } from "../../components/appLayout/appLayout";
 
 export const PromptDetailsPage: React.FC<{ developerMode: boolean }> = ({
   developerMode,
