@@ -33,7 +33,8 @@ export const useAcceptInviteMutation = () => {
         error.response?.data?.message || "Ошибка при принятии приглашения",
         { variant: "error" }
       );
-      navigate("/login");
+      // navigate("/login");
+      navigate("/");
     },
   });
 };

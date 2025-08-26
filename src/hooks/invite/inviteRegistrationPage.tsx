@@ -105,7 +105,8 @@ export const InviteRegistrationPage: React.FC = () => {
           </Alert>
           <Button
             variant="contained"
-            onClick={() => navigate("/login")}
+            // onClick={() => navigate("/login")}
+            onClick={() => navigate("/")}
             fullWidth
           >
             Перейти на страницу входа

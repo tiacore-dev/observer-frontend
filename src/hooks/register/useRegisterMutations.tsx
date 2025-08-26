@@ -107,7 +107,8 @@ export const useResetPasswordMutation = () => {
         "Пароль успешно изменён. Теперь вы можете войти с новым паролем.",
         { variant: "success" }
       );
-      navigate("/login");
+      // navigate("/login");
+      navigate("/");
     },
     onError: (error: ApiError) => {
       const errorMessage =

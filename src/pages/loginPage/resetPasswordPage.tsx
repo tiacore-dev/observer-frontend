@@ -69,7 +69,11 @@ export const ResetPasswordPage: React.FC = () => {
           <Typography variant="body1" sx={{ mb: 2 }}>
             Ссылка для сброса пароля недействительна или отсутствует токен.
           </Typography>
-          <Button variant="contained" onClick={() => navigate("/login")}>
+          <Button
+            variant="contained"
+            // onClick={() => navigate("/login")}>
+            onClick={() => navigate("/")}
+          >
             Вернуться на страницу входа
           </Button>
         </Paper>
@@ -90,7 +94,8 @@ export const ResetPasswordPage: React.FC = () => {
     >
       <Button
         startIcon={<ArrowBack />}
-        onClick={() => navigate("/login")}
+        // onClick={() => navigate("/login")}
+        onClick={() => navigate("/")}
         sx={{ position: "absolute", left: 20, top: 20 }}
       >
         Вернуться

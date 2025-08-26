@@ -65,7 +65,8 @@ export const AcceptInvitePage: React.FC = () => {
             </Alert>
             <Button
               variant="contained"
-              onClick={() => navigate("/login")}
+              // onClick={() => navigate("/login")}
+              onClick={() => navigate("/")}
               size="large"
             >
               Перейти на страницу входа

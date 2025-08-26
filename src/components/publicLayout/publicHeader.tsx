@@ -114,7 +114,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ handleDrawerToggle }) => {
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <Button
           variant="outlined"
-          onClick={() => navigate("/login")}
+          // onClick={() => navigate("/login")}
+          onClick={() => navigate("/")}
           sx={{
             borderRadius: "8px",
             borderColor: theme.isDarkMode
@@ -135,7 +136,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ handleDrawerToggle }) => {
         </Button>
         <Button
           variant="contained"
-          onClick={() => navigate("/login")}
+          // onClick={() => navigate("/login")}
+          onClick={() => navigate("/")}
           sx={{
             borderRadius: "8px",
             background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
