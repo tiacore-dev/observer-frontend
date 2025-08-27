@@ -64,7 +64,7 @@ const SubscriptionCard = ({
   return (
     <Card
       sx={{
-        minHeight: isMobile ? "auto" : "450px",
+        minHeight: isMobile ? "auto" : "490px",
         display: "flex",
         flexDirection: "column",
         position: "relative",
@@ -152,6 +152,36 @@ const SubscriptionCard = ({
             </Box>
           ) : detailsData?.details && detailsData.details.length > 0 ? (
             <List disablePadding sx={{ mb: 1, flexGrow: 1 }}>
+              {/* Добавляем информацию о типе анализируемых сообщений */}
+              <ListItem sx={{ py: 0.3, px: 0, alignItems: "flex-start" }}>
+                <CheckIcon
+                  sx={{
+                    mr: 1,
+                    fontSize: 16,
+                    flexShrink: 0,
+                    mt: 1.25,
+                    color: theme.palette.primary.main,
+                  }}
+                />
+                <ListItemText
+                  primary={
+                    <Typography
+                      variant="body2"
+                      component="span"
+                      sx={{
+                        fontSize: "0.85rem",
+                        lineHeight: 1.4,
+                        color: "white",
+                      }}
+                    >
+                      {isFree
+                        ? "Анализ текстовых сообщений"
+                        : "Анализ текстовых и голосовых сообщений"}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+
               {detailsData.details.map((detail: any, index: number) => (
                 <ListItem
                   key={index}
@@ -162,7 +192,7 @@ const SubscriptionCard = ({
                       mr: 1,
                       fontSize: 16,
                       flexShrink: 0,
-                      mt: 0.2,
+                      mt: 1.25,
                       color: theme.palette.primary.main,
                     }}
                   />
@@ -367,6 +397,7 @@ export const SubscriptionsPage = () => {
               key={subscription.subscription_id}
               sx={{
                 flex: "1 1 0",
+
                 minWidth: isMobile ? "100%" : "360px", // Изменено: на мобильных занимает всю ширину
                 maxWidth: isMobile ? "100%" : "360px", // Изменено: на мобильных занимает всю ширину
               }}
