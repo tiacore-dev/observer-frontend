@@ -171,7 +171,8 @@ const SubscriptionCard = ({
                       sx={{
                         fontSize: "0.85rem",
                         lineHeight: 1.4,
-                        color: "white",
+                        color:
+                          theme.palette.mode === "dark" ? "white" : "black",
                       }}
                     >
                       {isFree
