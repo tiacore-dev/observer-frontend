@@ -1,7 +1,7 @@
 // src/pages/loginPage.tsx
 import React, { useCallback, useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Button,
   Typography,
@@ -39,6 +39,7 @@ export const LoginPage: React.FC = () => {
 
   const { login } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
   const [isResetPasswordModalVisible, setIsResetPasswordModalVisible] =
     useState(false);
@@ -206,6 +207,18 @@ export const LoginPage: React.FC = () => {
               onClick={() => setIsResetPasswordModalVisible(true)}
             >
               Не помню пароль
+            </Button>
+          </Box>
+
+          {/* Новая кнопка "Назад" */}
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Button
+              type="button"
+              variant="outlined"
+              color="secondary"
+              onClick={() => navigate(-1)}
+            >
+              Назад
             </Button>
           </Box>
         </form>

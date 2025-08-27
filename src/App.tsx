@@ -38,6 +38,7 @@ import { AcceptInvitePage } from "./pages/acceptInvitePage/acceptInvitePage";
 import { InviteRegistrationPage } from "./hooks/invite/inviteRegistrationPage";
 import { SubscriptionsPage } from "./pages/subscriptionsPage/subscriptionsPage";
 import { LandingPage } from "./pages/landingPage";
+import { CssBaseline } from "@mui/material";
 
 export interface PageProps {
   developerMode: boolean;
@@ -52,6 +53,7 @@ const AppContent: React.FC = () => {
 
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <QueryClientProvider client={queryClient}>
         <SnackbarProvider maxSnack={3}>
           <Router>
@@ -153,11 +155,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <Provider store={store}>
-      <ThemeModeProvider>
+    <ThemeModeProvider>
+      <Provider store={store}>
         <AppContent />
-      </ThemeModeProvider>
-    </Provider>
+      </Provider>
+    </ThemeModeProvider>
   );
 };
 

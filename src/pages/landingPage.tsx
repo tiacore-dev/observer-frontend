@@ -817,7 +817,7 @@ export const LandingPage: React.FC = () => {
                 </Typography>
               </Box>
 
-              {/* Объединенный столбец "Продукт" + "Тарифы/Справка" */}
+              {/* Объединенный столбец "Продукт" + "Тарифы/Помощь" */}
               <Box
                 sx={{
                   gridColumn: { md: "span 2" },
@@ -841,7 +841,7 @@ export const LandingPage: React.FC = () => {
                   </Typography>
                 </Box>
 
-                {/* Столбец "Тарифы/Справка" */}
+                {/* Столбец "Тарифы/Помощь" */}
                 <Box>
                   <Box
                     sx={{
@@ -892,7 +892,7 @@ export const LandingPage: React.FC = () => {
                           : "#64748b";
                       }}
                     >
-                      Справка
+                      Помощь
                     </Link>
                   </Box>
                 </Box>
@@ -1007,7 +1007,7 @@ export const LandingPage: React.FC = () => {
                 textAlign: { xs: "center", md: "left" },
               }}
             >
-              {/* Продукт и Справка */}
+              {/* Продукт и Помощь */}
               <Box
                 sx={{
                   display: "flex",
@@ -1074,7 +1074,7 @@ export const LandingPage: React.FC = () => {
                           : "#64748b";
                       }}
                     >
-                      Справка
+                      Помощь
                     </Link>
                   </Box>
                 </Box>

@@ -137,7 +137,7 @@ export const CompaniesPage: React.FC<PageProps> = ({ developerMode }) => {
       sx={{
         pl: isMobile ? 1 : 2,
         pr: isMobile ? 1 : 2,
-        mt: -1,
+        mt: 1.75,
         mb: -2,
         maxWidth: 1600,
         mx: "auto",

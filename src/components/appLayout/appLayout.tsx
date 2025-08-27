@@ -35,6 +35,7 @@ import {
 } from "@mui/icons-material";
 
 const drawerWidth = 205;
+const NAVBAR_HEIGHT = "70px";
 const LOGO_AVATAR_SIZE = 35;
 const LOGO_TEXT_VARIANT = "h6";
 const LOGO_CONTAINER_GAP = 1.5;
@@ -121,7 +122,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       { text: "Чаты", icon: <QuestionAnswerIcon />, path: "/chats" },
       { text: "Подписки", icon: <HotelClassIcon />, path: "/subscriptions" },
       {
-        text: "Справка",
+        text: "Помощь",
         icon: <Info />,
         path: "/help",
       },
@@ -153,7 +154,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             ]
           : []),
         { text: "Компании", icon: <Business />, path: "/companies" },
-        { text: "Справка", icon: <Info />, path: "/help" },
+        { text: "Помощь", icon: <Info />, path: "/help" },
       ];
     }
 
@@ -290,8 +291,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
                 borderColor: "divider",
                 left: "8px",
                 borderRadius: "16px",
-                top: "82px",
-                height: "calc(100% - 90px)",
+                top: `calc(${NAVBAR_HEIGHT} + 12px)`,
+                height: `calc(100% - ${NAVBAR_HEIGHT} - 20px)`,
               },
             }}
             open
@@ -313,10 +314,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         component="main"
         sx={{
           flexGrow: 1,
-          pt: "90px",
+          pt: NAVBAR_HEIGHT,
           pb: 3,
           width: { sm: isHomePage ? "100%" : `calc(100% - ${drawerWidth}px)` },
-          minHeight: "100vh",
+          minHeight: `calc(100vh - ${NAVBAR_HEIGHT})`,
           backgroundColor: isDarkMode
             ? alpha(theme.palette.grey[50], 0.3)
             : alpha(theme.palette.grey[50], 0.3),

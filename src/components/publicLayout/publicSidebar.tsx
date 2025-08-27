@@ -12,6 +12,7 @@ import {
   IconButton,
   Link,
   alpha,
+  useTheme,
 } from "@mui/material";
 import {
   Close,
@@ -36,6 +37,7 @@ export const PublicSidebar: React.FC<PublicSidebarProps> = ({
   onClose,
 }) => {
   const { isDarkMode, toggleTheme } = useThemeMode();
+  const theme = useTheme();
 
   const publicMenuItems = [
     {
@@ -44,7 +46,7 @@ export const PublicSidebar: React.FC<PublicSidebarProps> = ({
       path: "/subscriptions",
     },
     {
-      text: "Справка",
+      text: "Помощь",
       icon: <Help />,
       path: "/help",
     },
@@ -98,7 +100,7 @@ export const PublicSidebar: React.FC<PublicSidebarProps> = ({
               variant={LOGO_TEXT_VARIANT}
               noWrap
               component="div"
-              sx={{ fontWeight: "bold", color: "primary.main" }}
+              sx={{ fontWeight: "bold", color: theme.palette.primary.main }}
             >
               Observer
             </Typography>
@@ -121,13 +123,13 @@ export const PublicSidebar: React.FC<PublicSidebarProps> = ({
                   mx: 0.5,
                   py: 0.75,
                   "&.Mui-selected": {
-                    backgroundColor: alpha("#1976d2", 0.1),
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
                     "&:hover": {
-                      backgroundColor: alpha("#1976d2", 0.15),
+                      backgroundColor: alpha(theme.palette.primary.main, 0.15),
                     },
                   },
                   "&:hover": {
-                    backgroundColor: alpha("#1976d2", 0.05),
+                    backgroundColor: alpha(theme.palette.primary.main, 0.05),
                   },
                 }}
               >
@@ -194,9 +196,9 @@ export const PublicSidebar: React.FC<PublicSidebarProps> = ({
             <IconButton
               onClick={toggleTheme}
               sx={{
-                bgcolor: alpha("#1976d2", 0.1),
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
                 "&:hover": {
-                  bgcolor: alpha("#1976d2", 0.2),
+                  bgcolor: alpha(theme.palette.primary.main, 0.2),
                 },
                 borderRadius: 2,
                 padding: 0.8,

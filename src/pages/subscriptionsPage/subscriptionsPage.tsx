@@ -1,121 +1,281 @@
 "use client";
-
-import { useState } from "react";
 import {
   Box,
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   Container,
   Typography,
-  Stack,
   List,
   ListItem,
   ListItemText,
   useTheme,
   CircularProgress,
+  Button,
+  Chip,
+  Paper,
+  useMediaQuery,
 } from "@mui/material";
 import { useSubscriptionsQuery } from "../../hooks/subscriptions/useSubscriptionsQuery";
 import { useSubscriptionDetailsBySubscriptionQuery } from "../../hooks/subscriptionDetails/useSubscriptionDetailsQuery";
-import StarIcon from "@mui/icons-material/StarBorder";
 import CheckIcon from "@mui/icons-material/Check";
 import PublicPageLayout from "../../components/publicLayout/publicPageLayout";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/authContext";
 
-const SubscriptionCard = ({ subscription }: { subscription: any }) => {
+const SubscriptionCard = ({
+  subscription,
+  isPopular,
+}: {
+  subscription: any;
+  isPopular?: boolean;
+}) => {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState(false);
   const { data: detailsData, isLoading: isLoadingDetails } =
     useSubscriptionDetailsBySubscriptionQuery(subscription.subscription_id);
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const toggleExpand = () => {
-    setExpanded(!expanded);
+  const formatNumber = (value: any) => {
+    if (typeof value === "number") {
+      return value.toLocaleString("ru-RU");
+    }
+    return value;
   };
+
+  const getPriceDisplay = () => {
+    if (subscription.price === 0) {
+      return { price: "Бесплатно", period: "" };
+    }
+    if (subscription.price === -1) {
+      return { price: "По запросу", period: "" };
+    }
+    return {
+      price: `${subscription.price.toLocaleString()} ₽`,
+      period: "/месяц",
+    };
+  };
+
+  const { price, period } = getPriceDisplay();
+  const isCustom = subscription.price === -1;
+  const isFree = subscription.price === 0;
+  const { isAuthenticated } = useAuth();
 
   return (
     <Card
       sx={{
-        height: "100%",
+        minHeight: isMobile ? "auto" : "450px",
         display: "flex",
         flexDirection: "column",
-        transition: "transform 0.3s, box-shadow 0.3s",
-        "&:hover": {
-          transform: "translateY(-5px)",
-          boxShadow: theme.shadows[6],
-        },
+        position: "relative",
+        border: isPopular
+          ? `2px solid ${theme.palette.primary.main}`
+          : `1px solid ${theme.palette.divider}`,
+        borderRadius: 2,
+        backgroundColor: theme.palette.background.paper,
+        width: isMobile ? "100%" : "auto", // Изменено: на мобильных занимает всю ширину
+        flexShrink: 0,
       }}
     >
-      <CardHeader
-        title={subscription.subscription_name}
-        titleTypographyProps={{ align: "center", variant: "h5" }}
-        subheaderTypographyProps={{ align: "center" }}
-        action={subscription.popular ? <StarIcon color="primary" /> : null}
-        sx={{
-          backgroundColor:
-            theme.palette.mode === "light"
-              ? theme.palette.grey[200]
-              : theme.palette.grey[700],
-          py: 3,
-        }}
-      />
-      <CardContent sx={{ flexGrow: 1 }}>
+      {isPopular && (
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "baseline",
-            mb: 2,
+            position: "absolute",
+            top: 12,
+            right: 12,
+            zIndex: 1,
           }}
         >
-          <Typography component="h3" variant="h4" color="text.primary">
-            {subscription.price} {"руб. "}
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            /месяц
-          </Typography>
+          <Chip
+            label="Популярное"
+            size="small"
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              color: "white",
+              fontWeight: 600,
+              fontSize: "0.7rem",
+            }}
+          />
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "baseline",
-            mb: 2,
-          }}
-        >
-          <Typography> {`${subscription.description}`} </Typography>
-        </Box>
-        <List disablePadding>
-          <>
+      )}
+
+      <CardContent sx={{ flexGrow: 1, p: isMobile ? 2 : 2.5 }}>
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              mb: 1,
+              color: theme.palette.text.primary,
+              fontSize: isMobile ? "1.1rem" : "1.25rem",
+            }}
+          >
+            {subscription.subscription_name}
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "baseline", mb: 1.5 }}>
             <Typography
-              variant="subtitle1"
-              gutterBottom
-              sx={{ display: "flex", alignItems: "center" }}
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: theme.palette.text.primary,
+                mr: 0.5,
+                fontSize: isMobile ? "1.8rem" : "2rem",
+              }}
             >
-              <CheckIcon color="primary" sx={{ mr: 1 }} />
-              Что включено:
+              {price}
             </Typography>
-            {detailsData?.details && detailsData.details.length > 0 ? (
-              <List>
-                {detailsData.details.map((detail: any, index: number) => (
-                  <ListItem key={index} sx={{ py: 0.5 }}>
-                    <ListItemText
-                      primary={`${detail.entity_name} (${detail.bd_table})`}
-                      secondary={`Ограничение: ${detail.restriction}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
+            {period && (
               <Typography variant="body2" color="text.secondary">
-                Нет доступных деталей для этой подписки
+                {period}
               </Typography>
             )}
-          </>
-        </List>
+          </Box>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mb: 2,
+              fontSize: "0.875rem",
+              lineHeight: 1.5,
+            }}
+          >
+            {subscription.description}
+          </Typography>
+        </Box>
+
+        <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+          {isLoadingDetails ? (
+            <Box display="flex" justifyContent="center" py={1}>
+              <CircularProgress size={16} />
+            </Box>
+          ) : detailsData?.details && detailsData.details.length > 0 ? (
+            <List disablePadding sx={{ mb: 1, flexGrow: 1 }}>
+              {detailsData.details.map((detail: any, index: number) => (
+                <ListItem
+                  key={index}
+                  sx={{ py: 0.3, px: 0, alignItems: "flex-start" }}
+                >
+                  <CheckIcon
+                    sx={{
+                      mr: 1,
+                      fontSize: 16,
+                      flexShrink: 0,
+                      mt: 0.2,
+                      color: theme.palette.primary.main,
+                    }}
+                  />
+                  <ListItemText
+                    primary={
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        sx={{ fontSize: "0.85rem", lineHeight: 1.4 }}
+                      >
+                        <Box
+                          component="span"
+                          sx={{
+                            fontWeight: 600,
+                            color: theme.palette.text.primary,
+                          }}
+                        >
+                          {formatNumber(detail.restriction)}
+                        </Box>
+                        {detail.description && (
+                          <Box
+                            component="span"
+                            sx={{
+                              color: theme.palette.text.secondary,
+                              ml: 0.5,
+                            }}
+                          >
+                            {" "}
+                            {detail.description}
+                          </Box>
+                        )}
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Box sx={{ mb: 2, flexGrow: 1 }}>
+              {isCustom ? (
+                <Box sx={{ textAlign: "left" }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 1, fontSize: "0.85rem" }}
+                  >
+                    ✓ Подберем функционал под ваши потребности.
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: "0.85rem" }}
+                >
+                  Свяжитесь с нами, чтобы узнать подробности тарифа.
+                </Typography>
+              )}
+            </Box>
+          )}
+        </Box>
       </CardContent>
-      <CardActions
-        sx={{ justifyContent: "center", pb: 2, flexDirection: "column" }}
-      ></CardActions>
+
+      <CardActions sx={{ p: isMobile ? 2 : 2.5, pt: 0 }}>
+        {isCustom ? (
+          <Button
+            href="https://t.me/tiacore_support_bot"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{
+              py: 0.75,
+              fontWeight: 500,
+              textTransform: "none",
+              borderRadius: 1.5,
+              fontSize: "0.875rem",
+            }}
+          >
+            Связаться с нами
+          </Button>
+        ) : isFree ? (
+          <Button
+            onClick={() => navigate("/login")}
+            variant={!isAuthenticated ? "contained" : "outlined"}
+            color="primary"
+            fullWidth
+            sx={{
+              py: 0.75,
+              fontWeight: 500,
+              textTransform: "none",
+              borderRadius: 1.5,
+              fontSize: "0.875rem",
+            }}
+          >
+            {!isAuthenticated ? "Начать бесплатно" : "Текущий тариф"}
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{
+              py: 0.75,
+              fontWeight: 500,
+              textTransform: "none",
+              borderRadius: 1.5,
+              fontSize: "0.875rem",
+            }}
+          >
+            Выбрать тариф
+          </Button>
+        )}
+      </CardActions>
     </Card>
   );
 };
@@ -123,70 +283,101 @@ const SubscriptionCard = ({ subscription }: { subscription: any }) => {
 export const SubscriptionsPage = () => {
   const { data: subscriptionsData, isLoading } = useSubscriptionsQuery();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (isLoading) {
     return (
       <PublicPageLayout maxWidth="lg">
-        <Box display="flex" justifyContent="center" sx={{ py: 4 }}>
-          <CircularProgress />
+        <Box display="flex" justifyContent="center" sx={{ py: 8 }}>
+          <CircularProgress size={48} />
         </Box>
       </PublicPageLayout>
     );
   }
 
   const subscriptions = subscriptionsData?.subscriptions || [];
+  const reorderedSubscriptions = [...subscriptions.slice(1), subscriptions[0]];
+
+  const popularPlanIndex = Math.floor(reorderedSubscriptions.length / 2);
 
   return (
     <PublicPageLayout maxWidth={false} disableGutters>
-      {/* Hero Section */}
-      <Box
-        sx={{
-          pt: 8,
-          pb: 6,
-          background:
-            theme.palette.mode === "dark"
-              ? "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)"
-              : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          color: "white",
-        }}
-      >
-        <Container maxWidth="sm">
+      <Box sx={{ mt: -1.25 }}>
+        <Paper
+          elevation={1}
+          sx={{
+            p: isMobile ? 1.5 : 2.5,
+            mb: 2,
+            mr: 1,
+            ml: isMobile ? 1 : 2,
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, #6366f1aa 0%, #8b5cf6aa 100%)"
+                : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+          }}
+        >
           <Typography
             component="h1"
             variant="h2"
             align="center"
             gutterBottom
-            sx={{ fontWeight: 700 }}
+            sx={{
+              fontWeight: 700,
+              mb: 1.5,
+              mt: 1,
+              fontSize: { xs: "1.75rem", md: "2.25rem" },
+              color: "white",
+            }}
           >
-            Доступные подписки
+            Тарифные планы
           </Typography>
-          <Typography variant="h5" align="center" sx={{ opacity: 0.9 }}>
-            Выберите подходящий тарифный план для вашей компании
+          <Typography
+            variant="h6"
+            align="center"
+            sx={{
+              fontWeight: 400,
+              lineHeight: 1.4,
+              maxWidth: 600,
+              mx: "auto",
+              mb: 2,
+              color: "white",
+              fontSize: { xs: "0.95rem", md: "1.1rem" },
+            }}
+          >
+            Вы можете начать бесплатно уже сейчас. Переходите на более высокий
+            тариф, чтобы получить больше возможностей использования и совместной
+            работы.
           </Typography>
-        </Container>
+        </Paper>
       </Box>
 
-      {/* Subscription Cards */}
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={4}
-          alignItems="stretch"
-          justifyContent="center"
+      <Container maxWidth="lg">
+        <Box
+          sx={{
+            display: "flex",
+            gap: isMobile ? 1 : 2,
+            flexWrap: "wrap",
+            justifyContent: "center",
+            alignContent: "stretch",
+          }}
         >
-          {subscriptions.map((subscription) => (
+          {reorderedSubscriptions.map((subscription, index) => (
             <Box
               key={subscription.subscription_id}
               sx={{
-                width: { xs: "100%", md: "33%" },
-                maxWidth: 400,
-                mx: "auto",
+                flex: "1 1 0",
+                minWidth: isMobile ? "100%" : "360px", // Изменено: на мобильных занимает всю ширину
+                maxWidth: isMobile ? "100%" : "360px", // Изменено: на мобильных занимает всю ширину
               }}
             >
-              <SubscriptionCard subscription={subscription} />
+              <SubscriptionCard
+                subscription={subscription}
+                isPopular={index === popularPlanIndex}
+              />
             </Box>
           ))}
-        </Stack>
+        </Box>
       </Container>
     </PublicPageLayout>
   );

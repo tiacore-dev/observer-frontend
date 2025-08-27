@@ -9,11 +9,11 @@ import ConditionalNavbar from "./conditionalNavbar";
 import AppLayout from "../appLayout/appLayout";
 import { PublicSidebar } from "./publicSidebar";
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 205;
+const NAVBAR_HEIGHT = "70px";
 
 interface PublicPageLayoutProps {
   children: React.ReactNode;
-  // Optional props for authenticated users when they need specific functionality
   handleDrawerToggle?: () => void;
   handleProfileMenuOpen?: (event: React.MouseEvent<HTMLElement>) => void;
   developerMode?: boolean;
@@ -89,33 +89,37 @@ const PublicPageLayout: React.FC<PublicPageLayoutProps> = ({
         handleAddCompanyClick={handleAddCompanyClick}
       />
 
-      <Box sx={{ display: "flex", flexGrow: 1, pt: "70px" }}>
-        <Box
-          component="nav"
-          sx={{
-            width: { sm: DRAWER_WIDTH },
-            flexShrink: { sm: 0 },
-            display: { xs: "none", sm: "block" },
-          }}
-        >
-          <Drawer
-            variant="permanent"
+      <Box sx={{ display: "flex", flexGrow: 1, pt: NAVBAR_HEIGHT }}>
+        {!isMobile && (
+          <Box
+            component="nav"
             sx={{
-              "& .MuiDrawer-paper": {
-                boxSizing: "border-box",
-                width: DRAWER_WIDTH,
-                top: "70px",
-                height: "calc(100vh - 70px)",
-                borderRight: 1,
-                borderColor: "divider",
-                backgroundColor: theme.isDarkMode ? "#1e293b" : "#ffffff",
-              },
+              width: { sm: DRAWER_WIDTH },
+              flexShrink: { sm: 0 },
+              display: { xs: "none", sm: "block" },
             }}
-            open
           >
-            <PublicSidebar isMobile={false} />
-          </Drawer>
-        </Box>
+            <Drawer
+              variant="permanent"
+              sx={{
+                "& .MuiDrawer-paper": {
+                  boxSizing: "border-box",
+                  width: DRAWER_WIDTH,
+                  borderRight: 1,
+                  borderColor: "divider",
+                  backgroundColor: theme.isDarkMode ? "#1e293b" : "#ffffff",
+                  left: "8px",
+                  borderRadius: "16px",
+                  top: `calc(${NAVBAR_HEIGHT} + 12px)`,
+                  height: `calc(100% - ${NAVBAR_HEIGHT} - 20px)`,
+                },
+              }}
+              open
+            >
+              <PublicSidebar isMobile={false} />
+            </Drawer>
+          </Box>
+        )}
 
         <Drawer
           variant="temporary"
@@ -128,8 +132,13 @@ const PublicPageLayout: React.FC<PublicPageLayoutProps> = ({
             display: { xs: "block", sm: "none" },
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
-              width: DRAWER_WIDTH,
-              backgroundColor: theme.isDarkMode ? "#1e293b" : "#ffffff",
+              width: "100%",
+              height: "100%",
+              border: "none",
+              backgroundColor: theme.isDarkMode
+                ? muiTheme.palette.background.default
+                : muiTheme.palette.background.paper,
+              zIndex: (theme) => theme.zIndex.drawer + 5,
             },
           }}
         >
@@ -141,7 +150,8 @@ const PublicPageLayout: React.FC<PublicPageLayoutProps> = ({
           sx={{
             flexGrow: 1,
             width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
-            minHeight: "calc(100vh - 70px)",
+            minHeight: `calc(100vh - ${NAVBAR_HEIGHT})`,
+            backgroundColor: theme.isDarkMode ? "#0f172a" : "#f8fafc",
           }}
         >
           <Container

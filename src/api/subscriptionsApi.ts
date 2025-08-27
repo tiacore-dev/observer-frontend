@@ -46,6 +46,7 @@ export const fetchSubscriptions = async (params?: {
   const queryParams = {
     page: 1,
     page_size: 100,
+    sort_by: "price",
   };
 
   const response = await axiosInstance.get(`${url}/api/subscriptions/all`, {

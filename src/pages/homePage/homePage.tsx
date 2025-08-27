@@ -181,7 +181,7 @@ export const HomePage: React.FC = () => {
       enabled: hasCompanies && hasBots,
     },
     {
-      title: "Справка",
+      title: "Помощь",
       description: "Справочная информация",
       icon: <Info />,
       color: "#6366f1",
@@ -533,7 +533,7 @@ export const HomePage: React.FC = () => {
                 </Typography>
               </Box>
 
-              {/* Объединенный столбец "Продукт" + "Тарифы/Справка" */}
+              {/* Объединенный столбец "Продукт" + "Тарифы/Помощь" */}
               <Box
                 sx={{
                   gridColumn: { md: "span 2" },
@@ -557,7 +557,7 @@ export const HomePage: React.FC = () => {
                   </Typography>
                 </Box>
 
-                {/* Столбец "Тарифы/Справка" */}
+                {/* Столбец "Тарифы/Помощь" */}
                 <Box>
                   <Box
                     sx={{
@@ -608,7 +608,7 @@ export const HomePage: React.FC = () => {
                           : "#64748b";
                       }}
                     >
-                      Справка
+                      Помощь
                     </Link>
                   </Box>
                 </Box>
@@ -724,7 +724,7 @@ export const HomePage: React.FC = () => {
                 textAlign: { xs: "center", md: "left" },
               }}
             >
-              {/* Продукт и Справка */}
+              {/* Продукт и Помощь */}
               <Box
                 sx={{
                   display: "flex",
@@ -791,7 +791,7 @@ export const HomePage: React.FC = () => {
                           : "#64748b";
                       }}
                     >
-                      Справка
+                      Помощь
                     </Link>
                   </Box>
                 </Box>

@@ -71,10 +71,11 @@ export const FloatingHelpButton: React.FC = () => {
       <Fab
         color="primary"
         onClick={handleClick}
+        size="small"
         sx={{
           position: "fixed",
-          bottom: isMobile ? 16 : 20,
-          right: isMobile ? 16 : 20,
+          bottom: isMobile ? 16 : 52,
+          right: isMobile ? 16 : 8,
           zIndex: 1000,
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           "&:hover": {
