@@ -202,7 +202,7 @@ export const HomePage: React.FC = () => {
           p: { xs: 1, sm: 3 },
           maxWidth: 1600,
           mx: "auto",
-          mt: { xs: -2, sm: -3 },
+          // mt: { xs: -2, sm: -3 },
         }}
       >
         {/* Приветствие */}
