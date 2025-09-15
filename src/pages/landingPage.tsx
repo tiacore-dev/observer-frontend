@@ -985,8 +985,6 @@ export const LandingPage: React.FC = () => {
         </Box>
       )}
       {isMobile && (
-        // Footer - замените текущий футер на этот код
-        // Footer - замените текущий футер на этот код
         <Box
           sx={{
             py: 3,

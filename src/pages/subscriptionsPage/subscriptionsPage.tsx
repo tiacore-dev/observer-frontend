@@ -287,6 +287,7 @@ const SubscriptionCard = ({
               borderRadius: 1.5,
               fontSize: "0.875rem",
             }}
+            disabled={isAuthenticated}
           >
             {!isAuthenticated ? "Начать бесплатно" : "Текущий тариф"}
           </Button>
