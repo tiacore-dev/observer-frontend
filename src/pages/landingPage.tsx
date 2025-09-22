@@ -944,7 +944,7 @@ export const LandingPage: React.FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.style.color = theme.isDarkMode
                           ? "#6366f1"
-                          : "#6366f1";
+                          : "#6366f2";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.color = theme.isDarkMode
